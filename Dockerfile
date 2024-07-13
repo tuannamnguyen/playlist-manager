@@ -25,6 +25,7 @@ RUN apt-get update \
 WORKDIR /
 
 COPY --from=build-stage /playlist-manager /playlist-manager
+COPY ./.env.vault /.env.vault
 
 EXPOSE 8080
 

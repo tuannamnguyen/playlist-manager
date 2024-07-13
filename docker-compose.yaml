@@ -1,5 +1,10 @@
 services:
   app:
    build: .
+   volumes:
+      - type: bind
+        source: .env
+        target: /.env
+        read_only: true
    ports:
      - 8080:8080
