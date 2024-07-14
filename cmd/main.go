@@ -22,6 +22,7 @@ func main() {
 		log.Fatal("error reading .env")
 	}
 
+	// setup server
 	e := echo.New()
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM)
 	defer stop()
