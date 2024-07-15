@@ -19,7 +19,7 @@ func main() {
 	// setup .env
 	err := godotenvvault.Load()
 	if err != nil {
-		log.Fatal("error reading .env")
+		log.Fatalf("error reading .env: %v", err)
 	}
 
 	// setup server

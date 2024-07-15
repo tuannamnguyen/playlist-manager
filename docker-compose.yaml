@@ -3,7 +3,7 @@ services:
    build: .
    volumes:
       - type: bind
-        source: .env
+        source: ./cmd/api/.env
         target: /.env
         read_only: true
    ports:

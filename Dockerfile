@@ -6,7 +6,7 @@ COPY ./ ./
 
 RUN go mod download
 
-RUN CGO_ENABLED=0 GOOS=linux go build -C ./cmd -o /playlist-manager
+RUN CGO_ENABLED=0 GOOS=linux go build -C ./cmd/api -o /playlist-manager
 
 # Run tests
 FROM build-stage AS run-test-stage
@@ -23,7 +23,7 @@ RUN apt-get update \
 WORKDIR /
 
 COPY --from=build-stage /playlist-manager /playlist-manager
-COPY ./.env.vault /.env.vault
+COPY ./cmd/api/.env.vault /.env.vault
 
 EXPOSE 8080
 
