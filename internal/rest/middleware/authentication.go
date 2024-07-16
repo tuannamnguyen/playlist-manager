@@ -8,22 +8,24 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type Validator struct {
+type ScopeValidator struct {
 	Scopes []string
 }
 
-func NewValidator(scopes ...string) *Validator {
-	return &Validator{Scopes: scopes}
+func NewScopeValidator(scopes ...string) *ScopeValidator {
+	return &ScopeValidator{Scopes: scopes}
 }
 
-func (v *Validator) CheckTokenHasScopes(next echo.HandlerFunc) echo.HandlerFunc {
+func (v *ScopeValidator) CheckTokenHasScopes(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		token := c.Request().Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
 
 		claims := token.CustomClaims.(*CustomClaims)
 		for _, scope := range v.Scopes {
 			if !claims.HasScope(scope) {
-				return c.JSON(http.StatusForbidden, []byte(`{"message":"Insufficient scope."}`))
+				return c.JSON(http.StatusForbidden, map[string]string{
+					"message": "Insufficient scope.",
+				})
 			}
 		}
 
