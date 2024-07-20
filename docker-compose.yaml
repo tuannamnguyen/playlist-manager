@@ -8,3 +8,24 @@ services:
         read_only: true
    ports:
      - 8080:8080
+
+  db:
+   image: postgres
+   env_file: ./cmd/api/.env
+   volumes:
+     - pgdata:/var/lib/postgresql/data
+     - type: bind
+       source: ./script.sql
+       target: /docker-entrypoint-initdb.d/script.sql
+       read_only: true
+   ports:
+     - 5432:5432
+
+  pgadmin4:
+   image: elestio/pgadmin
+   env_file: ./cmd/api/.env
+   ports:
+   - 5433:5433
+
+volumes:
+  pgdata:
