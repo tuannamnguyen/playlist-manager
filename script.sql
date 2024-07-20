@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS playlist (
   playlist_name VARCHAR(50) NOT NULL,
   user_id VARCHAR(50) NOT NULL,
   PRIMARY KEY (playlist_id),
-  FOREIGN KEY (user_id) REFERENCES users(user_id)
+  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS song (
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS playlist_song (
   song_id VARCHAR(50) NOT NULL,
   PRIMARY KEY (playlist_id, song_id),
   FOREIGN KEY (playlist_id) REFERENCES playlist(playlist_id),
-  FOREIGN KEY (song_id) REFERENCES song(song_id)
+  FOREIGN KEY (song_id) REFERENCES song(song_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS album_song (
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS album_song (
   album_id VARCHAR(50) NOT NULL,
   PRIMARY KEY (song_id, album_id),
   FOREIGN KEY (song_id) REFERENCES song(song_id),
-  FOREIGN KEY (album_id) REFERENCES album(album_id)
+  FOREIGN KEY (album_id) REFERENCES album(album_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS artist_album (
@@ -67,5 +67,5 @@ CREATE TABLE IF NOT EXISTS artist_album (
   album_id VARCHAR(50) NOT NULL,
   PRIMARY KEY (artist_id, album_id),
   FOREIGN KEY (artist_id) REFERENCES artist(artist_id),
-  FOREIGN KEY (album_id) REFERENCES album(album_id)
+  FOREIGN KEY (album_id) REFERENCES album(album_id) ON DELETE CASCADE
 );
