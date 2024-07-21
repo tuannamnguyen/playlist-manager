@@ -7,7 +7,9 @@ services:
         target: /.env
         read_only: true
    depends_on:
-     - db
+     db:
+      condition: service_healthy
+      restart: true
    ports:
      - 8080:8080
 
@@ -22,6 +24,11 @@ services:
        read_only: true
    ports:
      - 5432:5432
+   healthcheck:
+      test: ["CMD-SHELL", "psql -U postgres -d postgres -c 'SELECT 1' || exit 1"]
+      interval: 3s
+      timeout: 10s
+      retries: 5
 
   pgadmin4:
    image: elestio/pgadmin

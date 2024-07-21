@@ -34,7 +34,7 @@ func main() {
 		os.Getenv("POSTGRES_PORT"),
 		os.Getenv("POSTGRES_USER"),
 		os.Getenv("POSTGRES_PASSWORD"),
-		os.Getenv("POSTGRES_DB"),
+		"playlist_manager",
 	)
 	db, err := sqlx.Connect("pgx", psqlInfo)
 	if err != nil {
