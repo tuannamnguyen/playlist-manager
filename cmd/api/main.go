@@ -11,9 +11,14 @@ import (
 	"time"
 
 	"github.com/dotenv-org/godotenvvault"
+	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/tuannamnguyen/playlist-manager/internal/repository"
+	"github.com/tuannamnguyen/playlist-manager/internal/rest"
 	internalMiddleware "github.com/tuannamnguyen/playlist-manager/internal/rest/middleware"
+	"github.com/tuannamnguyen/playlist-manager/internal/service"
 )
 
 func main() {
@@ -23,12 +28,26 @@ func main() {
 		log.Fatalf("error reading .env: %v", err)
 	}
 
+	// setup DB
+	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s",
+		os.Getenv("POSTGRES_HOST"),
+		os.Getenv("POSTGRES_PORT"),
+		os.Getenv("POSTGRES_USER"),
+		os.Getenv("POSTGRES_PASSWORD"),
+		os.Getenv("POSTGRES_DB"),
+	)
+	db, err := sqlx.Connect("pgx", psqlInfo)
+	if err != nil {
+		log.Fatalf("Unable to connect to database: %v\n", err)
+	}
+	defer db.Close()
+
 	// setup server
 	e := echo.New()
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM)
 	defer stop()
 
-	go startServer(e)
+	go startServer(e, db)
 
 	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 10 seconds.
 	<-ctx.Done()
@@ -39,29 +58,43 @@ func main() {
 	}
 }
 
-func startServer(e *echo.Echo) {
+func startServer(e *echo.Echo, db *sqlx.DB) {
 	e.Use(middleware.Logger())
 
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, fmt.Sprintf("%s, World!", os.Getenv("HELLO")))
 	})
 
-	setupAPIRouter(e)
+	setupAPIRouter(e, db)
 
 	if err := e.Start(":8080"); err != nil && err != http.ErrServerClosed {
 		e.Logger.Fatal("shutting down the server")
 	}
 }
 
-func setupAPIRouter(e *echo.Echo) {
-	endpointValidator := internalMiddleware.NewScopeValidator()
+func setupAPIRouter(e *echo.Echo, db *sqlx.DB) {
+	rootEndpointValidator := internalMiddleware.NewScopeValidator()
 
 	apiRouter := e.Group("/api",
-		echo.WrapMiddleware(internalMiddleware.EnsureValidToken()),
-		endpointValidator.CheckTokenHasScopes,
+		internalMiddleware.EnsureValidTokenMiddleware,
+		rootEndpointValidator.CheckTokenHasScopes,
 	)
 
 	apiRouter.GET("/test", func(c echo.Context) error {
 		return c.String(http.StatusOK, "You have been authenticated")
 	})
+
+	// setup playlist endpoint
+	playlistRepository := repository.NewPlaylistRepository(db)
+	playlistService := service.NewPlaylist(playlistRepository)
+	playlistHandler := rest.NewPlaylistHandler(playlistService)
+
+	playlistEndpointValidator := internalMiddleware.NewScopeValidator()
+
+	playlistRouter := apiRouter.Group("/playlist",
+		internalMiddleware.EnsureValidTokenMiddleware,
+		playlistEndpointValidator.CheckTokenHasScopes,
+	)
+
+	playlistRouter.POST("/", playlistHandler.Add)
 }
