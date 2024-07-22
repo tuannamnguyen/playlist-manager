@@ -12,7 +12,10 @@ import (
 	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
 	"github.com/auth0/go-jwt-middleware/v2/jwks"
 	"github.com/auth0/go-jwt-middleware/v2/validator"
+	"github.com/labstack/echo/v4"
 )
+
+var EnsureValidTokenMiddleware = echo.WrapMiddleware(EnsureValidToken())
 
 // CustomClaims contains custom data we want from the token.
 type CustomClaims struct {
