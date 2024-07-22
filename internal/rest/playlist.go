@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -25,12 +26,12 @@ func (p *PlaylistHandler) Add(c echo.Context) error {
 	var playlist model.Playlist
 	err := c.Bind(&playlist)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error: %v", err))
 	}
 
 	err = p.Service.Add(&playlist)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error: %v", err))
 	}
 
 	return c.JSON(http.StatusCreated, playlist)

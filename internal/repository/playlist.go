@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -20,11 +21,11 @@ func (p *PlaylistRepository) Add(playlistModel *model.Playlist) error {
 	playlistModel.CreatedAt = time.Now()
 
 	_, err := p.db.NamedExec(
-		`INSERT INTO playlist (playlist_id, playlist_name, user_id)
+		`INSERT INTO playlist (playlist_id, playlist_name, user_id, updated_at, created_at)
 		VALUES (:ID, :Name, :UserID, :UpdatedAt, :CreatedAt)
 		RETURNING id`,
 		playlistModel,
 	)
 
-	return err
+	return fmt.Errorf("add playlist to db: %w", err)
 }
