@@ -22,7 +22,7 @@ func (p *PlaylistRepository) Add(playlistModel *model.Playlist) error {
 
 	_, err := p.db.NamedExec(
 		`INSERT INTO playlist (playlist_id, playlist_name, user_id, updated_at, created_at)
-		VALUES (:ID, :Name, :UserID, :UpdatedAt, :CreatedAt)
+		VALUES (:playlist_id, :playlist_name, :user_id, :updated_at, :created_at)
 		RETURNING id`,
 		playlistModel,
 	)
