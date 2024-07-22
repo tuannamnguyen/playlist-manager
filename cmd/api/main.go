@@ -17,7 +17,6 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/tuannamnguyen/playlist-manager/internal/repository"
 	"github.com/tuannamnguyen/playlist-manager/internal/rest"
-	internalMiddleware "github.com/tuannamnguyen/playlist-manager/internal/rest/middleware"
 	"github.com/tuannamnguyen/playlist-manager/internal/service"
 )
 
@@ -73,12 +72,7 @@ func startServer(e *echo.Echo, db *sqlx.DB) {
 }
 
 func setupAPIRouter(e *echo.Echo, db *sqlx.DB) {
-	rootEndpointValidator := internalMiddleware.NewScopeValidator()
-
-	apiRouter := e.Group("/api",
-		internalMiddleware.EnsureValidTokenMiddleware,
-		rootEndpointValidator.CheckTokenHasScopes,
-	)
+	apiRouter := e.Group("/api")
 
 	apiRouter.GET("/test", func(c echo.Context) error {
 		return c.String(http.StatusOK, "You have been authenticated")
@@ -89,12 +83,7 @@ func setupAPIRouter(e *echo.Echo, db *sqlx.DB) {
 	playlistService := service.NewPlaylist(playlistRepository)
 	playlistHandler := rest.NewPlaylistHandler(playlistService)
 
-	playlistEndpointValidator := internalMiddleware.NewScopeValidator()
+	playlistRouter := apiRouter.Group("/playlist")
 
-	playlistRouter := apiRouter.Group("/playlist",
-		internalMiddleware.EnsureValidTokenMiddleware,
-		playlistEndpointValidator.CheckTokenHasScopes,
-	)
-
-	playlistRouter.POST("/", playlistHandler.Add)
+	playlistRouter.POST("", playlistHandler.Add)
 }
