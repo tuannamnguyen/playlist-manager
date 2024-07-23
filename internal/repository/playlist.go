@@ -16,7 +16,7 @@ func NewPlaylistRepository(db *sqlx.DB) *PlaylistRepository {
 	return &PlaylistRepository{db}
 }
 
-func (p *PlaylistRepository) Insert(playlistModel *model.Playlist) error {
+func (p *PlaylistRepository) Insert(playlistModel model.Playlist) error {
 	playlistModel.UpdatedAt = time.Now()
 	playlistModel.CreatedAt = time.Now()
 
@@ -24,7 +24,7 @@ func (p *PlaylistRepository) Insert(playlistModel *model.Playlist) error {
 		`INSERT INTO playlist (playlist_id, playlist_name, user_id, updated_at, created_at)
 		VALUES (:playlist_id, :playlist_name, :user_id, :updated_at, :created_at)
 		RETURNING playlist_id`,
-		playlistModel,
+		&playlistModel,
 	)
 
 	if err != nil {
@@ -56,4 +56,15 @@ func (p *PlaylistRepository) SelectAll() ([]model.Playlist, error) {
 	}
 
 	return playlists, nil
+}
+
+func (p *PlaylistRepository) SelectWithID(id string) (model.Playlist, error) {
+	var playlist model.Playlist
+
+	err := p.db.QueryRowx("SELECT * FROM playlist WHERE playlist_id=$1", id).StructScan(&playlist)
+	if err != nil {
+		return model.Playlist{}, fmt.Errorf("SELECT playlist with id from db: %w", err)
+	}
+
+	return playlist, nil
 }

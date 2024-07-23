@@ -3,8 +3,9 @@ package service
 import "github.com/tuannamnguyen/playlist-manager/internal/model"
 
 type PlaylistRepository interface {
-	Insert(playlistModel *model.Playlist) error
+	Insert(playlistModel model.Playlist) error
 	SelectAll() ([]model.Playlist, error)
+	SelectWithID(id string) (model.Playlist, error)
 }
 
 type Playlist struct {
@@ -17,10 +18,14 @@ func NewPlaylist(playlistRepo PlaylistRepository) *Playlist {
 	}
 }
 
-func (p *Playlist) Add(playlistModel *model.Playlist) error {
+func (p *Playlist) Add(playlistModel model.Playlist) error {
 	return p.playlistRepo.Insert(playlistModel)
 }
 
 func (p *Playlist) GetAll() ([]model.Playlist, error) {
 	return p.playlistRepo.SelectAll()
+}
+
+func (p *Playlist) GetByID(id string) (model.Playlist, error) {
+	return p.playlistRepo.SelectWithID(id)
 }
