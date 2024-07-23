@@ -86,4 +86,5 @@ func setupAPIRouter(e *echo.Echo, db *sqlx.DB) {
 	playlistRouter := apiRouter.Group("/playlist")
 
 	playlistRouter.POST("", playlistHandler.Add)
+	playlistRouter.GET("", playlistHandler.GetAll)
 }
