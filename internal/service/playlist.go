@@ -6,6 +6,7 @@ type PlaylistRepository interface {
 	Insert(playlistModel model.Playlist) error
 	SelectAll() ([]model.Playlist, error)
 	SelectWithID(id string) (model.Playlist, error)
+	DeleteByID(id string) error
 }
 
 type Playlist struct {
@@ -28,4 +29,8 @@ func (p *Playlist) GetAll() ([]model.Playlist, error) {
 
 func (p *Playlist) GetByID(id string) (model.Playlist, error) {
 	return p.playlistRepo.SelectWithID(id)
+}
+
+func (p *Playlist) DeleteByID(id string) error {
+	return p.playlistRepo.DeleteByID(id)
 }

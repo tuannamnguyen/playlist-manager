@@ -12,6 +12,7 @@ type PlaylistService interface {
 	Add(playlistModel model.Playlist) error
 	GetAll() ([]model.Playlist, error)
 	GetByID(id string) (model.Playlist, error)
+	DeleteByID(id string) error
 }
 
 type PlaylistHandler struct {
@@ -57,4 +58,17 @@ func (p *PlaylistHandler) GetByID(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, playlist)
+}
+
+func (p *PlaylistHandler) DeleteByID(c echo.Context) error {
+	id := c.Param("id")
+
+	err := p.Service.DeleteByID(id)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error delete playlist by ID: %w", err))
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{
+		"playlist_id": id,
+	})
 }

@@ -88,4 +88,5 @@ func setupAPIRouter(e *echo.Echo, db *sqlx.DB) {
 	playlistRouter.POST("", playlistHandler.Add)
 	playlistRouter.GET("", playlistHandler.GetAll)
 	playlistRouter.GET("/:id", playlistHandler.GetByID)
+	playlistRouter.DELETE("/:id", playlistHandler.DeleteByID)
 }

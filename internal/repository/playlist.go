@@ -61,10 +61,19 @@ func (p *PlaylistRepository) SelectAll() ([]model.Playlist, error) {
 func (p *PlaylistRepository) SelectWithID(id string) (model.Playlist, error) {
 	var playlist model.Playlist
 
-	err := p.db.QueryRowx("SELECT * FROM playlist WHERE playlist_id=$1", id).StructScan(&playlist)
+	err := p.db.QueryRowx("SELECT * FROM playlist WHERE playlist_id = $1", id).StructScan(&playlist)
 	if err != nil {
 		return model.Playlist{}, fmt.Errorf("SELECT playlist with id from db: %w", err)
 	}
 
 	return playlist, nil
+}
+
+func (p *PlaylistRepository) DeleteByID(id string) error {
+	_, err := p.db.Exec("DELETE FROM playlist WHERE playlist_id = $1", id)
+	if err != nil {
+		return fmt.Errorf("DELETE playlist with id from db: %w", err)
+	}
+
+	return nil
 }
