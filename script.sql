@@ -5,8 +5,8 @@ CREATE DATABASE playlist_manager;
 \c playlist_manager;
 
 CREATE TABLE IF NOT EXISTS users (
-  user_id VARCHAR(50) NOT NULL,
-  user_name VARCHAR(50) NOT NULL,
+  user_id TEXT NOT NULL,
+  user_name TEXT NOT NULL,
   PRIMARY KEY (user_id)
 );
 
@@ -19,9 +19,9 @@ VALUES
   );
 
 CREATE TABLE IF NOT EXISTS playlist (
-  playlist_id VARCHAR(50) NOT NULL,
-  playlist_name VARCHAR(50) NOT NULL,
-  user_id VARCHAR(50) NOT NULL,
+  playlist_id TEXT NOT NULL,
+  playlist_name TEXT NOT NULL,
+  user_id TEXT NOT NULL,
   updated_at TIMESTAMP NOT NULL,
   created_at TIMESTAMP NOT NULL,
   PRIMARY KEY (playlist_id),
@@ -29,18 +29,18 @@ CREATE TABLE IF NOT EXISTS playlist (
 );
 
 CREATE TABLE IF NOT EXISTS album (
-  album_id VARCHAR(50) NOT NULL,
-  album_name VARCHAR(50) NOT NULL,
+  album_id TEXT NOT NULL,
+  album_name TEXT NOT NULL,
   updated_at TIMESTAMP NOT NULL,
   created_at TIMESTAMP NOT NULL,
   PRIMARY KEY (album_id)
 );
 
 CREATE TABLE IF NOT EXISTS song (
-  song_id VARCHAR(50) NOT NULL,
-  song_name VARCHAR(50) NOT NULL,
-  artist_id VARCHAR(50) NOT NULL,
-  album_id VARCHAR(50) NOT NULL,
+  song_id TEXT NOT NULL,
+  song_name TEXT NOT NULL,
+  artist_id TEXT NOT NULL,
+  album_id TEXT NOT NULL,
   updated_at TIMESTAMP NOT NULL,
   created_at TIMESTAMP NOT NULL,
   PRIMARY KEY (song_id),
@@ -48,16 +48,16 @@ CREATE TABLE IF NOT EXISTS song (
 );
 
 CREATE TABLE IF NOT EXISTS artist (
-  artist_id VARCHAR(50) NOT NULL,
-  artist_name VARCHAR(50) NOT NULL,
+  artist_id TEXT NOT NULL,
+  artist_name TEXT NOT NULL,
   updated_at TIMESTAMP NOT NULL,
   created_at TIMESTAMP NOT NULL,
   PRIMARY KEY (artist_id)
 );
 
 CREATE TABLE IF NOT EXISTS playlist_song (
-  playlist_id VARCHAR(50) NOT NULL,
-  song_id VARCHAR(50) NOT NULL,
+  playlist_id TEXT NOT NULL,
+  song_id TEXT NOT NULL,
   updated_at TIMESTAMP NOT NULL,
   created_at TIMESTAMP NOT NULL,
   PRIMARY KEY (playlist_id, song_id),
@@ -66,8 +66,8 @@ CREATE TABLE IF NOT EXISTS playlist_song (
 );
 
 CREATE TABLE IF NOT EXISTS artist_album (
-  artist_id VARCHAR(50) NOT NULL,
-  album_id VARCHAR(50) NOT NULL,
+  artist_id TEXT NOT NULL,
+  album_id TEXT NOT NULL,
   updated_at TIMESTAMP NOT NULL,
   created_at TIMESTAMP NOT NULL,
   PRIMARY KEY (artist_id, album_id),
