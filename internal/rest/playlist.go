@@ -54,7 +54,7 @@ func (p *PlaylistHandler) GetByID(c echo.Context) error {
 
 	playlist, err := p.Service.GetByID(id)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error get playlist by ID: %w", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error get playlist by ID: %v", err))
 	}
 
 	return c.JSON(http.StatusOK, playlist)
@@ -65,7 +65,7 @@ func (p *PlaylistHandler) DeleteByID(c echo.Context) error {
 
 	err := p.Service.DeleteByID(id)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error delete playlist by ID: %w", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error delete playlist by ID: %v", err))
 	}
 
 	return c.JSON(http.StatusOK, map[string]string{
