@@ -34,3 +34,8 @@ func (p *Playlist) GetByID(id string) (model.Playlist, error) {
 func (p *Playlist) DeleteByID(id string) error {
 	return p.playlistRepo.DeleteByID(id)
 }
+
+func (p *Playlist) AddSongsToPlaylist(playlistID string, songs []model.Song) error {
+	// TODO: IMPLEMENT THIS
+	return nil
+}

@@ -13,6 +13,8 @@ type PlaylistService interface {
 	GetAll() ([]model.Playlist, error)
 	GetByID(id string) (model.Playlist, error)
 	DeleteByID(id string) error
+
+	AddSongsToPlaylist(playlistID string, songs []model.Song) error
 }
 
 type PlaylistHandler struct {
@@ -71,4 +73,23 @@ func (p *PlaylistHandler) DeleteByID(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{
 		"playlist_id": id,
 	})
+}
+
+func (p *PlaylistHandler) AddSongsToPlaylist(c echo.Context) error {
+	playlistID := c.Param("playlist_id")
+
+	var songs []model.Song
+	err := c.Bind(&songs)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error binding request body to songs: %v", err))
+	}
+
+	err = p.Service.AddSongsToPlaylist(playlistID, songs)
+	if err != nil {
+		// TODO: UPDATE THE ERROR HERE
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf(""))
+	}
+
+	return c.JSON(http.StatusOK, songs)
+
 }

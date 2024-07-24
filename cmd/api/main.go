@@ -83,10 +83,13 @@ func setupAPIRouter(e *echo.Echo, db *sqlx.DB) {
 	playlistService := service.NewPlaylist(playlistRepository)
 	playlistHandler := rest.NewPlaylistHandler(playlistService)
 
-	playlistRouter := apiRouter.Group("/playlist")
+	playlistRouter := apiRouter.Group("/playlists")
 
 	playlistRouter.POST("", playlistHandler.Add)
 	playlistRouter.GET("", playlistHandler.GetAll)
 	playlistRouter.GET("/:id", playlistHandler.GetByID)
 	playlistRouter.DELETE("/:id", playlistHandler.DeleteByID)
+
+	// playlist-songs table endpoint
+	playlistRouter.POST("/:playlist_id/songs/", playlistHandler.AddSongsToPlaylist)
 }
