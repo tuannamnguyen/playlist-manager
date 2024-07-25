@@ -1,6 +1,10 @@
 package service
 
-import "github.com/tuannamnguyen/playlist-manager/internal/model"
+import (
+	"log"
+
+	"github.com/tuannamnguyen/playlist-manager/internal/model"
+)
 
 type PlaylistRepository interface {
 	Insert(playlistModel model.Playlist) error
@@ -9,13 +13,25 @@ type PlaylistRepository interface {
 	DeleteByID(id string) error
 }
 
-type Playlist struct {
-	playlistRepo PlaylistRepository
+type SongRepository interface {
+	Insert(song model.Song) error
 }
 
-func NewPlaylist(playlistRepo PlaylistRepository) *Playlist {
+type PlaylistSongRepository interface {
+	Insert(playlistID string, songID string) error
+}
+
+type Playlist struct {
+	playlistRepo     PlaylistRepository
+	songRepo         SongRepository
+	playlistSongRepo PlaylistSongRepository
+}
+
+func NewPlaylist(playlistRepo PlaylistRepository, songRepo SongRepository, playlistSongRepo PlaylistSongRepository) *Playlist {
 	return &Playlist{
-		playlistRepo: playlistRepo,
+		playlistRepo:     playlistRepo,
+		songRepo:         songRepo,
+		playlistSongRepo: playlistSongRepo,
 	}
 }
 
@@ -33,4 +49,22 @@ func (p *Playlist) GetByID(id string) (model.Playlist, error) {
 
 func (p *Playlist) DeleteByID(id string) error {
 	return p.playlistRepo.DeleteByID(id)
+}
+
+func (p *Playlist) AddSongsToPlaylist(playlistID string, songs []model.Song) error {
+	for _, song := range songs {
+		err := p.songRepo.Insert(song)
+		if err != nil {
+			return err
+		}
+
+		log.Println("inserted song in song table")
+
+		err = p.playlistSongRepo.Insert(playlistID, song.ID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
