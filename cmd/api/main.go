@@ -58,6 +58,7 @@ func main() {
 }
 
 func startServer(e *echo.Echo, db *sqlx.DB) {
+	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.Logger())
 
 	e.GET("/", func(c echo.Context) error {
@@ -80,7 +81,10 @@ func setupAPIRouter(e *echo.Echo, db *sqlx.DB) {
 
 	// setup playlist endpoint
 	playlistRepository := repository.NewPlaylistRepository(db)
-	playlistService := service.NewPlaylist(playlistRepository)
+	songRepository := repository.NewSongRepository(db)
+	playlistSongRepository := repository.NewPlaylistSongRepository(db)
+
+	playlistService := service.NewPlaylist(playlistRepository, songRepository, playlistSongRepository)
 	playlistHandler := rest.NewPlaylistHandler(playlistService)
 
 	playlistRouter := apiRouter.Group("/playlists")
@@ -91,5 +95,5 @@ func setupAPIRouter(e *echo.Echo, db *sqlx.DB) {
 	playlistRouter.DELETE("/:id", playlistHandler.DeleteByID)
 
 	// playlist-songs table endpoint
-	playlistRouter.POST("/:playlist_id/songs/", playlistHandler.AddSongsToPlaylist)
+	playlistRouter.POST("/:playlist_id/songs", playlistHandler.AddSongsToPlaylist)
 }

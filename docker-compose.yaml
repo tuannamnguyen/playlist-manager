@@ -33,6 +33,8 @@ services:
   pgadmin4:
    image: elestio/pgadmin
    env_file: ./cmd/api/.env
+   volumes:
+     - ./config/servers.json:/pgadmin4/servers.json
    ports:
    - 5433:5433
 

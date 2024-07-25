@@ -86,10 +86,8 @@ func (p *PlaylistHandler) AddSongsToPlaylist(c echo.Context) error {
 
 	err = p.Service.AddSongsToPlaylist(playlistID, songs)
 	if err != nil {
-		// TODO: UPDATE THE ERROR HERE
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf(""))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error adding songs to playlist: %v", err))
 	}
 
 	return c.JSON(http.StatusOK, songs)
-
 }

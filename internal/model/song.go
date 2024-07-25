@@ -5,5 +5,5 @@ type Song struct {
 	Name     string `json:"song_name" db:"song_name"`
 	ArtistID string `json:"artist_id" db:"artist_id"`
 	AlbumID  string `json:"album_id" db:"album_id"`
-	timestamp
+	Timestamp
 }
