@@ -21,37 +21,37 @@ type PlaylistSongRepository interface {
 	Insert(playlistID string, songID string) error
 }
 
-type Playlist struct {
+type PlaylistService struct {
 	playlistRepo     PlaylistRepository
 	songRepo         SongRepository
 	playlistSongRepo PlaylistSongRepository
 }
 
-func NewPlaylist(playlistRepo PlaylistRepository, songRepo SongRepository, playlistSongRepo PlaylistSongRepository) *Playlist {
-	return &Playlist{
+func NewPlaylist(playlistRepo PlaylistRepository, songRepo SongRepository, playlistSongRepo PlaylistSongRepository) *PlaylistService {
+	return &PlaylistService{
 		playlistRepo:     playlistRepo,
 		songRepo:         songRepo,
 		playlistSongRepo: playlistSongRepo,
 	}
 }
 
-func (p *Playlist) Add(playlistModel model.Playlist) error {
+func (p *PlaylistService) Add(playlistModel model.Playlist) error {
 	return p.playlistRepo.Insert(playlistModel)
 }
 
-func (p *Playlist) GetAll() ([]model.Playlist, error) {
+func (p *PlaylistService) GetAll() ([]model.Playlist, error) {
 	return p.playlistRepo.SelectAll()
 }
 
-func (p *Playlist) GetByID(id string) (model.Playlist, error) {
+func (p *PlaylistService) GetByID(id string) (model.Playlist, error) {
 	return p.playlistRepo.SelectWithID(id)
 }
 
-func (p *Playlist) DeleteByID(id string) error {
+func (p *PlaylistService) DeleteByID(id string) error {
 	return p.playlistRepo.DeleteByID(id)
 }
 
-func (p *Playlist) AddSongsToPlaylist(playlistID string, songs []model.Song) error {
+func (p *PlaylistService) AddSongsToPlaylist(playlistID string, songs []model.Song) error {
 	for _, song := range songs {
 		err := p.songRepo.Insert(song)
 		if err != nil {
