@@ -48,3 +48,9 @@ CREATE TABLE IF NOT EXISTS playlist_song (
   FOREIGN KEY (playlist_id) REFERENCES playlist(playlist_id) ON DELETE CASCADE,
   FOREIGN KEY (song_id) REFERENCES song(song_id) ON DELETE CASCADE
 );
+
+INSERT INTO playlist (playlist_id, playlist_name, user_id, updated_at, created_at)
+VALUES ('asdasdasdsaasd', 'asdasdasvasfasf', 'google-oauth2|117047339491229984586', '2024-07-27 10:12:00', '2024-07-27 10:12:00');
+
+INSERT INTO song (song_id, song_name, artist_id, album_id, updated_at, created_at)
+VALUES ('asiuasubfasuifaufb', 'devil in a new dress', 'kanye west', 'mbdtf', '2024-07-27 10:12:00', '2024-07-27 10:12:00');
