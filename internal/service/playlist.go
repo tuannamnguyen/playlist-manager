@@ -68,3 +68,8 @@ func (p *PlaylistService) AddSongsToPlaylist(playlistID string, songs []model.So
 
 	return nil
 }
+
+func (p *PlaylistService) GetAllSongsFromPlaylist(playlistID string) ([]model.Song, error) {
+	// TODO: IMPLEMENT THIS
+	return nil, nil
+}

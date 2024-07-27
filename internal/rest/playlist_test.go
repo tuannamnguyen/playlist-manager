@@ -3,6 +3,7 @@ package rest
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -57,4 +58,60 @@ func TestAddSongToPlaylist(t *testing.T) {
 		assert.Equal(t, http.StatusOK, rec.Code)
 		mockPlaylistService.AssertExpectations(t)
 	})
+}
+
+func TestGetAllSongsFromPlaylist(t *testing.T) {
+	mockPlaylistService := new(mocks.MockPlaylistService)
+
+	t.Run("success get all songs from playlist", func(t *testing.T) {
+		mockPlaylistService.On("GetAllSongsFromPlaylist", "abcd").Return([]model.Song{}, nil)
+
+		req, err := http.NewRequest(
+			http.MethodGet,
+			"/api/playlists/abcd/songs",
+			nil,
+		)
+		require.NoError(t, err)
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		rec := httptest.NewRecorder()
+
+		e := echo.New()
+		c := e.NewContext(req, rec)
+		c.SetPath("/api/playlists/:playlist_id/songs")
+		c.SetParamNames("playlist_id")
+		c.SetParamValues("abcd")
+
+		handler := NewPlaylistHandler(mockPlaylistService)
+		err = handler.GetAllSongsFromPlaylist(c)
+		require.NoError(t, err)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+		mockPlaylistService.AssertExpectations(t)
+	})
+
+	t.Run("error get all songs", func(t *testing.T) {
+		mockPlaylistService.On("GetAllSongsFromPlaylist", "defg").Return(nil, errors.New("test error"))
+
+		req, err := http.NewRequest(
+			http.MethodGet,
+			"/api/playlists/defg/songs",
+			nil,
+		)
+		require.NoError(t, err)
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		rec := httptest.NewRecorder()
+
+		e := echo.New()
+		c := e.NewContext(req, rec)
+		c.SetPath("/api/playlists/:playlist_id/songs")
+		c.SetParamNames("playlist_id")
+		c.SetParamValues("defg")
+
+		handler := NewPlaylistHandler(mockPlaylistService)
+		err = handler.GetAllSongsFromPlaylist(c)
+		require.EqualError(t, err, echo.NewHTTPError(http.StatusInternalServerError, "error get all songs from playlist: test error").Error())
+
+		mockPlaylistService.AssertExpectations(t)
+	})
+
 }

@@ -15,6 +15,7 @@ type PlaylistService interface {
 	DeleteByID(id string) error
 
 	AddSongsToPlaylist(playlistID string, songs []model.Song) error
+	GetAllSongsFromPlaylist(playlist_id string) ([]model.Song, error)
 }
 
 type PlaylistHandler struct {
@@ -87,6 +88,17 @@ func (p *PlaylistHandler) AddSongsToPlaylist(c echo.Context) error {
 	err = p.Service.AddSongsToPlaylist(playlistID, songs)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error adding songs to playlist: %v", err))
+	}
+
+	return c.JSON(http.StatusOK, songs)
+}
+
+func (p *PlaylistHandler) GetAllSongsFromPlaylist(c echo.Context) error {
+	playlistID := c.Param("playlist_id")
+
+	songs, err := p.Service.GetAllSongsFromPlaylist(playlistID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error get all songs from playlist: %v", err))
 	}
 
 	return c.JSON(http.StatusOK, songs)

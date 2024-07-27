@@ -33,3 +33,12 @@ func (m *MockPlaylistService) AddSongsToPlaylist(playlistID string, songs []mode
 	args := m.Called(playlistID, songs)
 	return args.Error(0)
 }
+
+func (m *MockPlaylistService) GetAllSongsFromPlaylist(playlistID string) ([]model.Song, error) {
+	args := m.Called(playlistID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+
+	return args.Get(0).([]model.Song), args.Error(1)
+}
