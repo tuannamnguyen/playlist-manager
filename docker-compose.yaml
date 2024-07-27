@@ -1,5 +1,42 @@
 services:
   app:
    build: .
+   volumes:
+      - type: bind
+        source: ./cmd/api/.env
+        target: /.env
+        read_only: true
+   depends_on:
+     db:
+      condition: service_healthy
+      restart: true
    ports:
      - 8080:8080
+
+  db:
+   image: postgres
+   env_file: ./cmd/api/.env
+   volumes:
+     - pgdata:/var/lib/postgresql/data
+     - type: bind
+       source: ./script.sql
+       target: /docker-entrypoint-initdb.d/script.sql
+       read_only: true
+   ports:
+     - 5432:5432
+   healthcheck:
+      test: ["CMD-SHELL", "psql -U postgres -d postgres -c 'SELECT 1' || exit 1"]
+      interval: 3s
+      timeout: 10s
+      retries: 5
+
+  pgadmin4:
+   image: elestio/pgadmin
+   env_file: ./cmd/api/.env
+   volumes:
+     - ./config/servers.json:/pgadmin4/servers.json
+   ports:
+   - 5433:5433
+
+volumes:
+  pgdata:
