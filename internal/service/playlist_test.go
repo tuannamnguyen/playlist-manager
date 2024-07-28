@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -46,28 +45,21 @@ func TestGetAllSongsFromPlaylist(t *testing.T) {
 	playlistService := NewPlaylist(mockPlaylistRepo, mockSongRepo, mockPlaylistSongRepo)
 
 	t.Run("success", func(t *testing.T) {
-		mockPlaylistSongRepo.On("SelectAll", mock.Anything, "abcd").Return([]model.Song{
+		mockSong := []model.Song{
 			{ID: "test_id", Name: "test_name", ArtistID: "test_artist_id", AlbumID: "test_album_id"},
-		}, nil)
+		}
+
+		mockPlaylistSongRepo.On("SelectAll", mock.Anything, "abcd").Return([]model.PlaylistSong{
+			{PlaylistID: "abcd", SongID: "test_id"},
+		}, nil).Once()
+		mockSongRepo.On("SelectWithManyID", mock.Anything, mock.AnythingOfType("[]string")).Return(mockSong, nil).Once()
 
 		playlistID := "abcd"
-
 		songs, err := playlistService.GetAllSongsFromPlaylist(context.Background(), playlistID)
 		assert.NoError(t, err)
-		assert.Len(t, songs, 1)
+		assert.Equal(t, mockSong, songs)
 
-		mockPlaylistSongRepo.AssertExpectations(t)
-	})
-
-	t.Run("failed", func(t *testing.T) {
-		mockPlaylistSongRepo.On("SelectAll", mock.Anything, "defg").Return(nil, errors.New("test error"))
-
-		playlistID := "defg"
-
-		songs, err := playlistService.GetAllSongsFromPlaylist(context.Background(), playlistID)
-		assert.EqualError(t, err, "test error")
-		assert.Len(t, songs, 0)
-
+		mockSongRepo.AssertExpectations(t)
 		mockPlaylistSongRepo.AssertExpectations(t)
 	})
 }

@@ -43,7 +43,31 @@ func (ps *PlaylistSongRepository) Insert(ctx context.Context, playlistID string,
 	return nil
 }
 
-func (ps *PlaylistSongRepository) SelectAll(ctx context.Context, playlistID string) ([]model.Song, error) {
-	// TODO: IMPLEMENT THIS
-	return nil, nil
+func (ps *PlaylistSongRepository) SelectAll(ctx context.Context, playlistID string) ([]model.PlaylistSong, error) {
+	var playlistSongs []model.PlaylistSong
+
+	rows, err := ps.db.QueryxContext(
+		ctx,
+		"SELECT * FROM playlist_song WHERE playlist_id = $1",
+		playlistID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("SELECT all songs from playlist_song table: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var song model.PlaylistSong
+		if err := rows.StructScan(&song); err != nil {
+			return nil, fmt.Errorf("scan song to struct: %w", err)
+		}
+
+		playlistSongs = append(playlistSongs, song)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("playlist song query iteration: %w", err)
+	}
+
+	return playlistSongs, nil
+
 }

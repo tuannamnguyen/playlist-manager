@@ -35,3 +35,8 @@ func (s *SongRepository) Insert(ctx context.Context, song model.Song) error {
 
 	return nil
 }
+
+func (s *SongRepository) SelectWithManyID(ctx context.Context, ID []string) ([]model.Song, error) {
+	// TODO: IMPLEMENT THIS
+	return nil, nil
+}

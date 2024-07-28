@@ -40,6 +40,17 @@ func (m *MockSongRepository) Insert(ctx context.Context, song model.Song) error 
 	return args.Error(0)
 }
 
+func (m *MockSongRepository) SelectWithManyID(ctx context.Context, ID []string) ([]model.Song, error) {
+	args := m.Called(ctx, ID)
+
+	songs, ok := (args.Get(0)).([]model.Song)
+	if ok {
+		return songs, args.Error(1)
+	}
+
+	return nil, args.Error(1)
+}
+
 type MockPlaylistSongRepository struct {
 	mock.Mock
 }
@@ -49,12 +60,12 @@ func (m *MockPlaylistSongRepository) Insert(ctx context.Context, playlistID stri
 	return args.Error(0)
 }
 
-func (m *MockPlaylistSongRepository) SelectAll(ctx context.Context, playlistID string) ([]model.Song, error) {
+func (m *MockPlaylistSongRepository) SelectAll(ctx context.Context, playlistID string) ([]model.PlaylistSong, error) {
 	args := m.Called(ctx, playlistID)
 
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 
-	return args.Get(0).([]model.Song), args.Error(1)
+	return args.Get(0).([]model.PlaylistSong), args.Error(1)
 }

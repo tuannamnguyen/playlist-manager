@@ -16,11 +16,12 @@ type PlaylistRepository interface {
 
 type SongRepository interface {
 	Insert(ctx context.Context, song model.Song) error
+	SelectWithManyID(ctx context.Context, ID []string) ([]model.Song, error)
 }
 
 type PlaylistSongRepository interface {
 	Insert(ctx context.Context, playlistID string, songID string) error
-	SelectAll(ctx context.Context, playlistID string) ([]model.Song, error)
+	SelectAll(ctx context.Context, playlistID string) ([]model.PlaylistSong, error)
 }
 
 type PlaylistService struct {
@@ -72,5 +73,17 @@ func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID str
 }
 
 func (p *PlaylistService) GetAllSongsFromPlaylist(ctx context.Context, playlistID string) ([]model.Song, error) {
-	return p.playlistSongRepo.SelectAll(ctx, playlistID)
+	playlistSongs, err := p.playlistSongRepo.SelectAll(ctx, playlistID)
+	if err != nil {
+		return nil, err
+	}
+
+	var ID []string
+	for _, song := range playlistSongs {
+		ID = append(ID, song.SongID)
+	}
+
+	songsDetail, err := p.songRepo.SelectWithManyID(ctx, ID)
+
+	return songsDetail, err
 }
