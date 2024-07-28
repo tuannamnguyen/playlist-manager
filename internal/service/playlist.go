@@ -22,6 +22,7 @@ type SongRepository interface {
 type PlaylistSongRepository interface {
 	Insert(ctx context.Context, playlistID string, songID string) error
 	SelectAll(ctx context.Context, playlistID string) ([]model.PlaylistSong, error)
+	DeleteWithManyID(ctx context.Context, playlistID string, songsID []string) error
 }
 
 type PlaylistService struct {
@@ -89,6 +90,5 @@ func (p *PlaylistService) GetAllSongsFromPlaylist(ctx context.Context, playlistI
 }
 
 func (p *PlaylistService) DeleteSongsFromPlaylist(ctx context.Context, playlistID string, songsID []string) error {
-	// TODO: IMPLEMENT THIS
-	return nil
+	return p.playlistSongRepo.DeleteWithManyID(ctx, playlistID, songsID)
 }

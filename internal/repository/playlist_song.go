@@ -71,3 +71,8 @@ func (ps *PlaylistSongRepository) SelectAll(ctx context.Context, playlistID stri
 	return playlistSongs, nil
 
 }
+
+func (ps *PlaylistSongRepository) DeleteWithManyID(ctx context.Context, playlistID string, songsID []string) error {
+	// TODO: IMPLEMENT THIS
+	return nil
+}

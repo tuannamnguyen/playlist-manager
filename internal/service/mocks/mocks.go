@@ -69,3 +69,9 @@ func (m *MockPlaylistSongRepository) SelectAll(ctx context.Context, playlistID s
 
 	return args.Get(0).([]model.PlaylistSong), args.Error(1)
 }
+
+func (m *MockPlaylistSongRepository) DeleteWithManyID(ctx context.Context, playlistID string, songsID []string) error {
+	args := m.Called(ctx, playlistID, songsID)
+
+	return args.Error(0)
+}

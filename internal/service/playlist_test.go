@@ -63,3 +63,22 @@ func TestGetAllSongsFromPlaylist(t *testing.T) {
 		mockPlaylistSongRepo.AssertExpectations(t)
 	})
 }
+
+func TestDeleteSongsFromPlaylist(t *testing.T) {
+	mockPlaylistRepo := new(mocks.MockPlaylistRepository)
+	mockSongRepo := new(mocks.MockSongRepository)
+	mockPlaylistSongRepo := new(mocks.MockPlaylistSongRepository)
+
+	playlistService := NewPlaylist(mockPlaylistRepo, mockSongRepo, mockPlaylistSongRepo)
+
+	t.Run("delete successfully", func(t *testing.T) {
+		playlistID := "abcd"
+		songsID := []string{"abc", "def"}
+
+		mockPlaylistSongRepo.On("DeleteWithManyID", mock.Anything, mock.AnythingOfType("string"), mock.AnythingOfType("[]string")).Return(nil).Once()
+		err := playlistService.DeleteSongsFromPlaylist(context.Background(), playlistID, songsID)
+		assert.NoError(t, err)
+
+		mockPlaylistSongRepo.AssertExpectations(t)
+	})
+}
