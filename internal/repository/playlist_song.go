@@ -40,3 +40,8 @@ func (ps *PlaylistSongRepository) Insert(playlistID string, songID string) error
 
 	return nil
 }
+
+func (ps *PlaylistSongRepository) SelectAll(playlistID string) ([]model.Song, error) {
+	// TODO: IMPLEMENT THIS
+	return nil, nil
+}

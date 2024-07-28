@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,7 +14,7 @@ func TestAddSongsToPlaylist(t *testing.T) {
 	mockSongRepo := new(mocks.MockSongRepository)
 	mockPlaylistSongRepo := new(mocks.MockPlaylistSongRepository)
 
-	playlist := NewPlaylist(mockPlaylistRepo, mockSongRepo, mockPlaylistSongRepo)
+	playlistService := NewPlaylist(mockPlaylistRepo, mockSongRepo, mockPlaylistSongRepo)
 
 	t.Run("Success", func(t *testing.T) {
 		songs := []model.Song{
@@ -27,10 +28,44 @@ func TestAddSongsToPlaylist(t *testing.T) {
 		mockPlaylistSongRepo.On("Insert", playlistID, "song1").Return(nil)
 		mockPlaylistSongRepo.On("Insert", playlistID, "song2").Return(nil)
 
-		err := playlist.AddSongsToPlaylist(playlistID, songs)
+		err := playlistService.AddSongsToPlaylist(playlistID, songs)
 		assert.NoError(t, err)
 
 		mockSongRepo.AssertExpectations(t)
+		mockPlaylistSongRepo.AssertExpectations(t)
+	})
+}
+
+func TestGetAllSongsFromPlaylist(t *testing.T) {
+	mockPlaylistRepo := new(mocks.MockPlaylistRepository)
+	mockSongRepo := new(mocks.MockSongRepository)
+	mockPlaylistSongRepo := new(mocks.MockPlaylistSongRepository)
+
+	playlistService := NewPlaylist(mockPlaylistRepo, mockSongRepo, mockPlaylistSongRepo)
+
+	t.Run("success", func(t *testing.T) {
+		mockPlaylistSongRepo.On("SelectAll", "abcd").Return([]model.Song{
+			{ID: "test_id", Name: "test_name", ArtistID: "test_artist_id", AlbumID: "test_album_id"},
+		}, nil)
+
+		playlistID := "abcd"
+
+		songs, err := playlistService.GetAllSongsFromPlaylist(playlistID)
+		assert.NoError(t, err)
+		assert.Len(t, songs, 1)
+
+		mockPlaylistSongRepo.AssertExpectations(t)
+	})
+
+	t.Run("failed", func(t *testing.T) {
+		mockPlaylistSongRepo.On("SelectAll", "defg").Return(nil, errors.New("test error"))
+
+		playlistID := "defg"
+
+		songs, err := playlistService.GetAllSongsFromPlaylist(playlistID)
+		assert.EqualError(t, err, "test error")
+		assert.Len(t, songs, 0)
+
 		mockPlaylistSongRepo.AssertExpectations(t)
 	})
 }

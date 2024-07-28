@@ -19,6 +19,7 @@ type SongRepository interface {
 
 type PlaylistSongRepository interface {
 	Insert(playlistID string, songID string) error
+	SelectAll(playlistID string) ([]model.Song, error)
 }
 
 type PlaylistService struct {
@@ -70,6 +71,5 @@ func (p *PlaylistService) AddSongsToPlaylist(playlistID string, songs []model.So
 }
 
 func (p *PlaylistService) GetAllSongsFromPlaylist(playlistID string) ([]model.Song, error) {
-	// TODO: IMPLEMENT THIS
-	return nil, nil
+	return p.playlistSongRepo.SelectAll(playlistID)
 }

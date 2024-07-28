@@ -46,3 +46,13 @@ func (m *MockPlaylistSongRepository) Insert(playlistID string, songID string) er
 	args := m.Called(playlistID, songID)
 	return args.Error(0)
 }
+
+func (m *MockPlaylistSongRepository) SelectAll(playlistID string) ([]model.Song, error) {
+	args := m.Called(playlistID)
+
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+
+	return args.Get(0).([]model.Song), args.Error(1)
+}
