@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -44,7 +43,6 @@ func (s *SongRepository) SelectWithManyID(ctx context.Context, ID []string) ([]m
 		return nil, fmt.Errorf("prepare select songs with many ID query: %w", err)
 	}
 	query = sqlx.Rebind(sqlx.DOLLAR, query)
-	log.Println(query)
 
 	rows, err := s.db.QueryxContext(ctx, query, args...)
 	if err != nil {

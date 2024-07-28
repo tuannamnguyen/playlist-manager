@@ -122,5 +122,5 @@ func (p *PlaylistHandler) DeleteSongsFromPlaylist(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error delete songs from playlist: %v", err))
 	}
 
-	return c.JSON(http.StatusOK, songsID)
+	return c.JSON(http.StatusOK, reqBody)
 }

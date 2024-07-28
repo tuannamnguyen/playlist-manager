@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -73,6 +74,18 @@ func (ps *PlaylistSongRepository) SelectAll(ctx context.Context, playlistID stri
 }
 
 func (ps *PlaylistSongRepository) DeleteWithManyID(ctx context.Context, playlistID string, songsID []string) error {
-	// TODO: IMPLEMENT THIS
+	query, args, err := sqlx.In("DELETE FROM playlist_song WHERE playlist_id = (?) AND song_id IN (?)", playlistID, songsID)
+	if err != nil {
+		return fmt.Errorf("prepare delete songs in playlist query: %w", err)
+	}
+	query = sqlx.Rebind(sqlx.DOLLAR, query)
+	log.Println(query, args)
+
+	_, err = ps.db.ExecContext(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("DELETE songs from playlist_song table: %w", err)
+	}
+
 	return nil
+
 }
