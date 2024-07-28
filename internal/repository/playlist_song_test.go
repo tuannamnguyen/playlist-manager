@@ -16,12 +16,11 @@ import (
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
 )
 
-var (
-	dbUser     = "postgres"
-	dbPassword = "password"
-)
-
 func TestPlaylistSongRepositoryInsert(t *testing.T) {
+	var (
+		dbUser     = "postgres"
+		dbPassword = "password"
+	)
 	ctx := context.Background()
 
 	postgresContainer, err := postgres.Run(ctx,
@@ -48,7 +47,6 @@ func TestPlaylistSongRepositoryInsert(t *testing.T) {
 	if err != nil {
 		log.Fatalf("failed to get connection string: %s", err)
 	}
-	log.Println(connectionString)
 
 	// setup DB
 
@@ -88,6 +86,10 @@ func TestPlaylistSongRepositoryInsert(t *testing.T) {
 }
 
 func TestPlaylistSongRepositorySelectAll(t *testing.T) {
+	var (
+		dbUser     = "postgres"
+		dbPassword = "password"
+	)
 	ctx := context.Background()
 
 	postgresContainer, err := postgres.Run(ctx,
@@ -114,7 +116,6 @@ func TestPlaylistSongRepositorySelectAll(t *testing.T) {
 	if err != nil {
 		log.Fatalf("failed to get connection string: %s", err)
 	}
-	log.Println(connectionString)
 
 	// setup DB
 

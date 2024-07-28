@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -37,6 +38,31 @@ func (s *SongRepository) Insert(ctx context.Context, song model.Song) error {
 }
 
 func (s *SongRepository) SelectWithManyID(ctx context.Context, ID []string) ([]model.Song, error) {
-	// TODO: IMPLEMENT THIS
-	return nil, nil
+	var songs []model.Song
+	query, args, err := sqlx.In("SELECT * FROM song WHERE song_id IN (?);", ID)
+	if err != nil {
+		return nil, fmt.Errorf("prepare select songs with many ID query: %w", err)
+	}
+	query = sqlx.Rebind(sqlx.DOLLAR, query)
+	log.Println(query)
+
+	rows, err := s.db.QueryxContext(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("SELECT all songs detail from song table: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var songDetail model.Song
+		if err := rows.StructScan(&songDetail); err != nil {
+			return nil, fmt.Errorf("scan song detail to struct: %w", err)
+		}
+
+		songs = append(songs, songDetail)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("songs detail query iteration: %w", err)
+	}
+
+	return songs, nil
 }

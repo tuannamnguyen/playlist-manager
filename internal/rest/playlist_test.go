@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -28,7 +27,6 @@ func TestAddSongToPlaylist(t *testing.T) {
 			},
 		}
 		requestBody, err := json.Marshal(mockSongs)
-		log.Println(string(requestBody))
 		assert.NoError(t, err)
 
 		// create fake request and response recorder
