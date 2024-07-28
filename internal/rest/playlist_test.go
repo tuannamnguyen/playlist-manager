@@ -10,10 +10,13 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
 	"github.com/tuannamnguyen/playlist-manager/internal/rest/mocks"
 )
+
+var playlistSongsEndpoint = "/api/playlists/:playlist_id/songs"
 
 func TestAddSongToPlaylist(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
@@ -42,7 +45,7 @@ func TestAddSongToPlaylist(t *testing.T) {
 		// setup echo route handler
 		e := echo.New()
 		c := e.NewContext(req, rec)
-		c.SetPath("/api/playlists/:playlist_id/songs")
+		c.SetPath(playlistSongsEndpoint)
 		c.SetParamNames("playlist_id")
 		c.SetParamValues("abcd")
 
@@ -75,7 +78,7 @@ func TestGetAllSongsFromPlaylist(t *testing.T) {
 
 		e := echo.New()
 		c := e.NewContext(req, rec)
-		c.SetPath("/api/playlists/:playlist_id/songs")
+		c.SetPath(playlistSongsEndpoint)
 		c.SetParamNames("playlist_id")
 		c.SetParamValues("abcd")
 
@@ -101,7 +104,7 @@ func TestGetAllSongsFromPlaylist(t *testing.T) {
 
 		e := echo.New()
 		c := e.NewContext(req, rec)
-		c.SetPath("/api/playlists/:playlist_id/songs")
+		c.SetPath(playlistSongsEndpoint)
 		c.SetParamNames("playlist_id")
 		c.SetParamValues("defg")
 
@@ -110,6 +113,45 @@ func TestGetAllSongsFromPlaylist(t *testing.T) {
 		require.EqualError(t, err, echo.NewHTTPError(http.StatusInternalServerError, "error get all songs from playlist: test error").Error())
 
 		mockPlaylistService.AssertExpectations(t)
+	})
+
+}
+
+func TestDeleteSongsFromPlaylist(t *testing.T) {
+	mockPlaylistService := new(mocks.MockPlaylistService)
+
+	t.Run("success", func(t *testing.T) {
+		songsID := map[string][]string{
+			"playlist_id": {
+				"abc",
+				"def",
+				"ghi",
+			},
+		}
+		reqBody, err := json.Marshal(songsID)
+		require.NoError(t, err)
+
+		req, err := http.NewRequest(
+			http.MethodDelete,
+			"/api/playlists/defg/songs",
+			bytes.NewReader(reqBody),
+		)
+		require.NoError(t, err)
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		rec := httptest.NewRecorder()
+
+		e := echo.New()
+		c := e.NewContext(req, rec)
+		c.SetPath(playlistSongsEndpoint)
+		c.SetParamNames("playlist_id")
+		c.SetParamValues("abcd")
+
+		handler := NewPlaylistHandler(mockPlaylistService)
+		mockPlaylistService.On("DeleteSongsFromPlaylist", mock.Anything, mock.AnythingOfType("string"), mock.AnythingOfType("[]string")).Return(nil).Once()
+
+		err = handler.DeleteSongsFromPlaylist(c)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, rec.Code)
 	})
 
 }

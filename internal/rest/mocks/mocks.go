@@ -44,3 +44,9 @@ func (m *MockPlaylistService) GetAllSongsFromPlaylist(ctx context.Context, playl
 
 	return args.Get(0).([]model.Song), args.Error(1)
 }
+
+func (m *MockPlaylistService) DeleteSongsFromPlaylist(ctx context.Context, playlistID string, songsID []string) error {
+	args := m.Called(ctx, playlistID, songsID)
+
+	return args.Error(0)
+}

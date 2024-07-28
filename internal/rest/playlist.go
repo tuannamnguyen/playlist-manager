@@ -16,7 +16,8 @@ type PlaylistService interface {
 	DeleteByID(ctx context.Context, id string) error
 
 	AddSongsToPlaylist(ctx context.Context, playlistID string, songs []model.Song) error
-	GetAllSongsFromPlaylist(ctx context.Context, playlist_id string) ([]model.Song, error)
+	GetAllSongsFromPlaylist(ctx context.Context, playlistID string) ([]model.Song, error)
+	DeleteSongsFromPlaylist(ctx context.Context, playlistID string, songsID []string) error
 }
 
 type PlaylistHandler struct {
@@ -33,7 +34,7 @@ func (p *PlaylistHandler) Add(c echo.Context) error {
 	var playlist model.Playlist
 	err := c.Bind(&playlist)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error add playlist: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error binding playlist: %v", err))
 	}
 
 	err = p.Service.Add(c.Request().Context(), playlist)
@@ -103,4 +104,23 @@ func (p *PlaylistHandler) GetAllSongsFromPlaylist(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, songs)
+}
+
+func (p *PlaylistHandler) DeleteSongsFromPlaylist(c echo.Context) error {
+	playlistID := c.Param("playlist_id")
+	var reqBody map[string][]string
+
+	err := c.Bind(&reqBody)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error binding list of songs ID: %v", err))
+	}
+
+	songsID := reqBody["songs_id"]
+
+	err = p.Service.DeleteSongsFromPlaylist(c.Request().Context(), playlistID, songsID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error delete songs from playlist: %v", err))
+	}
+
+	return c.JSON(http.StatusOK, songsID)
 }

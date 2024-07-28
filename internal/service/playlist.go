@@ -87,3 +87,8 @@ func (p *PlaylistService) GetAllSongsFromPlaylist(ctx context.Context, playlistI
 
 	return songsDetail, err
 }
+
+func (p *PlaylistService) DeleteSongsFromPlaylist(ctx context.Context, playlistID string, songsID []string) error {
+	// TODO: IMPLEMENT THIS
+	return nil
+}

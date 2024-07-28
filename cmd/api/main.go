@@ -95,6 +95,8 @@ func setupAPIRouter(e *echo.Echo, db *sqlx.DB) {
 	playlistRouter.DELETE("/:id", playlistHandler.DeleteByID)
 
 	// playlist-songs table endpoint
-	playlistRouter.POST("/:playlist_id/songs", playlistHandler.AddSongsToPlaylist)
-	playlistRouter.GET("/:playlist_id/songs", playlistHandler.GetAllSongsFromPlaylist)
+	playlistSongsEndpoint := "/:playlist_id/songs"
+	playlistRouter.POST(playlistSongsEndpoint, playlistHandler.AddSongsToPlaylist)
+	playlistRouter.GET(playlistSongsEndpoint, playlistHandler.GetAllSongsFromPlaylist)
+	playlistRouter.DELETE(playlistSongsEndpoint, playlistHandler.DeleteSongsFromPlaylist)
 }
