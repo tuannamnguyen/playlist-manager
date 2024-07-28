@@ -96,4 +96,5 @@ func setupAPIRouter(e *echo.Echo, db *sqlx.DB) {
 
 	// playlist-songs table endpoint
 	playlistRouter.POST("/:playlist_id/songs", playlistHandler.AddSongsToPlaylist)
+	playlistRouter.GET("/:playlist_id/songs", playlistHandler.GetAllSongsFromPlaylist)
 }

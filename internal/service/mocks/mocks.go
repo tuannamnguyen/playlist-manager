@@ -1,6 +1,8 @@
 package mocks
 
 import (
+	"context"
+
 	"github.com/stretchr/testify/mock"
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
 )
@@ -9,23 +11,23 @@ type MockPlaylistRepository struct {
 	mock.Mock
 }
 
-func (m *MockPlaylistRepository) Insert(playlistModel model.Playlist) error {
-	args := m.Called(playlistModel)
+func (m *MockPlaylistRepository) Insert(ctx context.Context, playlistModel model.Playlist) error {
+	args := m.Called(ctx, playlistModel)
 	return args.Error(0)
 }
 
-func (m *MockPlaylistRepository) SelectAll() ([]model.Playlist, error) {
-	args := m.Called()
+func (m *MockPlaylistRepository) SelectAll(ctx context.Context) ([]model.Playlist, error) {
+	args := m.Called(ctx)
 	return args.Get(0).([]model.Playlist), args.Error(1)
 }
 
-func (m *MockPlaylistRepository) SelectWithID(id string) (model.Playlist, error) {
-	args := m.Called(id)
+func (m *MockPlaylistRepository) SelectWithID(ctx context.Context, id string) (model.Playlist, error) {
+	args := m.Called(ctx, id)
 	return args.Get(0).(model.Playlist), args.Error(1)
 }
 
-func (m *MockPlaylistRepository) DeleteByID(id string) error {
-	args := m.Called(id)
+func (m *MockPlaylistRepository) DeleteByID(ctx context.Context, id string) error {
+	args := m.Called(ctx, id)
 	return args.Error(0)
 }
 
@@ -33,16 +35,37 @@ type MockSongRepository struct {
 	mock.Mock
 }
 
-func (m *MockSongRepository) Insert(song model.Song) error {
-	args := m.Called(song)
+func (m *MockSongRepository) Insert(ctx context.Context, song model.Song) error {
+	args := m.Called(ctx, song)
 	return args.Error(0)
+}
+
+func (m *MockSongRepository) SelectWithManyID(ctx context.Context, ID []string) ([]model.Song, error) {
+	args := m.Called(ctx, ID)
+
+	songs, ok := (args.Get(0)).([]model.Song)
+	if ok {
+		return songs, args.Error(1)
+	}
+
+	return nil, args.Error(1)
 }
 
 type MockPlaylistSongRepository struct {
 	mock.Mock
 }
 
-func (m *MockPlaylistSongRepository) Insert(playlistID string, songID string) error {
-	args := m.Called(playlistID, songID)
+func (m *MockPlaylistSongRepository) Insert(ctx context.Context, playlistID string, songID string) error {
+	args := m.Called(ctx, playlistID, songID)
 	return args.Error(0)
+}
+
+func (m *MockPlaylistSongRepository) SelectAll(ctx context.Context, playlistID string) ([]model.PlaylistSong, error) {
+	args := m.Called(ctx, playlistID)
+
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+
+	return args.Get(0).([]model.PlaylistSong), args.Error(1)
 }

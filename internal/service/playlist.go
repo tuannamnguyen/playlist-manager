@@ -1,24 +1,27 @@
 package service
 
 import (
+	"context"
 	"log"
 
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
 )
 
 type PlaylistRepository interface {
-	Insert(playlistModel model.Playlist) error
-	SelectAll() ([]model.Playlist, error)
-	SelectWithID(id string) (model.Playlist, error)
-	DeleteByID(id string) error
+	Insert(ctx context.Context, playlistModel model.Playlist) error
+	SelectAll(ctx context.Context) ([]model.Playlist, error)
+	SelectWithID(ctx context.Context, id string) (model.Playlist, error)
+	DeleteByID(ctx context.Context, id string) error
 }
 
 type SongRepository interface {
-	Insert(song model.Song) error
+	Insert(ctx context.Context, song model.Song) error
+	SelectWithManyID(ctx context.Context, ID []string) ([]model.Song, error)
 }
 
 type PlaylistSongRepository interface {
-	Insert(playlistID string, songID string) error
+	Insert(ctx context.Context, playlistID string, songID string) error
+	SelectAll(ctx context.Context, playlistID string) ([]model.PlaylistSong, error)
 }
 
 type PlaylistService struct {
@@ -35,36 +38,52 @@ func NewPlaylist(playlistRepo PlaylistRepository, songRepo SongRepository, playl
 	}
 }
 
-func (p *PlaylistService) Add(playlistModel model.Playlist) error {
-	return p.playlistRepo.Insert(playlistModel)
+func (p *PlaylistService) Add(ctx context.Context, playlistModel model.Playlist) error {
+	return p.playlistRepo.Insert(ctx, playlistModel)
 }
 
-func (p *PlaylistService) GetAll() ([]model.Playlist, error) {
-	return p.playlistRepo.SelectAll()
+func (p *PlaylistService) GetAll(ctx context.Context) ([]model.Playlist, error) {
+	return p.playlistRepo.SelectAll(ctx)
 }
 
-func (p *PlaylistService) GetByID(id string) (model.Playlist, error) {
-	return p.playlistRepo.SelectWithID(id)
+func (p *PlaylistService) GetByID(ctx context.Context, id string) (model.Playlist, error) {
+	return p.playlistRepo.SelectWithID(ctx, id)
 }
 
-func (p *PlaylistService) DeleteByID(id string) error {
-	return p.playlistRepo.DeleteByID(id)
+func (p *PlaylistService) DeleteByID(ctx context.Context, id string) error {
+	return p.playlistRepo.DeleteByID(ctx, id)
 }
 
-func (p *PlaylistService) AddSongsToPlaylist(playlistID string, songs []model.Song) error {
+func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID string, songs []model.Song) error {
 	for _, song := range songs {
-		err := p.songRepo.Insert(song)
+		err := p.songRepo.Insert(ctx, song)
 		if err != nil {
 			return err
 		}
 
 		log.Println("inserted song in song table")
 
-		err = p.playlistSongRepo.Insert(playlistID, song.ID)
+		err = p.playlistSongRepo.Insert(ctx, playlistID, song.ID)
 		if err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+func (p *PlaylistService) GetAllSongsFromPlaylist(ctx context.Context, playlistID string) ([]model.Song, error) {
+	playlistSongs, err := p.playlistSongRepo.SelectAll(ctx, playlistID)
+	if err != nil {
+		return nil, err
+	}
+
+	var ID []string
+	for _, song := range playlistSongs {
+		ID = append(ID, song.SongID)
+	}
+
+	songsDetail, err := p.songRepo.SelectWithManyID(ctx, ID)
+
+	return songsDetail, err
 }
