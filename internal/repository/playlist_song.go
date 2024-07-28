@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -19,7 +20,7 @@ func NewPlaylistSongRepository(db *sqlx.DB) *PlaylistSongRepository {
 	}
 }
 
-func (ps *PlaylistSongRepository) Insert(playlistID string, songID string) error {
+func (ps *PlaylistSongRepository) Insert(ctx context.Context, playlistID string, songID string) error {
 	playlistSong := model.PlaylistSong{
 		PlaylistID: playlistID,
 		SongID:     songID,
@@ -29,7 +30,8 @@ func (ps *PlaylistSongRepository) Insert(playlistID string, songID string) error
 		},
 	}
 
-	_, err := ps.db.NamedExec(
+	_, err := ps.db.NamedExecContext(
+		ctx,
 		`INSERT INTO playlist_song (playlist_id, song_id, updated_at ,created_at)
 		VALUES (:playlist_id, :song_id, :updated_at, :created_at)`,
 		&playlistSong,
@@ -41,7 +43,7 @@ func (ps *PlaylistSongRepository) Insert(playlistID string, songID string) error
 	return nil
 }
 
-func (ps *PlaylistSongRepository) SelectAll(playlistID string) ([]model.Song, error) {
+func (ps *PlaylistSongRepository) SelectAll(ctx context.Context, playlistID string) ([]model.Song, error) {
 	// TODO: IMPLEMENT THIS
 	return nil, nil
 }

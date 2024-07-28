@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -18,11 +19,12 @@ func NewSongRepository(db *sqlx.DB) *SongRepository {
 	}
 }
 
-func (s *SongRepository) Insert(song model.Song) error {
+func (s *SongRepository) Insert(ctx context.Context, song model.Song) error {
 	song.UpdatedAt = time.Now()
 	song.CreatedAt = time.Now()
 
-	_, err := s.db.NamedExec(
+	_, err := s.db.NamedExecContext(
+		ctx,
 		`INSERT INTO song (song_id, song_name, artist_id, album_id, updated_at, created_at)
 		VALUES (:song_id, :song_name, :artist_id, :album_id, :updated_at, :created_at)`,
 		&song,

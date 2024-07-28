@@ -62,7 +62,7 @@ func TestPlaylistSongRepositoryInsert(t *testing.T) {
 		playlistID := "asdasdasdsaasd"
 		songID := "asiuasubfasuifaufb"
 
-		err = playlistSongRepo.Insert(playlistID, songID)
+		err = playlistSongRepo.Insert(context.Background(), playlistID, songID)
 		if assert.NoError(t, err) {
 			var insertedPlaylistSong model.PlaylistSong
 			err = db.QueryRowx(
