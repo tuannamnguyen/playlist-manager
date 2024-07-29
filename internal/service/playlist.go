@@ -74,6 +74,8 @@ func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID str
 }
 
 func (p *PlaylistService) GetAllSongsFromPlaylist(ctx context.Context, playlistID string) ([]model.Song, error) {
+	// TODO: Reimplement this using JOIN query
+
 	playlistSongs, err := p.playlistSongRepo.SelectAll(ctx, playlistID)
 	if err != nil {
 		return nil, err
