@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"log"
 	"path/filepath"
 	"testing"
 	"time"
@@ -16,7 +15,7 @@ import (
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
 )
 
-func TestPlaylistSongRepositoryInsert(t *testing.T) {
+func setupTestDB(t *testing.T, initScriptPath string) (*sqlx.DB, func()) {
 	var (
 		dbUser     = "postgres"
 		dbPassword = "password"
@@ -25,7 +24,7 @@ func TestPlaylistSongRepositoryInsert(t *testing.T) {
 
 	postgresContainer, err := postgres.Run(ctx,
 		"postgres:latest",
-		postgres.WithInitScripts(filepath.Join(".", "testdata", "script_test_insert_playlist_song.sql")),
+		postgres.WithInitScripts(filepath.Join(".", "testdata", initScriptPath)),
 		postgres.WithUsername(dbUser),
 		postgres.WithPassword(dbPassword),
 		testcontainers.WithWaitStrategy(
@@ -33,173 +32,150 @@ func TestPlaylistSongRepositoryInsert(t *testing.T) {
 				WithOccurrence(2).
 				WithStartupTimeout(5*time.Second)),
 	)
-	if err != nil {
-		log.Fatalf("failed to start container: %s", err)
-	}
-
-	defer func() {
-		if err := postgresContainer.Terminate(ctx); err != nil {
-			log.Fatalf("failed to terminate container: %s", err)
-		}
-	}()
+	require.NoError(t, err, "failed to start container")
 
 	connectionString, err := postgresContainer.ConnectionString(ctx, "dbname=playlist_manager")
-	if err != nil {
-		log.Fatalf("failed to get connection string: %s", err)
-	}
-
-	// setup DB
+	require.NoError(t, err, "failed to get connection string")
 
 	db, err := sqlx.Connect("pgx", connectionString)
-	if err != nil {
-		log.Fatalf("Unable to connect to database: %v\n", err)
-	}
-	defer db.Close()
+	require.NoError(t, err, "Unable to connect to database")
 
-	t.Run("test insert song in playlist", func(t *testing.T) {
-		playlistSongRepo := NewPlaylistSongRepository(db)
-		playlistID := "asdasdasdsaasd"
-		songID := "asiuasubfasuifaufb"
-
-		err = playlistSongRepo.Insert(context.Background(), playlistID, songID)
-		if assert.NoError(t, err) {
-			var insertedPlaylistSong model.PlaylistSong
-			err = db.QueryRowx(
-				`SELECT playlist_id, song_id
-			FROM playlist_song
-			WHERE playlist_id = $1
-			AND song_id = $2`,
-				playlistID,
-				songID,
-			).StructScan(&insertedPlaylistSong)
-			if err != nil {
-				log.Fatalf("test: error querying playlist song: %v", err)
-			}
-
-			assert.Equal(t, playlistID, insertedPlaylistSong.PlaylistID)
-			assert.Equal(t, songID, insertedPlaylistSong.SongID)
-		} else {
-			t.Errorf("expected no error but got: %s", err)
+	cleanup := func() {
+		db.Close()
+		if err := postgresContainer.Terminate(ctx); err != nil {
+			t.Logf("failed to terminate container: %s", err)
 		}
+	}
 
-	})
+	return db, cleanup
+}
+
+func TestPlaylistSongRepositoryInsert(t *testing.T) {
+	db, cleanup := setupTestDB(t, "script_test_insert_playlist_song.sql")
+	defer cleanup()
+
+	tests := []struct {
+		name       string
+		playlistID string
+		songID     string
+		wantErr    bool
+	}{
+		{
+			name:       "successful insert",
+			playlistID: "asdasdasdsaasd",
+			songID:     "asiuasubfasuifaufb",
+			wantErr:    false,
+		},
+		// Add more test cases here if needed
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			playlistSongRepo := NewPlaylistSongRepository(db)
+
+			err := playlistSongRepo.Insert(context.Background(), tt.playlistID, tt.songID)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+
+				var insertedPlaylistSong model.PlaylistSong
+				err = db.QueryRowx(
+					`SELECT playlist_id, song_id
+                    FROM playlist_song
+                    WHERE playlist_id = $1
+                    AND song_id = $2`,
+					tt.playlistID,
+					tt.songID,
+				).StructScan(&insertedPlaylistSong)
+
+				require.NoError(t, err)
+				assert.Equal(t, tt.playlistID, insertedPlaylistSong.PlaylistID)
+				assert.Equal(t, tt.songID, insertedPlaylistSong.SongID)
+			}
+		})
+	}
 }
 
 func TestPlaylistSongRepositorySelectAll(t *testing.T) {
-	var (
-		dbUser     = "postgres"
-		dbPassword = "password"
-	)
-	ctx := context.Background()
+	db, cleanup := setupTestDB(t, "script_test_get_all_song.sql")
+	defer cleanup()
 
-	postgresContainer, err := postgres.Run(ctx,
-		"postgres:latest",
-		postgres.WithInitScripts(filepath.Join(".", "testdata", "script_test_get_all_song.sql")),
-		postgres.WithUsername(dbUser),
-		postgres.WithPassword(dbPassword),
-		testcontainers.WithWaitStrategy(
-			wait.ForLog("database system is ready to accept connections").
-				WithOccurrence(2).
-				WithStartupTimeout(5*time.Second)),
-	)
-	if err != nil {
-		log.Fatalf("failed to start container: %s", err)
+	tests := []struct {
+		name       string
+		playlistID string
+		want       []model.PlaylistSong
+		wantErr    bool
+	}{
+		{
+			name:       "get all success",
+			playlistID: "asdasdasdsaasd",
+			want: []model.PlaylistSong{
+				{
+					PlaylistID: "asdasdasdsaasd",
+					SongID:     "asiuasubfasuifaufb",
+					Timestamp: model.Timestamp{
+						UpdatedAt: time.Date(2024, 7, 27, 10, 12, 0, 0, time.UTC),
+						CreatedAt: time.Date(2024, 7, 27, 10, 12, 0, 0, time.UTC),
+					},
+				},
+			},
+			wantErr: false,
+		},
+		// Add more test cases here if needed
 	}
 
-	defer func() {
-		if err := postgresContainer.Terminate(ctx); err != nil {
-			log.Fatalf("failed to terminate container: %s", err)
-		}
-	}()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			playlistSongRepo := NewPlaylistSongRepository(db)
 
-	connectionString, err := postgresContainer.ConnectionString(ctx, "dbname=playlist_manager")
-	if err != nil {
-		log.Fatalf("failed to get connection string: %s", err)
+			got, err := playlistSongRepo.SelectAll(context.Background(), tt.playlistID)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.want, got)
+			}
+		})
 	}
-
-	// setup DB
-
-	db, err := sqlx.Connect("pgx", connectionString)
-	if err != nil {
-		log.Fatalf("Unable to connect to database: %v\n", err)
-	}
-	defer db.Close()
-
-	t.Run("get all success", func(t *testing.T) {
-		playlistSongRepo := NewPlaylistSongRepository(db)
-		playlistID := "asdasdasdsaasd"
-
-		parsedUpdatedAt, err := time.Parse(time.DateTime, "2024-07-27 10:12:00")
-		require.NoError(t, err)
-
-		parsedCreatedAt, err := time.Parse(time.DateTime, "2024-07-27 10:12:00")
-		require.NoError(t, err)
-
-		expectedSongs := []model.PlaylistSong{
-			{PlaylistID: "asdasdasdsaasd", SongID: "asiuasubfasuifaufb", Timestamp: model.Timestamp{
-				UpdatedAt: parsedUpdatedAt,
-				CreatedAt: parsedCreatedAt,
-			}},
-		}
-
-		playlistSongs, err := playlistSongRepo.SelectAll(context.Background(), playlistID)
-		require.NoError(t, err)
-		assert.Equal(t, expectedSongs, playlistSongs)
-	})
 }
 
 func TestDeleteSongsFromPlaylist(t *testing.T) {
-	var (
-		dbUser     = "postgres"
-		dbPassword = "password"
-	)
-	ctx := context.Background()
+	db, cleanup := setupTestDB(t, "script_test_delete_playlist_song.sql")
+	defer cleanup()
 
-	postgresContainer, err := postgres.Run(ctx,
-		"postgres:latest",
-		postgres.WithInitScripts(filepath.Join(".", "testdata", "script_test_delete_playlist_song.sql")),
-		postgres.WithUsername(dbUser),
-		postgres.WithPassword(dbPassword),
-		testcontainers.WithWaitStrategy(
-			wait.ForLog("database system is ready to accept connections").
-				WithOccurrence(2).
-				WithStartupTimeout(5*time.Second)),
-	)
-	if err != nil {
-		log.Fatalf("failed to start container: %s", err)
+	tests := []struct {
+		name       string
+		playlistID string
+		songsID    []string
+		wantErr    bool
+	}{
+		{
+			name:       "delete successfully",
+			playlistID: "asdasdasdsaasd",
+			songsID:    []string{"asiuasubfasuifaufb"},
+			wantErr:    false,
+		},
+		// Add more test cases here if needed
 	}
 
-	defer func() {
-		if err := postgresContainer.Terminate(ctx); err != nil {
-			log.Fatalf("failed to terminate container: %s", err)
-		}
-	}()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			playlistSongRepository := NewPlaylistSongRepository(db)
 
-	connectionString, err := postgresContainer.ConnectionString(ctx, "dbname=playlist_manager")
-	if err != nil {
-		log.Fatalf("failed to get connection string: %s", err)
+			err := playlistSongRepository.DeleteWithManyID(context.Background(), tt.playlistID, tt.songsID)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+
+				songs, err := playlistSongRepository.SelectAll(context.Background(), tt.playlistID)
+				assert.NoError(t, err)
+				assert.Empty(t, songs)
+			}
+		})
 	}
-
-	// setup DB
-
-	db, err := sqlx.Connect("pgx", connectionString)
-	if err != nil {
-		log.Fatalf("Unable to connect to database: %v\n", err)
-	}
-	defer db.Close()
-
-	t.Run("delete successfully", func(t *testing.T) {
-		playlistSongRepository := NewPlaylistSongRepository(db)
-		playlistID := "asdasdasdsaasd"
-		songsID := []string{"asiuasubfasuifaufb"}
-
-		err := playlistSongRepository.DeleteWithManyID(context.Background(), playlistID, songsID)
-		require.NoError(t, err)
-
-		songs, err := playlistSongRepository.SelectAll(context.Background(), playlistID)
-		assert.NoError(t, err)
-
-		assert.Nil(t, songs)
-	})
-
 }
