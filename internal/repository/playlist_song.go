@@ -89,3 +89,8 @@ func (ps *PlaylistSongRepository) DeleteWithManyID(ctx context.Context, playlist
 	return nil
 
 }
+
+func (ps *PlaylistSongRepository) SelectAllSongsInPlaylist(ctx context.Context, playlistID string) ([]model.Song, error) {
+	// TODO: IMPLEMENT THIS
+	return nil, nil
+}
