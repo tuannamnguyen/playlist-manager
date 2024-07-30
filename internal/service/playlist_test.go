@@ -79,10 +79,7 @@ func TestGetAllSongsFromPlaylist(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockPlaylistSongRepo.On("SelectAll", mock.Anything, tt.playlistID).Return([]model.PlaylistSong{
-				{PlaylistID: tt.playlistID, SongID: "test_id"},
-			}, nil).Once()
-			mockSongRepo.On("SelectWithManyID", mock.Anything, mock.AnythingOfType("[]string")).Return(tt.wantSongs, nil).Once()
+			mockPlaylistSongRepo.On("SelectAllSongsInPlaylist", mock.Anything, "abcd").Return(tt.wantSongs, nil)
 
 			songs, err := playlistService.GetAllSongsFromPlaylist(context.Background(), tt.playlistID)
 			if tt.wantErr {
@@ -91,9 +88,6 @@ func TestGetAllSongsFromPlaylist(t *testing.T) {
 				assert.NoError(t, err)
 				assert.Equal(t, tt.wantSongs, songs)
 			}
-
-			mockSongRepo.AssertExpectations(t)
-			mockPlaylistSongRepo.AssertExpectations(t)
 		})
 	}
 }

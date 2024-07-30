@@ -23,6 +23,7 @@ type PlaylistSongRepository interface {
 	Insert(ctx context.Context, playlistID string, songID string) error
 	SelectAll(ctx context.Context, playlistID string) ([]model.PlaylistSong, error)
 	DeleteWithManyID(ctx context.Context, playlistID string, songsID []string) error
+	SelectAllSongsInPlaylist(ctx context.Context, playlistID string) ([]model.Song, error)
 }
 
 type PlaylistService struct {
@@ -74,21 +75,7 @@ func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID str
 }
 
 func (p *PlaylistService) GetAllSongsFromPlaylist(ctx context.Context, playlistID string) ([]model.Song, error) {
-	// TODO: Reimplement this using JOIN query
-
-	playlistSongs, err := p.playlistSongRepo.SelectAll(ctx, playlistID)
-	if err != nil {
-		return nil, err
-	}
-
-	var ID []string
-	for _, song := range playlistSongs {
-		ID = append(ID, song.SongID)
-	}
-
-	songsDetail, err := p.songRepo.SelectWithManyID(ctx, ID)
-
-	return songsDetail, err
+	return p.playlistSongRepo.SelectAllSongsInPlaylist(ctx, playlistID)
 }
 
 func (p *PlaylistService) DeleteSongsFromPlaylist(ctx context.Context, playlistID string, songsID []string) error {
