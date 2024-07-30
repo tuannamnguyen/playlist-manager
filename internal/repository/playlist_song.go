@@ -53,7 +53,7 @@ func (ps *PlaylistSongRepository) SelectAll(ctx context.Context, playlistID stri
 		playlistID,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("SELECT all songs from playlist_song table: %w", err)
+		return nil, fmt.Errorf("SELECT all playlist_id and song_id from playlist_song table: %w", err)
 	}
 	defer rows.Close()
 
@@ -91,6 +91,29 @@ func (ps *PlaylistSongRepository) DeleteWithManyID(ctx context.Context, playlist
 }
 
 func (ps *PlaylistSongRepository) SelectAllSongsInPlaylist(ctx context.Context, playlistID string) ([]model.Song, error) {
-	// TODO: IMPLEMENT THIS
-	return nil, nil
+	query := `WITH playlist_song_detail AS
+			(SELECT playlist_song.playlist_id, playlist_song.song_id
+			FROM playlist_song
+			WHERE playlist_song.playlist_id = $1)
+			SELECT song.song_id, song.song_name, song.artist_id, song.album_id
+			FROM playlist_song_detail psd
+			JOIN song
+			ON psd.song_id = song.song_id`
+	rows, err := ps.db.QueryxContext(ctx, query, playlistID)
+	if err != nil {
+		return nil, fmt.Errorf("SELECT all songs detail in a playlist: %v", err)
+	}
+	defer rows.Close()
+
+	var playlistSongs []model.Song
+	for rows.Next() {
+		var song model.Song
+		if err := rows.StructScan(&song); err != nil {
+			return nil, fmt.Errorf("scan song to struct: %v", err)
+		}
+
+		playlistSongs = append(playlistSongs, song)
+	}
+
+	return playlistSongs, nil
 }

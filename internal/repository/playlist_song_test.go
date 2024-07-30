@@ -2,9 +2,12 @@ package repository
 
 import (
 	"context"
+	"reflect"
 	"testing"
 	"time"
 
+	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
@@ -135,6 +138,61 @@ func TestDeleteSongsFromPlaylist(t *testing.T) {
 				songs, err := playlistSongRepository.SelectAll(context.Background(), tt.playlistID)
 				assert.NoError(t, err)
 				assert.Empty(t, songs)
+			}
+		})
+	}
+}
+
+func TestSelectAllSongsInPlaylist(t *testing.T) {
+	db, cleanup := setupTestDB(t, "script_test_get_all_song.sql")
+	defer cleanup()
+
+	type fields struct {
+		db *sqlx.DB
+	}
+	type args struct {
+		ctx        context.Context
+		playlistID string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    []model.Song
+		wantErr bool
+	}{
+		{
+			name: "get all success",
+			fields: fields{
+				db: db,
+			},
+			args: args{
+				ctx:        context.Background(),
+				playlistID: "asdasdasdsaasd",
+			},
+			want: []model.Song{
+				{
+					ID:       "asiuasubfasuifaufb",
+					Name:     "devil in a new dress",
+					ArtistID: "kanye west",
+					AlbumID:  "mbdtf",
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ps := &PlaylistSongRepository{
+				db: tt.fields.db,
+			}
+			got, err := ps.SelectAllSongsInPlaylist(tt.args.ctx, tt.args.playlistID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PlaylistSongRepository.SelectAllSongsInPlaylist() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("PlaylistSongRepository.SelectAllSongsInPlaylist() = %v, want %v", got, tt.want)
 			}
 		})
 	}
