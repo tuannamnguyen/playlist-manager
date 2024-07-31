@@ -23,8 +23,8 @@ func (p *PlaylistRepository) Insert(ctx context.Context, playlistModel model.Pla
 
 	_, err := p.db.NamedExecContext(
 		ctx,
-		`INSERT INTO playlist (playlist_id, playlist_name, user_id, updated_at, created_at)
-		VALUES (:playlist_id, :playlist_name, :user_id, :updated_at, :created_at)
+		`INSERT INTO playlist (playlist_name, user_id, updated_at, created_at)
+		VALUES (:playlist_name, :user_id, :updated_at, :created_at)
 		RETURNING playlist_id`,
 		&playlistModel,
 	)

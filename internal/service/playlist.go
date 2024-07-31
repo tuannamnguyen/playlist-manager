@@ -15,7 +15,7 @@ type PlaylistRepository interface {
 }
 
 type SongRepository interface {
-	Insert(ctx context.Context, song model.Song) error
+	Insert(ctx context.Context, song model.Song) (int, error)
 	SelectWithManyID(ctx context.Context, ID []int) ([]model.Song, error)
 }
 
@@ -58,14 +58,14 @@ func (p *PlaylistService) DeleteByID(ctx context.Context, id int) error {
 
 func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID int, songs []model.Song) error {
 	for _, song := range songs {
-		err := p.songRepo.Insert(ctx, song)
+		songID, err := p.songRepo.Insert(ctx, song)
 		if err != nil {
 			return err
 		}
 
 		log.Println("inserted song in song table")
 
-		err = p.playlistSongRepo.Insert(ctx, playlistID, song.ID)
+		err = p.playlistSongRepo.Insert(ctx, playlistID, songID)
 		if err != nil {
 			return err
 		}

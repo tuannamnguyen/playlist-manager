@@ -35,9 +35,9 @@ type MockSongRepository struct {
 	mock.Mock
 }
 
-func (m *MockSongRepository) Insert(ctx context.Context, song model.Song) error {
+func (m *MockSongRepository) Insert(ctx context.Context, song model.Song) (int, error) {
 	args := m.Called(ctx, song)
-	return args.Error(0)
+	return args.Int(0), args.Error(1)
 }
 
 func (m *MockSongRepository) SelectWithManyID(ctx context.Context, ID []int) ([]model.Song, error) {
