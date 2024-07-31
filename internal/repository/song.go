@@ -36,7 +36,7 @@ func (s *SongRepository) Insert(ctx context.Context, song model.Song) error {
 	return nil
 }
 
-func (s *SongRepository) SelectWithManyID(ctx context.Context, ID []string) ([]model.Song, error) {
+func (s *SongRepository) SelectWithManyID(ctx context.Context, ID []int) ([]model.Song, error) {
 	var songs []model.Song
 	query, args, err := sqlx.In("SELECT * FROM song WHERE song_id IN (?);", ID)
 	if err != nil {

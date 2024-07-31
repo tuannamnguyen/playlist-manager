@@ -12,12 +12,12 @@ import (
 type PlaylistService interface {
 	Add(ctx context.Context, playlistModel model.Playlist) error
 	GetAll(ctx context.Context) ([]model.Playlist, error)
-	GetByID(ctx context.Context, id string) (model.Playlist, error)
-	DeleteByID(ctx context.Context, id string) error
+	GetByID(ctx context.Context, id int) (model.Playlist, error)
+	DeleteByID(ctx context.Context, id int) error
 
-	AddSongsToPlaylist(ctx context.Context, playlistID string, songs []model.Song) error
-	GetAllSongsFromPlaylist(ctx context.Context, playlistID string) ([]model.Song, error)
-	DeleteSongsFromPlaylist(ctx context.Context, playlistID string, songsID []string) error
+	AddSongsToPlaylist(ctx context.Context, playlistID int, songs []model.Song) error
+	GetAllSongsFromPlaylist(ctx context.Context, playlistID int) ([]model.Song, error)
+	DeleteSongsFromPlaylist(ctx context.Context, playlistID int, songsID []int) error
 }
 
 type PlaylistHandler struct {
