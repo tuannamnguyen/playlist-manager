@@ -48,15 +48,15 @@ func (p *PlaylistService) GetAll(ctx context.Context) ([]model.Playlist, error) 
 	return p.playlistRepo.SelectAll(ctx)
 }
 
-func (p *PlaylistService) GetByID(ctx context.Context, id string) (model.Playlist, error) {
+func (p *PlaylistService) GetByID(ctx context.Context, id int) (model.Playlist, error) {
 	return p.playlistRepo.SelectWithID(ctx, id)
 }
 
-func (p *PlaylistService) DeleteByID(ctx context.Context, id string) error {
+func (p *PlaylistService) DeleteByID(ctx context.Context, id int) error {
 	return p.playlistRepo.DeleteByID(ctx, id)
 }
 
-func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID string, songs []model.Song) error {
+func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID int, songs []model.Song) error {
 	for _, song := range songs {
 		err := p.songRepo.Insert(ctx, song)
 		if err != nil {
@@ -74,10 +74,10 @@ func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID str
 	return nil
 }
 
-func (p *PlaylistService) GetAllSongsFromPlaylist(ctx context.Context, playlistID string) ([]model.Song, error) {
+func (p *PlaylistService) GetAllSongsFromPlaylist(ctx context.Context, playlistID int) ([]model.Song, error) {
 	return p.playlistSongRepo.SelectAllSongsInPlaylist(ctx, playlistID)
 }
 
-func (p *PlaylistService) DeleteSongsFromPlaylist(ctx context.Context, playlistID string, songsID []string) error {
+func (p *PlaylistService) DeleteSongsFromPlaylist(ctx context.Context, playlistID int, songsID []int) error {
 	return p.playlistSongRepo.DeleteWithManyID(ctx, playlistID, songsID)
 }

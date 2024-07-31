@@ -15,16 +15,16 @@ func TestSelectWithManyID(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		songIDs []string
+		songIDs []int
 		want    []model.Song
 		wantErr bool
 	}{
 		{
 			name:    "success get all songs",
-			songIDs: []string{"asiuasubfasuifaufb"},
+			songIDs: []int{1},
 			want: []model.Song{
 				{
-					ID:       "asiuasubfasuifaufb",
+					ID:       1,
 					Name:     "devil in a new dress",
 					ArtistID: "kanye west",
 					AlbumID:  "mbdtf",
