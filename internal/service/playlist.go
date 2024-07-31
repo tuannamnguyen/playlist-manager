@@ -10,20 +10,20 @@ import (
 type PlaylistRepository interface {
 	Insert(ctx context.Context, playlistModel model.Playlist) error
 	SelectAll(ctx context.Context) ([]model.Playlist, error)
-	SelectWithID(ctx context.Context, id string) (model.Playlist, error)
-	DeleteByID(ctx context.Context, id string) error
+	SelectWithID(ctx context.Context, id int) (model.Playlist, error)
+	DeleteByID(ctx context.Context, id int) error
 }
 
 type SongRepository interface {
 	Insert(ctx context.Context, song model.Song) error
-	SelectWithManyID(ctx context.Context, ID []string) ([]model.Song, error)
+	SelectWithManyID(ctx context.Context, ID []int) ([]model.Song, error)
 }
 
 type PlaylistSongRepository interface {
-	Insert(ctx context.Context, playlistID string, songID string) error
-	SelectAll(ctx context.Context, playlistID string) ([]model.PlaylistSong, error)
-	DeleteWithManyID(ctx context.Context, playlistID string, songsID []string) error
-	SelectAllSongsInPlaylist(ctx context.Context, playlistID string) ([]model.Song, error)
+	Insert(ctx context.Context, playlistID int, songID int) error
+	SelectAll(ctx context.Context, playlistID int) ([]model.PlaylistSong, error)
+	DeleteWithManyID(ctx context.Context, playlistID int, songsID []int) error
+	SelectAllSongsInPlaylist(ctx context.Context, playlistID int) ([]model.Song, error)
 }
 
 type PlaylistService struct {
