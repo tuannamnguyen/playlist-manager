@@ -19,24 +19,26 @@ func NewSongRepository(db *sqlx.DB) *SongRepository {
 	}
 }
 
-func (s *SongRepository) Insert(ctx context.Context, song model.Song) error {
+func (s *SongRepository) Insert(ctx context.Context, song model.Song) (int, error) {
 	song.UpdatedAt = time.Now()
 	song.CreatedAt = time.Now()
 
-	_, err := s.db.NamedExecContext(
+	var lastInsertID int
+	err := s.db.QueryRowContext(
 		ctx,
-		`INSERT INTO song (song_id, song_name, artist_id, album_id, updated_at, created_at)
-		VALUES (:song_id, :song_name, :artist_id, :album_id, :updated_at, :created_at)`,
-		&song,
-	)
+		`INSERT INTO song (song_name, artist_id, album_id, updated_at, created_at)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING song_id`,
+		song.Name, song.ArtistID, song.AlbumID, song.UpdatedAt, song.CreatedAt,
+	).Scan(&lastInsertID)
 	if err != nil {
-		return fmt.Errorf("INSERT song into db: %w", err)
+		return 0, fmt.Errorf("INSERT song into db: %w", err)
 	}
 
-	return nil
+	return lastInsertID, nil
 }
 
-func (s *SongRepository) SelectWithManyID(ctx context.Context, ID []string) ([]model.Song, error) {
+func (s *SongRepository) SelectWithManyID(ctx context.Context, ID []int) ([]model.Song, error) {
 	var songs []model.Song
 	query, args, err := sqlx.In("SELECT * FROM song WHERE song_id IN (?);", ID)
 	if err != nil {

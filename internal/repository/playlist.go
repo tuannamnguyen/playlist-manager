@@ -23,8 +23,8 @@ func (p *PlaylistRepository) Insert(ctx context.Context, playlistModel model.Pla
 
 	_, err := p.db.NamedExecContext(
 		ctx,
-		`INSERT INTO playlist (playlist_id, playlist_name, user_id, updated_at, created_at)
-		VALUES (:playlist_id, :playlist_name, :user_id, :updated_at, :created_at)
+		`INSERT INTO playlist (playlist_name, user_id, updated_at, created_at)
+		VALUES (:playlist_name, :user_id, :updated_at, :created_at)
 		RETURNING playlist_id`,
 		&playlistModel,
 	)
@@ -60,7 +60,7 @@ func (p *PlaylistRepository) SelectAll(ctx context.Context) ([]model.Playlist, e
 	return playlists, nil
 }
 
-func (p *PlaylistRepository) SelectWithID(ctx context.Context, id string) (model.Playlist, error) {
+func (p *PlaylistRepository) SelectWithID(ctx context.Context, id int) (model.Playlist, error) {
 	var playlist model.Playlist
 
 	err := p.db.QueryRowxContext(ctx, "SELECT * FROM playlist WHERE playlist_id = $1", id).StructScan(&playlist)
@@ -71,7 +71,7 @@ func (p *PlaylistRepository) SelectWithID(ctx context.Context, id string) (model
 	return playlist, nil
 }
 
-func (p *PlaylistRepository) DeleteByID(ctx context.Context, id string) error {
+func (p *PlaylistRepository) DeleteByID(ctx context.Context, id int) error {
 	_, err := p.db.ExecContext(ctx, "DELETE FROM playlist WHERE playlist_id = $1", id)
 	if err != nil {
 		return fmt.Errorf("DELETE playlist with id from db: %w", err)

@@ -19,14 +19,14 @@ func TestPlaylistSongRepositoryInsert(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		playlistID string
-		songID     string
+		playlistID int
+		songID     int
 		wantErr    bool
 	}{
 		{
 			name:       "successful insert",
-			playlistID: "asdasdasdsaasd",
-			songID:     "asiuasubfasuifaufb",
+			playlistID: 1,
+			songID:     1,
 			wantErr:    false,
 		},
 		// Add more test cases here if needed
@@ -67,17 +67,17 @@ func TestPlaylistSongRepositorySelectAll(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		playlistID string
+		playlistID int
 		want       []model.PlaylistSong
 		wantErr    bool
 	}{
 		{
 			name:       "get all success",
-			playlistID: "asdasdasdsaasd",
+			playlistID: 1,
 			want: []model.PlaylistSong{
 				{
-					PlaylistID: "asdasdasdsaasd",
-					SongID:     "asiuasubfasuifaufb",
+					PlaylistID: 1,
+					SongID:     1,
 					Timestamp: model.Timestamp{
 						UpdatedAt: time.Date(2024, 7, 27, 10, 12, 0, 0, time.UTC),
 						CreatedAt: time.Date(2024, 7, 27, 10, 12, 0, 0, time.UTC),
@@ -111,14 +111,14 @@ func TestDeleteSongsFromPlaylist(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		playlistID string
-		songsID    []string
+		playlistID int
+		songsID    []int
 		wantErr    bool
 	}{
 		{
 			name:       "delete successfully",
-			playlistID: "asdasdasdsaasd",
-			songsID:    []string{"asiuasubfasuifaufb"},
+			playlistID: 1,
+			songsID:    []int{1},
 			wantErr:    false,
 		},
 		// Add more test cases here if needed
@@ -152,7 +152,7 @@ func TestSelectAllSongsInPlaylist(t *testing.T) {
 	}
 	type args struct {
 		ctx        context.Context
-		playlistID string
+		playlistID int
 	}
 	tests := []struct {
 		name    string
@@ -168,11 +168,11 @@ func TestSelectAllSongsInPlaylist(t *testing.T) {
 			},
 			args: args{
 				ctx:        context.Background(),
-				playlistID: "asdasdasdsaasd",
+				playlistID: 1,
 			},
 			want: []model.Song{
 				{
-					ID:       "asiuasubfasuifaufb",
+					ID:       1,
 					Name:     "devil in a new dress",
 					ArtistID: "kanye west",
 					AlbumID:  "mbdtf",

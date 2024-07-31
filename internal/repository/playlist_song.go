@@ -21,7 +21,7 @@ func NewPlaylistSongRepository(db *sqlx.DB) *PlaylistSongRepository {
 	}
 }
 
-func (ps *PlaylistSongRepository) Insert(ctx context.Context, playlistID string, songID string) error {
+func (ps *PlaylistSongRepository) Insert(ctx context.Context, playlistID int, songID int) error {
 	playlistSong := model.PlaylistSong{
 		PlaylistID: playlistID,
 		SongID:     songID,
@@ -44,7 +44,7 @@ func (ps *PlaylistSongRepository) Insert(ctx context.Context, playlistID string,
 	return nil
 }
 
-func (ps *PlaylistSongRepository) SelectAll(ctx context.Context, playlistID string) ([]model.PlaylistSong, error) {
+func (ps *PlaylistSongRepository) SelectAll(ctx context.Context, playlistID int) ([]model.PlaylistSong, error) {
 	var playlistSongs []model.PlaylistSong
 
 	rows, err := ps.db.QueryxContext(
@@ -73,7 +73,7 @@ func (ps *PlaylistSongRepository) SelectAll(ctx context.Context, playlistID stri
 
 }
 
-func (ps *PlaylistSongRepository) DeleteWithManyID(ctx context.Context, playlistID string, songsID []string) error {
+func (ps *PlaylistSongRepository) DeleteWithManyID(ctx context.Context, playlistID int, songsID []int) error {
 	query, args, err := sqlx.In("DELETE FROM playlist_song WHERE playlist_id = (?) AND song_id IN (?)", playlistID, songsID)
 	if err != nil {
 		return fmt.Errorf("prepare delete songs in playlist query: %w", err)
@@ -90,7 +90,7 @@ func (ps *PlaylistSongRepository) DeleteWithManyID(ctx context.Context, playlist
 
 }
 
-func (ps *PlaylistSongRepository) SelectAllSongsInPlaylist(ctx context.Context, playlistID string) ([]model.Song, error) {
+func (ps *PlaylistSongRepository) SelectAllSongsInPlaylist(ctx context.Context, playlistID int) ([]model.Song, error) {
 	query := `WITH playlist_song_detail AS
 			(SELECT playlist_song.playlist_id, playlist_song.song_id
 			FROM playlist_song

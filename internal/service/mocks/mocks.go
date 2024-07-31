@@ -21,12 +21,12 @@ func (m *MockPlaylistRepository) SelectAll(ctx context.Context) ([]model.Playlis
 	return args.Get(0).([]model.Playlist), args.Error(1)
 }
 
-func (m *MockPlaylistRepository) SelectWithID(ctx context.Context, id string) (model.Playlist, error) {
+func (m *MockPlaylistRepository) SelectWithID(ctx context.Context, id int) (model.Playlist, error) {
 	args := m.Called(ctx, id)
 	return args.Get(0).(model.Playlist), args.Error(1)
 }
 
-func (m *MockPlaylistRepository) DeleteByID(ctx context.Context, id string) error {
+func (m *MockPlaylistRepository) DeleteByID(ctx context.Context, id int) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
@@ -35,12 +35,12 @@ type MockSongRepository struct {
 	mock.Mock
 }
 
-func (m *MockSongRepository) Insert(ctx context.Context, song model.Song) error {
+func (m *MockSongRepository) Insert(ctx context.Context, song model.Song) (int, error) {
 	args := m.Called(ctx, song)
-	return args.Error(0)
+	return args.Int(0), args.Error(1)
 }
 
-func (m *MockSongRepository) SelectWithManyID(ctx context.Context, ID []string) ([]model.Song, error) {
+func (m *MockSongRepository) SelectWithManyID(ctx context.Context, ID []int) ([]model.Song, error) {
 	args := m.Called(ctx, ID)
 
 	songs, ok := (args.Get(0)).([]model.Song)
@@ -55,12 +55,12 @@ type MockPlaylistSongRepository struct {
 	mock.Mock
 }
 
-func (m *MockPlaylistSongRepository) Insert(ctx context.Context, playlistID string, songID string) error {
+func (m *MockPlaylistSongRepository) Insert(ctx context.Context, playlistID int, songID int) error {
 	args := m.Called(ctx, playlistID, songID)
 	return args.Error(0)
 }
 
-func (m *MockPlaylistSongRepository) SelectAll(ctx context.Context, playlistID string) ([]model.PlaylistSong, error) {
+func (m *MockPlaylistSongRepository) SelectAll(ctx context.Context, playlistID int) ([]model.PlaylistSong, error) {
 	args := m.Called(ctx, playlistID)
 
 	if args.Get(0) == nil {
@@ -70,13 +70,13 @@ func (m *MockPlaylistSongRepository) SelectAll(ctx context.Context, playlistID s
 	return args.Get(0).([]model.PlaylistSong), args.Error(1)
 }
 
-func (m *MockPlaylistSongRepository) DeleteWithManyID(ctx context.Context, playlistID string, songsID []string) error {
+func (m *MockPlaylistSongRepository) DeleteWithManyID(ctx context.Context, playlistID int, songsID []int) error {
 	args := m.Called(ctx, playlistID, songsID)
 
 	return args.Error(0)
 }
 
-func (m *MockPlaylistSongRepository) SelectAllSongsInPlaylist(ctx context.Context, playlistID string) ([]model.Song, error) {
+func (m *MockPlaylistSongRepository) SelectAllSongsInPlaylist(ctx context.Context, playlistID int) ([]model.Song, error) {
 	args := m.Called(ctx, playlistID)
 
 	songs, ok := (args.Get(0)).([]model.Song)

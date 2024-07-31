@@ -19,16 +19,16 @@ func TestAddSongsToPlaylist(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		playlistID string
+		playlistID int
 		songs      []model.Song
 		wantErr    bool
 	}{
 		{
 			name:       "Success",
-			playlistID: "playlist1",
+			playlistID: 1,
 			songs: []model.Song{
-				{ID: "song1"},
-				{ID: "song2"},
+				{ID: 1},
+				{ID: 2},
 			},
 			wantErr: false,
 		},
@@ -37,7 +37,7 @@ func TestAddSongsToPlaylist(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			for _, song := range tt.songs {
-				mockSongRepo.On("Insert", mock.Anything, song).Return(nil)
+				mockSongRepo.On("Insert", mock.Anything, song).Return(song.ID, nil)
 				mockPlaylistSongRepo.On("Insert", mock.Anything, tt.playlistID, song.ID).Return(nil)
 			}
 
@@ -63,15 +63,15 @@ func TestGetAllSongsFromPlaylist(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		playlistID string
+		playlistID int
 		wantSongs  []model.Song
 		wantErr    bool
 	}{
 		{
 			name:       "Success",
-			playlistID: "abcd",
+			playlistID: 1,
 			wantSongs: []model.Song{
-				{ID: "test_id", Name: "test_name", ArtistID: "test_artist_id", AlbumID: "test_album_id"},
+				{ID: 1, Name: "test_name", ArtistID: "test_artist_id", AlbumID: "test_album_id"},
 			},
 			wantErr: false,
 		},
@@ -79,7 +79,7 @@ func TestGetAllSongsFromPlaylist(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockPlaylistSongRepo.On("SelectAllSongsInPlaylist", mock.Anything, "abcd").Return(tt.wantSongs, nil)
+			mockPlaylistSongRepo.On("SelectAllSongsInPlaylist", mock.Anything, 1).Return(tt.wantSongs, nil)
 
 			songs, err := playlistService.GetAllSongsFromPlaylist(context.Background(), tt.playlistID)
 			if tt.wantErr {
@@ -101,14 +101,14 @@ func TestDeleteSongsFromPlaylist(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		playlistID string
-		songsID    []string
+		playlistID int
+		songsID    []int
 		wantErr    bool
 	}{
 		{
 			name:       "Delete Successfully",
-			playlistID: "abcd",
-			songsID:    []string{"abc", "def"},
+			playlistID: 1,
+			songsID:    []int{1, 2},
 			wantErr:    false,
 		},
 	}
