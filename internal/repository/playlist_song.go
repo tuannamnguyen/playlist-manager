@@ -115,3 +115,8 @@ func (ps *PlaylistSongRepository) SelectAllSongsInPlaylist(ctx context.Context, 
 
 	return playlistSongs, nil
 }
+
+func (ps *PlaylistSongRepository) BulkInsert(ctx context.Context, playlistID int, songsID []int) error {
+	// TODO: IMPLEMENT THIS
+	return nil
+}

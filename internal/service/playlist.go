@@ -16,11 +16,13 @@ type PlaylistRepository interface {
 
 type SongRepository interface {
 	Insert(ctx context.Context, song model.Song) (int, error)
+	BulkInsert(ctx context.Context, songs []model.Song) ([]int, error)
 	SelectWithManyID(ctx context.Context, ID []int) ([]model.Song, error)
 }
 
 type PlaylistSongRepository interface {
 	Insert(ctx context.Context, playlistID int, songID int) error
+	BulkInsert(ctx context.Context, playlistID int, songsID []int) error
 	SelectAll(ctx context.Context, playlistID int) ([]model.PlaylistSong, error)
 	DeleteWithManyID(ctx context.Context, playlistID int, songsID []int) error
 	SelectAllSongsInPlaylist(ctx context.Context, playlistID int) ([]model.Song, error)

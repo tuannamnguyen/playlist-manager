@@ -66,3 +66,8 @@ func (s *SongRepository) SelectWithManyID(ctx context.Context, ID []int) ([]mode
 
 	return songs, nil
 }
+
+func (s *SongRepository) BulkInsert(ctx context.Context, songs []model.Song) ([]int, error) {
+	// TODO: IMPLEMENT THIS
+	return nil, nil
+}
