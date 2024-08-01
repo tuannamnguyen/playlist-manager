@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"log"
+	"fmt"
 
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
 )
@@ -59,19 +59,14 @@ func (p *PlaylistService) DeleteByID(ctx context.Context, id int) error {
 }
 
 func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID int, songs []model.Song) error {
-	for _, song := range songs {
-		// TODO: Find a way to do bulk insert here
-		songID, err := p.songRepo.Insert(ctx, song)
-		if err != nil {
-			return err
-		}
+	songsID, err := p.songRepo.BulkInsert(ctx, songs)
+	if err != nil {
+		return fmt.Errorf("bulk insert songs: %w", err)
+	}
 
-		log.Println("inserted song in song table")
-
-		err = p.playlistSongRepo.Insert(ctx, playlistID, songID)
-		if err != nil {
-			return err
-		}
+	err = p.playlistSongRepo.BulkInsert(ctx, playlistID, songsID)
+	if err != nil {
+		return fmt.Errorf("bulk insert songs into playlist: %w", err)
 	}
 
 	return nil

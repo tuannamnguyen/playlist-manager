@@ -36,10 +36,8 @@ func TestAddSongsToPlaylist(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			for _, song := range tt.songs {
-				mockSongRepo.On("Insert", mock.Anything, song).Return(song.ID, nil)
-				mockPlaylistSongRepo.On("Insert", mock.Anything, tt.playlistID, song.ID).Return(nil)
-			}
+			mockSongRepo.On("BulkInsert", mock.Anything, tt.songs).Return([]int{1, 2}, nil)
+			mockPlaylistSongRepo.On("BulkInsert", mock.Anything, 1, []int{1, 2}).Return(nil)
 
 			err := playlistService.AddSongsToPlaylist(context.Background(), tt.playlistID, tt.songs)
 			if tt.wantErr {
