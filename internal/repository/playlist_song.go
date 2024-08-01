@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -79,7 +78,6 @@ func (ps *PlaylistSongRepository) DeleteWithManyID(ctx context.Context, playlist
 		return fmt.Errorf("prepare delete songs in playlist query: %w", err)
 	}
 	query = sqlx.Rebind(sqlx.DOLLAR, query)
-	log.Println(query, args)
 
 	_, err = ps.db.ExecContext(ctx, query, args...)
 	if err != nil {
