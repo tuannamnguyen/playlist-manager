@@ -58,6 +58,7 @@ func (p *PlaylistService) DeleteByID(ctx context.Context, id int) error {
 
 func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID int, songs []model.Song) error {
 	for _, song := range songs {
+		// TODO: Find a way to do bulk insert here
 		songID, err := p.songRepo.Insert(ctx, song)
 		if err != nil {
 			return err

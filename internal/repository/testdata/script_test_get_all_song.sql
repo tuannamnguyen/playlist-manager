@@ -35,7 +35,8 @@ CREATE TABLE IF NOT EXISTS song (
   album_id TEXT NOT NULL,
   updated_at TIMESTAMP NOT NULL,
   created_at TIMESTAMP NOT NULL,
-  PRIMARY KEY (song_id)
+  PRIMARY KEY (song_id),
+  UNIQUE (song_name, artist_id, album_id)
 );
 
 

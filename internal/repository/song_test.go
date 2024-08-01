@@ -2,9 +2,12 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
@@ -67,11 +70,11 @@ func TestSongInsert(t *testing.T) {
 		song model.Song
 	}
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    int
-		wantErr bool
+		name        string
+		fields      fields
+		args        args
+		want        int
+		wantErrCode string
 	}{
 		{
 			name: "insert song success",
@@ -86,8 +89,24 @@ func TestSongInsert(t *testing.T) {
 					AlbumID:  "mbdtf",
 				},
 			},
-			want:    1,
-			wantErr: false,
+			want: 1,
+		},
+		// Run the tests in this exact order to ensure duplicate
+		{
+			name: "insert song duplicate",
+			fields: fields{
+				db: db,
+			},
+			args: args{
+				ctx: context.Background(),
+				song: model.Song{
+					Name:     "devil in a new dress",
+					ArtistID: "kanye west",
+					AlbumID:  "mbdtf",
+				},
+			},
+			want:        0,
+			wantErrCode: pgerrcode.UniqueViolation,
 		},
 	}
 	for _, tt := range tests {
@@ -96,10 +115,13 @@ func TestSongInsert(t *testing.T) {
 				db: tt.fields.db,
 			}
 			got, err := s.Insert(tt.args.ctx, tt.args.song)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("SongRepository.Insert() error = %v, wantErr %v", err, tt.wantErr)
-				return
+			if err != nil {
+				var pgErr *pgconn.PgError
+				if errors.As(err, &pgErr) && pgErr.Code != tt.wantErrCode {
+					t.Errorf("SongRepository.Insert() error = %v, got code: %v, want code: %v", err, pgErr.Code, tt.wantErrCode)
+				}
 			}
+
 			if got != tt.want {
 				t.Errorf("SongRepository.Insert() = %v, want %v", got, tt.want)
 			}
