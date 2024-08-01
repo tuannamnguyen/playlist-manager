@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -73,12 +75,12 @@ func (s *SongRepository) BulkInsert(ctx context.Context, songs []model.Song) ([]
 	// start transaction
 	tx, err := s.db.Begin()
 	if err != nil {
-		return nil, fmt.Errorf("begin transaction: %w", err)
+		return nil, fmt.Errorf("begin transaction insert songs: %w", err)
 	}
 	defer func() {
 		err = tx.Rollback()
-		if err != nil {
-			log.Printf("error rolling back transaction: %v\n", err)
+		if err != nil && !errors.Is(err, sql.ErrTxDone) {
+			log.Printf("error rolling back transaction bulk insert songs: %v\n", err)
 		}
 	}()
 
@@ -89,6 +91,7 @@ func (s *SongRepository) BulkInsert(ctx context.Context, songs []model.Song) ([]
 	query := `
 		INSERT INTO song (song_name, artist_id, album_id, updated_at, created_at)
 		VALUES %s
+		ON CONFLICT (song_name, artist_id, album_id) DO NOTHING
 		RETURNING song_id
 	`
 	valueStrings := make([]string, 0, len(songs))
@@ -97,8 +100,10 @@ func (s *SongRepository) BulkInsert(ctx context.Context, songs []model.Song) ([]
 		valueStrings = append(valueStrings, "(?, ?, ?, ?, ?)")
 		valueArgs = append(valueArgs, song.Name, song.ArtistID, song.AlbumID, createdAt, updatedAt)
 	}
-	query = fmt.Sprintf(query, strings.Join(valueStrings, ","))
-	query = sqlx.Rebind(sqlx.DOLLAR, query)
+	query = sqlx.Rebind(
+		sqlx.DOLLAR,
+		fmt.Sprintf(query, strings.Join(valueStrings, ",")),
+	)
 
 	// Execute the query
 	rows, err := tx.QueryContext(ctx, query, valueArgs...)

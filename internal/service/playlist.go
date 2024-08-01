@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
 )
@@ -63,6 +64,8 @@ func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID int
 	if err != nil {
 		return fmt.Errorf("bulk insert songs: %w", err)
 	}
+
+	log.Printf("inserted songs ID: %v", songsID)
 
 	err = p.playlistSongRepo.BulkInsert(ctx, playlistID, songsID)
 	if err != nil {
