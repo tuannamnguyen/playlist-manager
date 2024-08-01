@@ -82,11 +82,12 @@ func (s *SongRepository) BulkInsert(ctx context.Context, songs []model.Song) ([]
 		}
 	}()
 
+	// prepare query
 	createdAt := time.Now()
 	updatedAt := time.Now()
 
 	query := `
-		INSERT INTO song (name, artist_id, album_id, updated_at, created_at)
+		INSERT INTO song (song_name, artist_id, album_id, updated_at, created_at)
 		VALUES %s
 		RETURNING song_id
 	`
@@ -94,9 +95,10 @@ func (s *SongRepository) BulkInsert(ctx context.Context, songs []model.Song) ([]
 	valueArgs := make([]any, 0, len(songs)*5)
 	for _, song := range songs {
 		valueStrings = append(valueStrings, "(?, ?, ?, ?, ?)")
-		valueArgs = append(valueArgs, []any{song.Name, song.ArtistID, song.AlbumID, createdAt, updatedAt})
+		valueArgs = append(valueArgs, song.Name, song.ArtistID, song.AlbumID, createdAt, updatedAt)
 	}
 	query = fmt.Sprintf(query, strings.Join(valueStrings, ","))
+	query = sqlx.Rebind(sqlx.DOLLAR, query)
 
 	// Execute the query
 	rows, err := tx.QueryContext(ctx, query, valueArgs...)
