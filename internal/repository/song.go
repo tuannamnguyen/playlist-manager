@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"fmt"
+	"log"
+	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -68,6 +70,56 @@ func (s *SongRepository) SelectWithManyID(ctx context.Context, ID []int) ([]mode
 }
 
 func (s *SongRepository) BulkInsert(ctx context.Context, songs []model.Song) ([]int, error) {
-	// TODO: IMPLEMENT THIS
-	return nil, nil
+	// start transaction
+	tx, err := s.db.Begin()
+	if err != nil {
+		return nil, fmt.Errorf("begin transaction: %w", err)
+	}
+	defer func() {
+		err = tx.Rollback()
+		if err != nil {
+			log.Printf("error rolling back transaction: %v\n", err)
+		}
+	}()
+
+	createdAt := time.Now()
+	updatedAt := time.Now()
+
+	query := `
+		INSERT INTO song (name, artist_id, album_id, updated_at, created_at)
+		VALUES %s
+		RETURNING song_id
+	`
+	valueStrings := make([]string, 0, len(songs))
+	valueArgs := make([]any, 0, len(songs)*5)
+	for _, song := range songs {
+		valueStrings = append(valueStrings, "(?, ?, ?, ?, ?)")
+		valueArgs = append(valueArgs, []any{song.Name, song.ArtistID, song.AlbumID, createdAt, updatedAt})
+	}
+	query = fmt.Sprintf(query, strings.Join(valueStrings, ","))
+
+	// Execute the query
+	rows, err := tx.QueryContext(ctx, query, valueArgs...)
+	if err != nil {
+		return nil, fmt.Errorf("bulk INSERT songs: %w", err)
+	}
+	defer rows.Close()
+
+	// get inserted IDs
+	var insertedIDs []int
+	for rows.Next() {
+		var id int
+		if err := rows.Scan(&id); err != nil {
+			return nil, fmt.Errorf("scanning inserted songs id: %w", err)
+		}
+		insertedIDs = append(insertedIDs, id)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return nil, fmt.Errorf("commiting transaction: %w", err)
+	}
+
+	return insertedIDs, nil
+
 }

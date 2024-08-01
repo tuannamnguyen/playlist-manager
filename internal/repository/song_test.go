@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"reflect"
 	"testing"
 	"time"
 
@@ -124,6 +125,65 @@ func TestSongInsert(t *testing.T) {
 
 			if got != tt.want {
 				t.Errorf("SongRepository.Insert() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestSongBulkInsert(t *testing.T) {
+	db, cleanup := setupTestDB(t, "script_test_insert_song.sql")
+	defer cleanup()
+
+	type fields struct {
+		db *sqlx.DB
+	}
+	type args struct {
+		ctx   context.Context
+		songs []model.Song
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    []int
+		wantErr bool
+	}{
+		{
+			name: "bulk insert success",
+			fields: fields{
+				db: db,
+			},
+			args: args{
+				ctx: context.Background(),
+				songs: []model.Song{
+					{
+						Name:     "devil in a new dress",
+						ArtistID: "kanye west",
+						AlbumID:  "mbdtf",
+					},
+					{
+						Name:     "runaway",
+						ArtistID: "kanye west",
+						AlbumID:  "mbdtf",
+					},
+				},
+			},
+			want:    []int{1, 2},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &SongRepository{
+				db: tt.fields.db,
+			}
+			got, err := s.BulkInsert(tt.args.ctx, tt.args.songs)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SongRepository.BulkInsert() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("SongRepository.BulkInsert() = %v, want %v", got, tt.want)
 			}
 		})
 	}
