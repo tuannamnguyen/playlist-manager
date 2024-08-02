@@ -2,9 +2,12 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
 )
 
@@ -19,6 +22,7 @@ type SongRepository interface {
 	Insert(ctx context.Context, song model.Song) (int, error)
 	BulkInsert(ctx context.Context, songs []model.Song) ([]int, error)
 	SelectWithManyID(ctx context.Context, ID []int) ([]model.Song, error)
+	GetIDsFromSongsDetail(ctx context.Context, songs []model.Song) ([]int, error)
 }
 
 type PlaylistSongRepository interface {
@@ -61,8 +65,17 @@ func (p *PlaylistService) DeleteByID(ctx context.Context, id int) error {
 
 func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID int, songs []model.Song) error {
 	songsID, err := p.songRepo.BulkInsert(ctx, songs)
+	var pgErr *pgconn.PgError
 	if err != nil {
-		return fmt.Errorf("bulk insert songs: %w", err)
+		if errors.As(err, &pgErr) && pgErr.Code != pgerrcode.UniqueViolation {
+			return fmt.Errorf("bulk insert songs: %w", err)
+		}
+
+		// get songs ID from db if they already exist
+		songsID, err = p.songRepo.GetIDsFromSongsDetail(ctx, songs)
+		if err != nil {
+			return fmt.Errorf("get duplicated songs ID: %w", err)
+		}
 	}
 
 	log.Printf("inserted songs ID: %v", songsID)

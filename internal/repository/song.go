@@ -91,7 +91,6 @@ func (s *SongRepository) BulkInsert(ctx context.Context, songs []model.Song) ([]
 	query := `
 		INSERT INTO song (song_name, artist_id, album_id, updated_at, created_at)
 		VALUES %s
-		ON CONFLICT (song_name, artist_id, album_id) DO NOTHING
 		RETURNING song_id
 	`
 	valueStrings := make([]string, 0, len(songs))
@@ -129,4 +128,9 @@ func (s *SongRepository) BulkInsert(ctx context.Context, songs []model.Song) ([]
 
 	return insertedIDs, nil
 
+}
+
+func (s *SongRepository) GetIDsFromSongsDetail(ctx context.Context, songs []model.Song) ([]int, error) {
+	// TODO: IMPLEMENT THIS
+	return nil, nil
 }

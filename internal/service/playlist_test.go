@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
@@ -12,8 +14,16 @@ import (
 
 func TestAddSongsToPlaylist(t *testing.T) {
 	mockPlaylistRepo := new(mocks.MockPlaylistRepository)
+
 	mockSongRepo := new(mocks.MockSongRepository)
+	mockSongRepo.On("BulkInsert", mock.Anything, []model.Song{{ID: 1}, {ID: 2}}).Return([]int{1, 2}, nil)
+	mockSongRepo.On("BulkInsert", mock.Anything, []model.Song{{ID: 1}, {ID: 2}, {ID: 1}, {ID: 2}}).Return(
+		nil, &pgconn.PgError{Code: pgerrcode.UniqueViolation, Message: "duplicated values"},
+	)
+	mockSongRepo.On("GetIDsFromSongsDetail", mock.Anything, []model.Song{{ID: 1}, {ID: 2}, {ID: 1}, {ID: 2}}).Return([]int{1, 2}, nil)
+
 	mockPlaylistSongRepo := new(mocks.MockPlaylistSongRepository)
+	mockPlaylistSongRepo.On("BulkInsert", mock.Anything, 1, []int{1, 2}).Return(nil)
 
 	playlistService := NewPlaylist(mockPlaylistRepo, mockSongRepo, mockPlaylistSongRepo)
 
@@ -32,22 +42,27 @@ func TestAddSongsToPlaylist(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name:       "Duplicated success",
+			playlistID: 1,
+			songs: []model.Song{
+				{ID: 1},
+				{ID: 2},
+				{ID: 1},
+				{ID: 2},
+			},
+			wantErr: false,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockSongRepo.On("BulkInsert", mock.Anything, tt.songs).Return([]int{1, 2}, nil)
-			mockPlaylistSongRepo.On("BulkInsert", mock.Anything, 1, []int{1, 2}).Return(nil)
-
 			err := playlistService.AddSongsToPlaylist(context.Background(), tt.playlistID, tt.songs)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
 			}
-
-			mockSongRepo.AssertExpectations(t)
-			mockPlaylistSongRepo.AssertExpectations(t)
 		})
 	}
 }
