@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
@@ -16,11 +17,13 @@ type PlaylistRepository interface {
 
 type SongRepository interface {
 	Insert(ctx context.Context, song model.Song) (int, error)
+	BulkInsert(ctx context.Context, songs []model.Song) ([]int, error)
 	SelectWithManyID(ctx context.Context, ID []int) ([]model.Song, error)
 }
 
 type PlaylistSongRepository interface {
 	Insert(ctx context.Context, playlistID int, songID int) error
+	BulkInsert(ctx context.Context, playlistID int, songsID []int) error
 	SelectAll(ctx context.Context, playlistID int) ([]model.PlaylistSong, error)
 	DeleteWithManyID(ctx context.Context, playlistID int, songsID []int) error
 	SelectAllSongsInPlaylist(ctx context.Context, playlistID int) ([]model.Song, error)
@@ -57,18 +60,16 @@ func (p *PlaylistService) DeleteByID(ctx context.Context, id int) error {
 }
 
 func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID int, songs []model.Song) error {
-	for _, song := range songs {
-		songID, err := p.songRepo.Insert(ctx, song)
-		if err != nil {
-			return err
-		}
+	songsID, err := p.songRepo.BulkInsert(ctx, songs)
+	if err != nil {
+		return fmt.Errorf("bulk insert songs: %w", err)
+	}
 
-		log.Println("inserted song in song table")
+	log.Printf("inserted songs ID: %v", songsID)
 
-		err = p.playlistSongRepo.Insert(ctx, playlistID, songID)
-		if err != nil {
-			return err
-		}
+	err = p.playlistSongRepo.BulkInsert(ctx, playlistID, songsID)
+	if err != nil {
+		return fmt.Errorf("bulk insert songs into playlist: %w", err)
 	}
 
 	return nil

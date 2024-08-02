@@ -2,9 +2,13 @@ package repository
 
 import (
 	"context"
+	"errors"
+	"reflect"
 	"testing"
 	"time"
 
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
@@ -67,11 +71,11 @@ func TestSongInsert(t *testing.T) {
 		song model.Song
 	}
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    int
-		wantErr bool
+		name        string
+		fields      fields
+		args        args
+		want        int
+		wantErrCode string
 	}{
 		{
 			name: "insert song success",
@@ -86,8 +90,24 @@ func TestSongInsert(t *testing.T) {
 					AlbumID:  "mbdtf",
 				},
 			},
-			want:    1,
-			wantErr: false,
+			want: 1,
+		},
+		// Run the tests in this exact order to ensure duplicate
+		{
+			name: "insert song duplicate",
+			fields: fields{
+				db: db,
+			},
+			args: args{
+				ctx: context.Background(),
+				song: model.Song{
+					Name:     "devil in a new dress",
+					ArtistID: "kanye west",
+					AlbumID:  "mbdtf",
+				},
+			},
+			want:        0,
+			wantErrCode: pgerrcode.UniqueViolation,
 		},
 	}
 	for _, tt := range tests {
@@ -96,12 +116,74 @@ func TestSongInsert(t *testing.T) {
 				db: tt.fields.db,
 			}
 			got, err := s.Insert(tt.args.ctx, tt.args.song)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("SongRepository.Insert() error = %v, wantErr %v", err, tt.wantErr)
-				return
+			if err != nil {
+				var pgErr *pgconn.PgError
+				if errors.As(err, &pgErr) && pgErr.Code != tt.wantErrCode {
+					t.Errorf("SongRepository.Insert() error = %v, got code: %v, want code: %v", err, pgErr.Code, tt.wantErrCode)
+				}
 			}
+
 			if got != tt.want {
 				t.Errorf("SongRepository.Insert() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestSongBulkInsert(t *testing.T) {
+	db, cleanup := setupTestDB(t, "script_test_insert_song.sql")
+	defer cleanup()
+
+	type fields struct {
+		db *sqlx.DB
+	}
+	type args struct {
+		ctx   context.Context
+		songs []model.Song
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    []int
+		wantErr bool
+	}{
+		{
+			name: "bulk insert success",
+			fields: fields{
+				db: db,
+			},
+			args: args{
+				ctx: context.Background(),
+				songs: []model.Song{
+					{
+						Name:     "devil in a new dress",
+						ArtistID: "kanye west",
+						AlbumID:  "mbdtf",
+					},
+					{
+						Name:     "runaway",
+						ArtistID: "kanye west",
+						AlbumID:  "mbdtf",
+					},
+				},
+			},
+			want:    []int{1, 2},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &SongRepository{
+				db: tt.fields.db,
+			}
+			got, err := s.BulkInsert(tt.args.ctx, tt.args.songs)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SongRepository.BulkInsert() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("SongRepository.BulkInsert() = %v, want %v", got, tt.want)
 			}
 		})
 	}

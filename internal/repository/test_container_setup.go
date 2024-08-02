@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"path/filepath"
 	"testing"
 	"time"
@@ -30,10 +31,10 @@ func setupTestDB(t *testing.T, initScriptPath string) (*sqlx.DB, func()) {
 				WithOccurrence(2).
 				WithStartupTimeout(5*time.Second)),
 	)
-	require.NoError(t, err, "failed to start container")
+	require.NoError(t, err, fmt.Sprintf("failed to start container: %v", err))
 
 	connectionString, err := postgresContainer.ConnectionString(ctx, "dbname=playlist_manager")
-	require.NoError(t, err, "failed to get connection string")
+	require.NoError(t, err, fmt.Sprintf("failed to get connection string: %v", err))
 
 	db, err := sqlx.Connect("pgx", connectionString)
 	require.NoError(t, err, "Unable to connect to database")

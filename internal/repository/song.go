@@ -2,7 +2,11 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
+	"log"
+	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -65,4 +69,64 @@ func (s *SongRepository) SelectWithManyID(ctx context.Context, ID []int) ([]mode
 	}
 
 	return songs, nil
+}
+
+func (s *SongRepository) BulkInsert(ctx context.Context, songs []model.Song) ([]int, error) {
+	// start transaction
+	tx, err := s.db.Begin()
+	if err != nil {
+		return nil, fmt.Errorf("begin transaction insert songs: %w", err)
+	}
+	defer func() {
+		err = tx.Rollback()
+		if err != nil && !errors.Is(err, sql.ErrTxDone) {
+			log.Printf("error rolling back transaction bulk insert songs: %v\n", err)
+		}
+	}()
+
+	// prepare query
+	createdAt := time.Now()
+	updatedAt := time.Now()
+
+	query := `
+		INSERT INTO song (song_name, artist_id, album_id, updated_at, created_at)
+		VALUES %s
+		ON CONFLICT (song_name, artist_id, album_id) DO NOTHING
+		RETURNING song_id
+	`
+	valueStrings := make([]string, 0, len(songs))
+	valueArgs := make([]any, 0, len(songs)*5)
+	for _, song := range songs {
+		valueStrings = append(valueStrings, "(?, ?, ?, ?, ?)")
+		valueArgs = append(valueArgs, song.Name, song.ArtistID, song.AlbumID, createdAt, updatedAt)
+	}
+	query = sqlx.Rebind(
+		sqlx.DOLLAR,
+		fmt.Sprintf(query, strings.Join(valueStrings, ",")),
+	)
+
+	// Execute the query
+	rows, err := tx.QueryContext(ctx, query, valueArgs...)
+	if err != nil {
+		return nil, fmt.Errorf("bulk INSERT songs: %w", err)
+	}
+	defer rows.Close()
+
+	// get inserted IDs
+	var insertedIDs []int
+	for rows.Next() {
+		var id int
+		if err := rows.Scan(&id); err != nil {
+			return nil, fmt.Errorf("scanning inserted songs id: %w", err)
+		}
+		insertedIDs = append(insertedIDs, id)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return nil, fmt.Errorf("commiting transaction: %w", err)
+	}
+
+	return insertedIDs, nil
+
 }
