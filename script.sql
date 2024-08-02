@@ -41,8 +41,8 @@ CREATE TABLE IF NOT EXISTS song (
 
 
 CREATE TABLE IF NOT EXISTS playlist_song (
-  playlist_id SERIAL,
-  song_id SERIAL,
+  playlist_id INT NOT NULL,
+  song_id INT NOT NULL,
   updated_at TIMESTAMP NOT NULL,
   created_at TIMESTAMP NOT NULL,
   PRIMARY KEY (playlist_id, song_id),

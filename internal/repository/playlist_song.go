@@ -136,11 +136,14 @@ func (ps *PlaylistSongRepository) BulkInsert(ctx context.Context, playlistID int
 	updatedAt := time.Now()
 
 	query := `
-		INSERT INTO playlist_song (playlist_id, song_id, created_at, updated_at)
-		VALUES %s
+		INSERT INTO playlist_song (playlist_id, song_id, updated_at, created_at)
+		VALUES
+		%s
+		ON CONFLICT DO NOTHING
 	`
 	valueStrings := make([]string, 0, len(songsID))
 	valueArgs := make([]any, 0, len(songsID)*4)
+
 	for _, songID := range songsID {
 		valueStrings = append(valueStrings, "(?, ?, ?, ?)")
 		valueArgs = append(valueArgs, playlistID, songID, createdAt, updatedAt)
@@ -153,6 +156,10 @@ func (ps *PlaylistSongRepository) BulkInsert(ctx context.Context, playlistID int
 	_, err = tx.ExecContext(ctx, query, valueArgs...)
 	if err != nil {
 		return fmt.Errorf("bulk INSERT songs in playlist: %w", err)
+	}
+
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("commit transaction insert songs into playlist: %w", err)
 	}
 
 	return nil
