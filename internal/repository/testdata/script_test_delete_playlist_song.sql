@@ -19,7 +19,7 @@ VALUES
   );
 
 CREATE TABLE IF NOT EXISTS playlist (
-  playlist_id TEXT NOT NULL,
+  playlist_id SERIAL,
   playlist_name TEXT NOT NULL,
   user_id TEXT NOT NULL,
   updated_at TIMESTAMP NOT NULL,
@@ -29,19 +29,20 @@ CREATE TABLE IF NOT EXISTS playlist (
 );
 
 CREATE TABLE IF NOT EXISTS song (
-  song_id TEXT NOT NULL,
+  song_id SERIAL,
   song_name TEXT NOT NULL,
   artist_id TEXT NOT NULL,
   album_id TEXT NOT NULL,
   updated_at TIMESTAMP NOT NULL,
   created_at TIMESTAMP NOT NULL,
-  PRIMARY KEY (song_id)
+  PRIMARY KEY (song_id),
+  UNIQUE (song_name, artist_id, album_id)
 );
 
 
 CREATE TABLE IF NOT EXISTS playlist_song (
-  playlist_id TEXT NOT NULL,
-  song_id TEXT NOT NULL,
+  playlist_id SERIAL,
+  song_id SERIAL,
   updated_at TIMESTAMP NOT NULL,
   created_at TIMESTAMP NOT NULL,
   PRIMARY KEY (playlist_id, song_id),
@@ -49,11 +50,12 @@ CREATE TABLE IF NOT EXISTS playlist_song (
   FOREIGN KEY (song_id) REFERENCES song(song_id) ON DELETE CASCADE
 );
 
+
 INSERT INTO playlist (playlist_id, playlist_name, user_id, updated_at, created_at)
-VALUES ('asdasdasdsaasd', 'asdasdasvasfasf', 'google-oauth2|117047339491229984586', '2024-07-27 10:12:00', '2024-07-27 10:12:00');
+VALUES (1, 'asdasdasvasfasf', 'google-oauth2|117047339491229984586', '2024-07-27 10:12:00', '2024-07-27 10:12:00');
 
 INSERT INTO song (song_id, song_name, artist_id, album_id, updated_at, created_at)
-VALUES ('asiuasubfasuifaufb', 'devil in a new dress', 'kanye west', 'mbdtf', '2024-07-27 10:12:00', '2024-07-27 10:12:00');
+VALUES (1, 'devil in a new dress', 'kanye west', 'mbdtf', '2024-07-27 10:12:00', '2024-07-27 10:12:00');
 
 INSERT INTO playlist_song (playlist_id, song_id, updated_at, created_at)
-VALUES ('asdasdasdsaasd', 'asiuasubfasuifaufb', '2024-07-28 14:16:20.943439', '2024-07-28 14:16:20.943439')
+VALUES (1, 1, '2024-07-28 14:16:20.943439', '2024-07-28 14:16:20.943439')

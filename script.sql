@@ -19,7 +19,7 @@ VALUES
   );
 
 CREATE TABLE IF NOT EXISTS playlist (
-  playlist_id TEXT NOT NULL,
+  playlist_id SERIAL,
   playlist_name TEXT NOT NULL,
   user_id TEXT NOT NULL,
   updated_at TIMESTAMP NOT NULL,
@@ -29,19 +29,20 @@ CREATE TABLE IF NOT EXISTS playlist (
 );
 
 CREATE TABLE IF NOT EXISTS song (
-  song_id TEXT NOT NULL,
+  song_id SERIAL,
   song_name TEXT NOT NULL,
   artist_id TEXT NOT NULL,
   album_id TEXT NOT NULL,
   updated_at TIMESTAMP NOT NULL,
   created_at TIMESTAMP NOT NULL,
-  PRIMARY KEY (song_id)
+  PRIMARY KEY (song_id),
+  UNIQUE (song_name, artist_id, album_id)
 );
 
 
 CREATE TABLE IF NOT EXISTS playlist_song (
-  playlist_id TEXT NOT NULL,
-  song_id TEXT NOT NULL,
+  playlist_id INT NOT NULL,
+  song_id INT NOT NULL,
   updated_at TIMESTAMP NOT NULL,
   created_at TIMESTAMP NOT NULL,
   PRIMARY KEY (playlist_id, song_id),

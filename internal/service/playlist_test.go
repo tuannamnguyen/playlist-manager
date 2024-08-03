@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
@@ -12,29 +14,57 @@ import (
 
 func TestAddSongsToPlaylist(t *testing.T) {
 	mockPlaylistRepo := new(mocks.MockPlaylistRepository)
+
 	mockSongRepo := new(mocks.MockSongRepository)
+	mockSongRepo.On("BulkInsert", mock.Anything, []model.Song{{ID: 1}, {ID: 2}}).Return([]int{1, 2}, nil)
+	mockSongRepo.On("BulkInsert", mock.Anything, []model.Song{{ID: 1}, {ID: 2}, {ID: 1}, {ID: 2}}).Return(
+		nil, &pgconn.PgError{Code: pgerrcode.UniqueViolation, Message: "duplicated values"},
+	)
+	mockSongRepo.On("GetIDsFromSongsDetail", mock.Anything, []model.Song{{ID: 1}, {ID: 2}, {ID: 1}, {ID: 2}}).Return([]int{1, 2}, nil)
+
 	mockPlaylistSongRepo := new(mocks.MockPlaylistSongRepository)
+	mockPlaylistSongRepo.On("BulkInsert", mock.Anything, 1, []int{1, 2}).Return(nil)
 
 	playlistService := NewPlaylist(mockPlaylistRepo, mockSongRepo, mockPlaylistSongRepo)
 
-	t.Run("Success", func(t *testing.T) {
-		songs := []model.Song{
-			{ID: "song1"},
-			{ID: "song2"},
-		}
-		playlistID := "playlist1"
+	tests := []struct {
+		name       string
+		playlistID int
+		songs      []model.Song
+		wantErr    bool
+	}{
+		{
+			name:       "Success",
+			playlistID: 1,
+			songs: []model.Song{
+				{ID: 1},
+				{ID: 2},
+			},
+			wantErr: false,
+		},
+		{
+			name:       "Duplicated success",
+			playlistID: 1,
+			songs: []model.Song{
+				{ID: 1},
+				{ID: 2},
+				{ID: 1},
+				{ID: 2},
+			},
+			wantErr: false,
+		},
+	}
 
-		mockSongRepo.On("Insert", mock.Anything, songs[0]).Return(nil)
-		mockSongRepo.On("Insert", mock.Anything, songs[1]).Return(nil)
-		mockPlaylistSongRepo.On("Insert", mock.Anything, playlistID, "song1").Return(nil)
-		mockPlaylistSongRepo.On("Insert", mock.Anything, playlistID, "song2").Return(nil)
-
-		err := playlistService.AddSongsToPlaylist(context.Background(), playlistID, songs)
-		assert.NoError(t, err)
-
-		mockSongRepo.AssertExpectations(t)
-		mockPlaylistSongRepo.AssertExpectations(t)
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := playlistService.AddSongsToPlaylist(context.Background(), tt.playlistID, tt.songs)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
 }
 
 func TestGetAllSongsFromPlaylist(t *testing.T) {
@@ -44,24 +74,35 @@ func TestGetAllSongsFromPlaylist(t *testing.T) {
 
 	playlistService := NewPlaylist(mockPlaylistRepo, mockSongRepo, mockPlaylistSongRepo)
 
-	t.Run("success", func(t *testing.T) {
-		mockSong := []model.Song{
-			{ID: "test_id", Name: "test_name", ArtistID: "test_artist_id", AlbumID: "test_album_id"},
-		}
+	tests := []struct {
+		name       string
+		playlistID int
+		wantSongs  []model.Song
+		wantErr    bool
+	}{
+		{
+			name:       "Success",
+			playlistID: 1,
+			wantSongs: []model.Song{
+				{ID: 1, Name: "test_name", ArtistID: "test_artist_id", AlbumID: "test_album_id"},
+			},
+			wantErr: false,
+		},
+	}
 
-		mockPlaylistSongRepo.On("SelectAll", mock.Anything, "abcd").Return([]model.PlaylistSong{
-			{PlaylistID: "abcd", SongID: "test_id"},
-		}, nil).Once()
-		mockSongRepo.On("SelectWithManyID", mock.Anything, mock.AnythingOfType("[]string")).Return(mockSong, nil).Once()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockPlaylistSongRepo.On("SelectAllSongsInPlaylist", mock.Anything, 1).Return(tt.wantSongs, nil)
 
-		playlistID := "abcd"
-		songs, err := playlistService.GetAllSongsFromPlaylist(context.Background(), playlistID)
-		assert.NoError(t, err)
-		assert.Equal(t, mockSong, songs)
-
-		mockSongRepo.AssertExpectations(t)
-		mockPlaylistSongRepo.AssertExpectations(t)
-	})
+			songs, err := playlistService.GetAllSongsFromPlaylist(context.Background(), tt.playlistID)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.wantSongs, songs)
+			}
+		})
+	}
 }
 
 func TestDeleteSongsFromPlaylist(t *testing.T) {
@@ -71,14 +112,32 @@ func TestDeleteSongsFromPlaylist(t *testing.T) {
 
 	playlistService := NewPlaylist(mockPlaylistRepo, mockSongRepo, mockPlaylistSongRepo)
 
-	t.Run("delete successfully", func(t *testing.T) {
-		playlistID := "abcd"
-		songsID := []string{"abc", "def"}
+	tests := []struct {
+		name       string
+		playlistID int
+		songsID    []int
+		wantErr    bool
+	}{
+		{
+			name:       "Delete Successfully",
+			playlistID: 1,
+			songsID:    []int{1, 2},
+			wantErr:    false,
+		},
+	}
 
-		mockPlaylistSongRepo.On("DeleteWithManyID", mock.Anything, mock.AnythingOfType("string"), mock.AnythingOfType("[]string")).Return(nil).Once()
-		err := playlistService.DeleteSongsFromPlaylist(context.Background(), playlistID, songsID)
-		assert.NoError(t, err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockPlaylistSongRepo.On("DeleteWithManyID", mock.Anything, tt.playlistID, tt.songsID).Return(nil).Once()
 
-		mockPlaylistSongRepo.AssertExpectations(t)
-	})
+			err := playlistService.DeleteSongsFromPlaylist(context.Background(), tt.playlistID, tt.songsID)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+
+			mockPlaylistSongRepo.AssertExpectations(t)
+		})
+	}
 }

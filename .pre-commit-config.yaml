@@ -10,6 +10,6 @@ repos:
       rev: v0.5.1
       hooks:
           - id: go-fmt
-          - id: golangci-lint
-          - id: go-mod-tidy
           - id: go-imports
+          - id: go-mod-tidy
+          - id: golangci-lint
