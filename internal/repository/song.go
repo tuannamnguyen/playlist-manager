@@ -131,6 +131,36 @@ func (s *SongRepository) BulkInsert(ctx context.Context, songs []model.Song) ([]
 }
 
 func (s *SongRepository) GetIDsFromSongsDetail(ctx context.Context, songs []model.Song) ([]int, error) {
-	// TODO: IMPLEMENT THIS
-	return nil, nil
+	query := `SELECT song_id
+		FROM song
+		WHERE (song_name, artist_id, album_id) IN (%s)`
+	valueStrings := make([]string, 0, len(songs))
+	valueArgs := make([]any, 0, len(songs)*3)
+	for _, song := range songs {
+		valueStrings = append(valueStrings, "(?, ?, ?)")
+		valueArgs = append(valueArgs, song.Name, song.ArtistID, song.AlbumID)
+	}
+
+	query = sqlx.Rebind(
+		sqlx.DOLLAR,
+		fmt.Sprintf(query, strings.Join(valueStrings, ",")),
+	)
+
+	rows, err := s.db.QueryxContext(ctx, query, valueArgs...)
+	if err != nil {
+		return nil, fmt.Errorf("SELECT song id from song detail: %w", err)
+	}
+	defer rows.Close()
+
+	var songIDs []int
+	for rows.Next() {
+		var songID int
+		if err := rows.Scan(&songID); err != nil {
+			return nil, fmt.Errorf("scanning song ID: %w", err)
+		}
+
+		songIDs = append(songIDs, songID)
+	}
+
+	return songIDs, nil
 }

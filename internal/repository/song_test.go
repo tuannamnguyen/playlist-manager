@@ -188,3 +188,61 @@ func TestSongBulkInsert(t *testing.T) {
 		})
 	}
 }
+
+func TestSongGetIDsFromSongsDetail(t *testing.T) {
+	db, cleanup := setupTestDB(t, "script_test_get_id_of_song.sql")
+	defer cleanup()
+
+	type fields struct {
+		db *sqlx.DB
+	}
+	type args struct {
+		ctx   context.Context
+		songs []model.Song
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    []int
+		wantErr bool
+	}{
+		{
+			name: "get IDs successfully",
+			fields: fields{
+				db: db,
+			},
+			args: args{
+				ctx: context.Background(),
+				songs: []model.Song{
+					{
+						Name:     "devil in a new dress",
+						ArtistID: "kanye west",
+						AlbumID:  "mbdtf",
+					},
+					{
+						Name:     "runaway",
+						ArtistID: "kanye west",
+						AlbumID:  "mbdtf",
+					},
+				},
+			},
+			want: []int{1, 2},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &SongRepository{
+				db: tt.fields.db,
+			}
+			got, err := s.GetIDsFromSongsDetail(tt.args.ctx, tt.args.songs)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SongRepository.GetIDsFromSongsDetail() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("SongRepository.GetIDsFromSongsDetail() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
