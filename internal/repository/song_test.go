@@ -139,7 +139,7 @@ func TestSongBulkInsert(t *testing.T) {
 	}
 	type args struct {
 		ctx   context.Context
-		songs []model.Song
+		songs []model.SongIn
 	}
 	tests := []struct {
 		name    string
@@ -155,7 +155,7 @@ func TestSongBulkInsert(t *testing.T) {
 			},
 			args: args{
 				ctx: context.Background(),
-				songs: []model.Song{
+				songs: []model.SongIn{
 					{
 						Name:     "devil in a new dress",
 						ArtistID: "kanye west",
@@ -198,7 +198,7 @@ func TestSongGetIDsFromSongsDetail(t *testing.T) {
 	}
 	type args struct {
 		ctx   context.Context
-		songs []model.Song
+		songs []model.SongIn
 	}
 	tests := []struct {
 		name    string
@@ -214,7 +214,7 @@ func TestSongGetIDsFromSongsDetail(t *testing.T) {
 			},
 			args: args{
 				ctx: context.Background(),
-				songs: []model.Song{
+				songs: []model.SongIn{
 					{
 						Name:     "devil in a new dress",
 						ArtistID: "kanye west",

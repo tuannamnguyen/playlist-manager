@@ -11,7 +11,7 @@ type MockPlaylistRepository struct {
 	mock.Mock
 }
 
-func (m *MockPlaylistRepository) Insert(ctx context.Context, playlistModel model.Playlist) error {
+func (m *MockPlaylistRepository) Insert(ctx context.Context, playlistModel model.PlaylistIn) error {
 	args := m.Called(ctx, playlistModel)
 	return args.Error(0)
 }
