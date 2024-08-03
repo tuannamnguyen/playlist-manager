@@ -71,7 +71,7 @@ func (s *SongRepository) SelectWithManyID(ctx context.Context, ID []int) ([]mode
 	return songs, nil
 }
 
-func (s *SongRepository) BulkInsert(ctx context.Context, songs []model.Song) ([]int, error) {
+func (s *SongRepository) BulkInsert(ctx context.Context, songs []model.SongIn) ([]int, error) {
 	// start transaction
 	tx, err := s.db.Begin()
 	if err != nil {
@@ -130,7 +130,7 @@ func (s *SongRepository) BulkInsert(ctx context.Context, songs []model.Song) ([]
 
 }
 
-func (s *SongRepository) GetIDsFromSongsDetail(ctx context.Context, songs []model.Song) ([]int, error) {
+func (s *SongRepository) GetIDsFromSongsDetail(ctx context.Context, songs []model.SongIn) ([]int, error) {
 	query := `SELECT song_id
 		FROM song
 		WHERE (song_name, artist_id, album_id) IN (%s)`

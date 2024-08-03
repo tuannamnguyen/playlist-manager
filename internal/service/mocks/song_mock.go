@@ -27,7 +27,7 @@ func (m *MockSongRepository) SelectWithManyID(ctx context.Context, ID []int) ([]
 	return nil, args.Error(1)
 }
 
-func (m *MockSongRepository) BulkInsert(ctx context.Context, songs []model.Song) ([]int, error) {
+func (m *MockSongRepository) BulkInsert(ctx context.Context, songs []model.SongIn) ([]int, error) {
 	args := m.Called(ctx, songs)
 
 	if args.Get(0) != nil {
@@ -37,7 +37,7 @@ func (m *MockSongRepository) BulkInsert(ctx context.Context, songs []model.Song)
 	return nil, args.Error(1)
 }
 
-func (m *MockSongRepository) GetIDsFromSongsDetail(ctx context.Context, songs []model.Song) ([]int, error) {
+func (m *MockSongRepository) GetIDsFromSongsDetail(ctx context.Context, songs []model.SongIn) ([]int, error) {
 	args := m.Called(ctx, songs)
 
 	if args.Get(0) != nil {

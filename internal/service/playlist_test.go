@@ -16,11 +16,60 @@ func TestAddSongsToPlaylist(t *testing.T) {
 	mockPlaylistRepo := new(mocks.MockPlaylistRepository)
 
 	mockSongRepo := new(mocks.MockSongRepository)
-	mockSongRepo.On("BulkInsert", mock.Anything, []model.Song{{ID: 1}, {ID: 2}}).Return([]int{1, 2}, nil)
-	mockSongRepo.On("BulkInsert", mock.Anything, []model.Song{{ID: 1}, {ID: 2}, {ID: 1}, {ID: 2}}).Return(
+	mockSongRepo.On("BulkInsert", mock.Anything, []model.SongIn{
+		{
+			Name:     "devil in a new dress",
+			ArtistID: "kanye west",
+			AlbumID:  "mbdtf",
+		},
+		{
+			Name:     "runaway",
+			ArtistID: "kanye west",
+			AlbumID:  "mbdtf",
+		},
+	}).Return([]int{1, 2}, nil)
+	mockSongRepo.On("BulkInsert", mock.Anything, []model.SongIn{
+		{
+			Name:     "devil in a new dress",
+			ArtistID: "kanye west",
+			AlbumID:  "mbdtf",
+		},
+		{
+			Name:     "runaway",
+			ArtistID: "kanye west",
+			AlbumID:  "mbdtf",
+		}, {
+			Name:     "devil in a new dress",
+			ArtistID: "kanye west",
+			AlbumID:  "mbdtf",
+		},
+		{
+			Name:     "runaway",
+			ArtistID: "kanye west",
+			AlbumID:  "mbdtf",
+		},
+	}).Return(
 		nil, &pgconn.PgError{Code: pgerrcode.UniqueViolation, Message: "duplicated values"},
 	)
-	mockSongRepo.On("GetIDsFromSongsDetail", mock.Anything, []model.Song{{ID: 1}, {ID: 2}, {ID: 1}, {ID: 2}}).Return([]int{1, 2}, nil)
+	mockSongRepo.On("GetIDsFromSongsDetail", mock.Anything, []model.SongIn{{
+		Name:     "devil in a new dress",
+		ArtistID: "kanye west",
+		AlbumID:  "mbdtf",
+	},
+		{
+			Name:     "runaway",
+			ArtistID: "kanye west",
+			AlbumID:  "mbdtf",
+		}, {
+			Name:     "devil in a new dress",
+			ArtistID: "kanye west",
+			AlbumID:  "mbdtf",
+		},
+		{
+			Name:     "runaway",
+			ArtistID: "kanye west",
+			AlbumID:  "mbdtf",
+		}}).Return([]int{1, 2}, nil)
 
 	mockPlaylistSongRepo := new(mocks.MockPlaylistSongRepository)
 	mockPlaylistSongRepo.On("BulkInsert", mock.Anything, 1, []int{1, 2}).Return(nil)
@@ -30,26 +79,50 @@ func TestAddSongsToPlaylist(t *testing.T) {
 	tests := []struct {
 		name       string
 		playlistID int
-		songs      []model.Song
+		songs      []model.SongIn
 		wantErr    bool
 	}{
 		{
 			name:       "Success",
 			playlistID: 1,
-			songs: []model.Song{
-				{ID: 1},
-				{ID: 2},
+			songs: []model.SongIn{
+				{
+					Name:     "devil in a new dress",
+					ArtistID: "kanye west",
+					AlbumID:  "mbdtf",
+				},
+				{
+					Name:     "runaway",
+					ArtistID: "kanye west",
+					AlbumID:  "mbdtf",
+				},
 			},
 			wantErr: false,
 		},
 		{
 			name:       "Duplicated success",
 			playlistID: 1,
-			songs: []model.Song{
-				{ID: 1},
-				{ID: 2},
-				{ID: 1},
-				{ID: 2},
+			songs: []model.SongIn{
+				{
+					Name:     "devil in a new dress",
+					ArtistID: "kanye west",
+					AlbumID:  "mbdtf",
+				},
+				{
+					Name:     "runaway",
+					ArtistID: "kanye west",
+					AlbumID:  "mbdtf",
+				},
+				{
+					Name:     "devil in a new dress",
+					ArtistID: "kanye west",
+					AlbumID:  "mbdtf",
+				},
+				{
+					Name:     "runaway",
+					ArtistID: "kanye west",
+					AlbumID:  "mbdtf",
+				},
 			},
 			wantErr: false,
 		},

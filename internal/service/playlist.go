@@ -20,9 +20,9 @@ type PlaylistRepository interface {
 
 type SongRepository interface {
 	Insert(ctx context.Context, song model.Song) (int, error)
-	BulkInsert(ctx context.Context, songs []model.Song) ([]int, error)
+	BulkInsert(ctx context.Context, songs []model.SongIn) ([]int, error)
 	SelectWithManyID(ctx context.Context, ID []int) ([]model.Song, error)
-	GetIDsFromSongsDetail(ctx context.Context, songs []model.Song) ([]int, error)
+	GetIDsFromSongsDetail(ctx context.Context, songs []model.SongIn) ([]int, error)
 }
 
 type PlaylistSongRepository interface {
@@ -63,7 +63,7 @@ func (p *PlaylistService) DeleteByID(ctx context.Context, id int) error {
 	return p.playlistRepo.DeleteByID(ctx, id)
 }
 
-func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID int, songs []model.Song) error {
+func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID int, songs []model.SongIn) error {
 	songsID, err := p.songRepo.BulkInsert(ctx, songs)
 	var pgErr *pgconn.PgError
 	if err != nil {
