@@ -11,7 +11,7 @@ import (
 )
 
 type PlaylistService interface {
-	Add(ctx context.Context, playlistModel model.Playlist) error
+	Add(ctx context.Context, playlistModel model.PlaylistIn) error
 	GetAll(ctx context.Context) ([]model.Playlist, error)
 	GetByID(ctx context.Context, id int) (model.Playlist, error)
 	DeleteByID(ctx context.Context, id int) error
@@ -32,7 +32,7 @@ func NewPlaylistHandler(svc PlaylistService) *PlaylistHandler {
 }
 
 func (p *PlaylistHandler) Add(c echo.Context) error {
-	var playlist model.Playlist
+	var playlist model.PlaylistIn
 	err := c.Bind(&playlist)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error binding playlist: %v", err))

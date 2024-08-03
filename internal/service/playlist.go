@@ -12,7 +12,7 @@ import (
 )
 
 type PlaylistRepository interface {
-	Insert(ctx context.Context, playlistModel model.Playlist) error
+	Insert(ctx context.Context, playlistModel model.PlaylistIn) error
 	SelectAll(ctx context.Context) ([]model.Playlist, error)
 	SelectWithID(ctx context.Context, id int) (model.Playlist, error)
 	DeleteByID(ctx context.Context, id int) error
@@ -47,7 +47,7 @@ func NewPlaylist(playlistRepo PlaylistRepository, songRepo SongRepository, playl
 	}
 }
 
-func (p *PlaylistService) Add(ctx context.Context, playlistModel model.Playlist) error {
+func (p *PlaylistService) Add(ctx context.Context, playlistModel model.PlaylistIn) error {
 	return p.playlistRepo.Insert(ctx, playlistModel)
 }
 
