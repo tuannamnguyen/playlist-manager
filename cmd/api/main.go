@@ -78,7 +78,15 @@ func setupAPIRouter(e *echo.Echo, db *sqlx.DB) {
 	apiRouter.GET("/test", func(c echo.Context) error {
 		return c.String(http.StatusOK, "You have been authenticated")
 	})
+	playlistRouter := apiRouter.Group("/playlists")
+	searchRouter := apiRouter.Group("/search")
 
+	setupPlaylistRoutes(playlistRouter, db)
+	setupSearchRoutes(searchRouter)
+
+}
+
+func setupPlaylistRoutes(router *echo.Group, db *sqlx.DB) {
 	// setup playlist endpoint
 	playlistRepository := repository.NewPlaylistRepository(db)
 	songRepository := repository.NewSongRepository(db)
@@ -87,16 +95,20 @@ func setupAPIRouter(e *echo.Echo, db *sqlx.DB) {
 	playlistService := service.NewPlaylist(playlistRepository, songRepository, playlistSongRepository)
 	playlistHandler := rest.NewPlaylistHandler(playlistService)
 
-	playlistRouter := apiRouter.Group("/playlists")
-
-	playlistRouter.POST("", playlistHandler.Add)
-	playlistRouter.GET("", playlistHandler.GetAll)
-	playlistRouter.GET("/:id", playlistHandler.GetByID)
-	playlistRouter.DELETE("/:id", playlistHandler.DeleteByID)
+	router.POST("", playlistHandler.Add)
+	router.GET("", playlistHandler.GetAll)
+	router.GET("/:id", playlistHandler.GetByID)
+	router.DELETE("/:id", playlistHandler.DeleteByID)
 
 	// playlist-songs table endpoint
 	playlistSongsEndpoint := "/:playlist_id/songs"
-	playlistRouter.POST(playlistSongsEndpoint, playlistHandler.AddSongsToPlaylist)
-	playlistRouter.GET(playlistSongsEndpoint, playlistHandler.GetAllSongsFromPlaylist)
-	playlistRouter.DELETE(playlistSongsEndpoint, playlistHandler.DeleteSongsFromPlaylist)
+	router.POST(playlistSongsEndpoint, playlistHandler.AddSongsToPlaylist)
+	router.GET(playlistSongsEndpoint, playlistHandler.GetAllSongsFromPlaylist)
+	router.DELETE(playlistSongsEndpoint, playlistHandler.DeleteSongsFromPlaylist)
+}
+
+func setupSearchRoutes(router *echo.Group) {
+	searchHandler := rest.NewSearchHandler()
+
+	router.POST("", searchHandler.SearchMusicData)
 }
