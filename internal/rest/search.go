@@ -15,8 +15,8 @@ type SearchHandler struct {
 	service SearchService
 }
 
-func NewSearchHandler() *SearchHandler {
-	return &SearchHandler{}
+func NewSearchHandler(service SearchService) *SearchHandler {
+	return &SearchHandler{service: service}
 }
 
 func (s *SearchHandler) SearchMusicData(c echo.Context) error {

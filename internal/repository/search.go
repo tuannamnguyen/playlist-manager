@@ -48,6 +48,10 @@ type SearchRepository struct {
 	httpClient *http.Client
 }
 
+func NewSearchRepository(httpClient *http.Client) *SearchRepository {
+	return &SearchRepository{httpClient: httpClient}
+}
+
 func (s *SearchRepository) Song(track string, artist string) (model.Song, error) {
 	searchReqBody := SearchRequest{
 		Track:   track,

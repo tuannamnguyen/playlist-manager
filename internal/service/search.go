@@ -6,6 +6,10 @@ type SearchRepository interface {
 	Song(track string, artist string) (model.Song, error)
 }
 
+func NewSearch(searchRepository SearchRepository) *SearchService {
+	return &SearchService{sr: searchRepository}
+}
+
 type SearchService struct {
 	sr SearchRepository
 }
