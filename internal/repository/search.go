@@ -64,7 +64,11 @@ func (s *SearchRepository) Song(track string, artist string) (model.Song, error)
 		return model.Song{}, fmt.Errorf("marshalling search request body: %w", err)
 	}
 
-	res, err := s.httpClient.Post(os.Getenv("MUSIC_API_ENDPOINT"), echo.MIMEApplicationJSON, bytes.NewBuffer(searchReqBodyEncoded))
+	res, err := s.httpClient.Post(
+		fmt.Sprintf("%s/public/search", os.Getenv("MUSIC_API_ENDPOINT")),
+		echo.MIMEApplicationJSON,
+		bytes.NewBuffer(searchReqBodyEncoded),
+	)
 	if err != nil {
 		return model.Song{}, fmt.Errorf("fetching info from music api: %w", err)
 	}
