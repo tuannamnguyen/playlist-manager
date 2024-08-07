@@ -80,8 +80,6 @@ CREATE TABLE IF NOT EXISTS song (
     song_id SERIAL PRIMARY KEY,
     song_name TEXT NOT NULL,
     album_id INT NOT NULL,
-    duration INT DEFAULT NULL,
-    genre TEXT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (album_id) REFERENCES album(album_id) ON DELETE CASCADE
@@ -95,7 +93,6 @@ EXECUTE PROCEDURE update_updated_at_column();
 CREATE TABLE IF NOT EXISTS playlist_song (
     playlist_id INT NOT NULL,
     song_id INT NOT NULL,
-    song_order INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (playlist_id) REFERENCES playlist(playlist_id) ON DELETE CASCADE,
@@ -153,16 +150,16 @@ INSERT INTO album_artist (artist_id, album_id) VALUES
 (3, 3);
 
 -- Insert sample data into the song table
-INSERT INTO song (song_name, album_id, duration, genre) VALUES
-('Song 1', 1, 210, 'Pop'),
-('Song 2', 2, 180, 'Rock'),
-('Song 3', 3, 240, 'Jazz');
+INSERT INTO song (song_name, album_id) VALUES
+('Song 1', 1),
+('Song 2', 2),
+('Song 3', 3);
 
 -- Insert sample data into the playlist_song table
-INSERT INTO playlist_song (playlist_id, song_id, song_order) VALUES
-(1, 1, 1),
-(2, 2, 1),
-(3, 3, 1);
+INSERT INTO playlist_song (playlist_id, song_id) VALUES
+(1, 1),
+(2, 2),
+(3, 3);
 
 -- Insert sample data into the artist_song table
 INSERT INTO artist_song (artist_id, song_id) VALUES
