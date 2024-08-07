@@ -29,10 +29,10 @@ func TestSelectWithManyID(t *testing.T) {
 			songIDs: []int{1},
 			want: []model.Song{
 				{
-					ID:       1,
-					Name:     "devil in a new dress",
-					ArtistID: "kanye west",
-					AlbumID:  "mbdtf",
+					ID:          1,
+					Name:        "devil in a new dress",
+					ArtistNames: []string{"kanye west"},
+					AlbumName:   "mbdtf",
 					Timestamp: model.Timestamp{
 						UpdatedAt: time.Date(2024, 7, 27, 10, 12, 0, 0, time.UTC),
 						CreatedAt: time.Date(2024, 7, 27, 10, 12, 0, 0, time.UTC),
@@ -85,9 +85,9 @@ func TestSongInsert(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				song: model.Song{
-					Name:     "devil in a new dress",
-					ArtistID: "kanye west",
-					AlbumID:  "mbdtf",
+					Name:        "devil in a new dress",
+					ArtistNames: []string{"kanye west"},
+					AlbumName:   "mbdtf",
 				},
 			},
 			want: 1,
@@ -101,9 +101,9 @@ func TestSongInsert(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				song: model.Song{
-					Name:     "devil in a new dress",
-					ArtistID: "kanye west",
-					AlbumID:  "mbdtf",
+					Name:        "devil in a new dress",
+					ArtistNames: []string{"kanye west"},
+					AlbumName:   "mbdtf",
 				},
 			},
 			want:        0,

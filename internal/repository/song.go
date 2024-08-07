@@ -33,7 +33,7 @@ func (s *SongRepository) Insert(ctx context.Context, song model.Song) (int, erro
 		`INSERT INTO song (song_name, artist_id, album_id, updated_at, created_at)
 		VALUES ($1, $2, $3, $4, $5)
 		RETURNING song_id`,
-		song.Name, song.ArtistID, song.AlbumID, song.UpdatedAt, song.CreatedAt,
+		song.Name, song.ArtistNames, song.AlbumName, song.UpdatedAt, song.CreatedAt,
 	).Scan(&lastInsertID)
 	if err != nil {
 		return 0, fmt.Errorf("INSERT song into db: %w", err)

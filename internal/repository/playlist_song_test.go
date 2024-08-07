@@ -172,10 +172,10 @@ func TestSelectAllSongsInPlaylist(t *testing.T) {
 			},
 			want: []model.Song{
 				{
-					ID:       1,
-					Name:     "devil in a new dress",
-					ArtistID: "kanye west",
-					AlbumID:  "mbdtf",
+					ID:          1,
+					Name:        "devil in a new dress",
+					ArtistNames: []string{"kanye west"},
+					AlbumName:   "mbdtf",
 				},
 			},
 			wantErr: false,

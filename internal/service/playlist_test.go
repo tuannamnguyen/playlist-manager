@@ -157,7 +157,7 @@ func TestGetAllSongsFromPlaylist(t *testing.T) {
 			name:       "Success",
 			playlistID: 1,
 			wantSongs: []model.Song{
-				{ID: 1, Name: "test_name", ArtistID: "test_artist_id", AlbumID: "test_album_id"},
+				{ID: 1, Name: "test_name", ArtistNames: []string{"test_artist_id"}, AlbumName: "test_album_id"},
 			},
 			wantErr: false,
 		},
