@@ -8,7 +8,7 @@ import (
 )
 
 type SearchService interface {
-	SongSearch(track string, artist string) (model.Song, error)
+	SongSearch(track string, artist string) (model.SongIn, error)
 }
 
 type SearchHandler struct {
