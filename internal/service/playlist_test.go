@@ -19,33 +19,33 @@ func TestAddSongsToPlaylist(t *testing.T) {
 	mockSongRepo.On("BulkInsert", mock.Anything, []model.SongIn{
 		{
 			Name:        "devil in a new dress",
-			ArtistNames: "kanye west",
+			ArtistNames: []string{"kanye west"},
 			AlbumName:   "mbdtf",
 		},
 		{
 			Name:        "runaway",
-			ArtistNames: "kanye west",
+			ArtistNames: []string{"kanye west"},
 			AlbumName:   "mbdtf",
 		},
 	}).Return([]int{1, 2}, nil)
 	mockSongRepo.On("BulkInsert", mock.Anything, []model.SongIn{
 		{
 			Name:        "devil in a new dress",
-			ArtistNames: "kanye west",
+			ArtistNames: []string{"kanye west"},
 			AlbumName:   "mbdtf",
 		},
 		{
 			Name:        "runaway",
-			ArtistNames: "kanye west",
+			ArtistNames: []string{"kanye west"},
 			AlbumName:   "mbdtf",
 		}, {
 			Name:        "devil in a new dress",
-			ArtistNames: "kanye west",
+			ArtistNames: []string{"kanye west"},
 			AlbumName:   "mbdtf",
 		},
 		{
 			Name:        "runaway",
-			ArtistNames: "kanye west",
+			ArtistNames: []string{"kanye west"},
 			AlbumName:   "mbdtf",
 		},
 	}).Return(
@@ -53,21 +53,21 @@ func TestAddSongsToPlaylist(t *testing.T) {
 	)
 	mockSongRepo.On("GetIDsFromSongsDetail", mock.Anything, []model.SongIn{{
 		Name:        "devil in a new dress",
-		ArtistNames: "kanye west",
+		ArtistNames: []string{"kanye west"},
 		AlbumName:   "mbdtf",
 	},
 		{
 			Name:        "runaway",
-			ArtistNames: "kanye west",
+			ArtistNames: []string{"kanye west"},
 			AlbumName:   "mbdtf",
 		}, {
 			Name:        "devil in a new dress",
-			ArtistNames: "kanye west",
+			ArtistNames: []string{"kanye west"},
 			AlbumName:   "mbdtf",
 		},
 		{
 			Name:        "runaway",
-			ArtistNames: "kanye west",
+			ArtistNames: []string{"kanye west"},
 			AlbumName:   "mbdtf",
 		}}).Return([]int{1, 2}, nil)
 
@@ -88,12 +88,12 @@ func TestAddSongsToPlaylist(t *testing.T) {
 			songs: []model.SongIn{
 				{
 					Name:        "devil in a new dress",
-					ArtistNames: "kanye west",
+					ArtistNames: []string{"kanye west"},
 					AlbumName:   "mbdtf",
 				},
 				{
 					Name:        "runaway",
-					ArtistNames: "kanye west",
+					ArtistNames: []string{"kanye west"},
 					AlbumName:   "mbdtf",
 				},
 			},
@@ -105,22 +105,22 @@ func TestAddSongsToPlaylist(t *testing.T) {
 			songs: []model.SongIn{
 				{
 					Name:        "devil in a new dress",
-					ArtistNames: "kanye west",
+					ArtistNames: []string{"kanye west"},
 					AlbumName:   "mbdtf",
 				},
 				{
 					Name:        "runaway",
-					ArtistNames: "kanye west",
+					ArtistNames: []string{"kanye west"},
 					AlbumName:   "mbdtf",
 				},
 				{
 					Name:        "devil in a new dress",
-					ArtistNames: "kanye west",
+					ArtistNames: []string{"kanye west"},
 					AlbumName:   "mbdtf",
 				},
 				{
 					Name:        "runaway",
-					ArtistNames: "kanye west",
+					ArtistNames: []string{"kanye west"},
 					AlbumName:   "mbdtf",
 				},
 			},
