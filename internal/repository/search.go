@@ -85,7 +85,7 @@ func (s *SearchRepository) Song(track string, artist string) (model.SongIn, erro
 
 	return model.SongIn{
 		Name:        searchRes.Tracks[0].Data.Name,
-		ArtistNames: searchRes.Tracks[0].Data.ArtistNames[0], // TODO: UPDATE SONGS MODEL IN DATABASE LATER TO ALLOW MULTIPLE ARTISTS PER SONG
+		ArtistNames: searchRes.Tracks[0].Data.ArtistNames,
 		AlbumName:   searchRes.Tracks[0].Data.AlbumName,
 	}, nil
 }
