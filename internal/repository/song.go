@@ -89,7 +89,7 @@ func (s *SongRepository) BulkInsert(ctx context.Context, songs []model.SongIn) (
 	updatedAt := time.Now()
 
 	query := `
-		INSERT INTO song (song_name, artist_id, album_id, updated_at, created_at)
+		INSERT INTO song (song_name, artist_name, album_id, updated_at, created_at)
 		VALUES %s
 		RETURNING song_id
 	`

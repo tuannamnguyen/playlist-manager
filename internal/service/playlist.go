@@ -2,12 +2,7 @@ package service
 
 import (
 	"context"
-	"errors"
-	"fmt"
-	"log"
 
-	"github.com/jackc/pgerrcode"
-	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
 )
 
@@ -64,26 +59,7 @@ func (p *PlaylistService) DeleteByID(ctx context.Context, id int) error {
 }
 
 func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID int, songs []model.SongIn) error {
-	songsID, err := p.songRepo.BulkInsert(ctx, songs)
-	var pgErr *pgconn.PgError
-	if err != nil {
-		if errors.As(err, &pgErr) && pgErr.Code != pgerrcode.UniqueViolation {
-			return fmt.Errorf("bulk insert songs: %w", err)
-		}
-
-		// get songs ID from db if they already exist
-		songsID, err = p.songRepo.GetIDsFromSongsDetail(ctx, songs)
-		if err != nil {
-			return fmt.Errorf("get duplicated songs ID: %w", err)
-		}
-	}
-
-	log.Printf("inserted songs ID: %v", songsID)
-
-	err = p.playlistSongRepo.BulkInsert(ctx, playlistID, songsID)
-	if err != nil {
-		return fmt.Errorf("bulk insert songs into playlist: %w", err)
-	}
+	// TODO: REDO THIS
 
 	return nil
 }
