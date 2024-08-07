@@ -157,14 +157,14 @@ func TestSongBulkInsert(t *testing.T) {
 				ctx: context.Background(),
 				songs: []model.SongIn{
 					{
-						Name:     "devil in a new dress",
-						ArtistID: "kanye west",
-						AlbumID:  "mbdtf",
+						Name:        "devil in a new dress",
+						ArtistNames: "kanye west",
+						AlbumName:   "mbdtf",
 					},
 					{
-						Name:     "runaway",
-						ArtistID: "kanye west",
-						AlbumID:  "mbdtf",
+						Name:        "runaway",
+						ArtistNames: "kanye west",
+						AlbumName:   "mbdtf",
 					},
 				},
 			},
@@ -216,14 +216,14 @@ func TestSongGetIDsFromSongsDetail(t *testing.T) {
 				ctx: context.Background(),
 				songs: []model.SongIn{
 					{
-						Name:     "devil in a new dress",
-						ArtistID: "kanye west",
-						AlbumID:  "mbdtf",
+						Name:        "devil in a new dress",
+						ArtistNames: "kanye west",
+						AlbumName:   "mbdtf",
 					},
 					{
-						Name:     "runaway",
-						ArtistID: "kanye west",
-						AlbumID:  "mbdtf",
+						Name:        "runaway",
+						ArtistNames: "kanye west",
+						AlbumName:   "mbdtf",
 					},
 				},
 			},

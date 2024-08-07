@@ -18,57 +18,57 @@ func TestAddSongsToPlaylist(t *testing.T) {
 	mockSongRepo := new(mocks.MockSongRepository)
 	mockSongRepo.On("BulkInsert", mock.Anything, []model.SongIn{
 		{
-			Name:     "devil in a new dress",
-			ArtistID: "kanye west",
-			AlbumID:  "mbdtf",
+			Name:        "devil in a new dress",
+			ArtistNames: "kanye west",
+			AlbumName:   "mbdtf",
 		},
 		{
-			Name:     "runaway",
-			ArtistID: "kanye west",
-			AlbumID:  "mbdtf",
+			Name:        "runaway",
+			ArtistNames: "kanye west",
+			AlbumName:   "mbdtf",
 		},
 	}).Return([]int{1, 2}, nil)
 	mockSongRepo.On("BulkInsert", mock.Anything, []model.SongIn{
 		{
-			Name:     "devil in a new dress",
-			ArtistID: "kanye west",
-			AlbumID:  "mbdtf",
+			Name:        "devil in a new dress",
+			ArtistNames: "kanye west",
+			AlbumName:   "mbdtf",
 		},
 		{
-			Name:     "runaway",
-			ArtistID: "kanye west",
-			AlbumID:  "mbdtf",
+			Name:        "runaway",
+			ArtistNames: "kanye west",
+			AlbumName:   "mbdtf",
 		}, {
-			Name:     "devil in a new dress",
-			ArtistID: "kanye west",
-			AlbumID:  "mbdtf",
+			Name:        "devil in a new dress",
+			ArtistNames: "kanye west",
+			AlbumName:   "mbdtf",
 		},
 		{
-			Name:     "runaway",
-			ArtistID: "kanye west",
-			AlbumID:  "mbdtf",
+			Name:        "runaway",
+			ArtistNames: "kanye west",
+			AlbumName:   "mbdtf",
 		},
 	}).Return(
 		nil, &pgconn.PgError{Code: pgerrcode.UniqueViolation, Message: "duplicated values"},
 	)
 	mockSongRepo.On("GetIDsFromSongsDetail", mock.Anything, []model.SongIn{{
-		Name:     "devil in a new dress",
-		ArtistID: "kanye west",
-		AlbumID:  "mbdtf",
+		Name:        "devil in a new dress",
+		ArtistNames: "kanye west",
+		AlbumName:   "mbdtf",
 	},
 		{
-			Name:     "runaway",
-			ArtistID: "kanye west",
-			AlbumID:  "mbdtf",
+			Name:        "runaway",
+			ArtistNames: "kanye west",
+			AlbumName:   "mbdtf",
 		}, {
-			Name:     "devil in a new dress",
-			ArtistID: "kanye west",
-			AlbumID:  "mbdtf",
+			Name:        "devil in a new dress",
+			ArtistNames: "kanye west",
+			AlbumName:   "mbdtf",
 		},
 		{
-			Name:     "runaway",
-			ArtistID: "kanye west",
-			AlbumID:  "mbdtf",
+			Name:        "runaway",
+			ArtistNames: "kanye west",
+			AlbumName:   "mbdtf",
 		}}).Return([]int{1, 2}, nil)
 
 	mockPlaylistSongRepo := new(mocks.MockPlaylistSongRepository)
@@ -87,14 +87,14 @@ func TestAddSongsToPlaylist(t *testing.T) {
 			playlistID: 1,
 			songs: []model.SongIn{
 				{
-					Name:     "devil in a new dress",
-					ArtistID: "kanye west",
-					AlbumID:  "mbdtf",
+					Name:        "devil in a new dress",
+					ArtistNames: "kanye west",
+					AlbumName:   "mbdtf",
 				},
 				{
-					Name:     "runaway",
-					ArtistID: "kanye west",
-					AlbumID:  "mbdtf",
+					Name:        "runaway",
+					ArtistNames: "kanye west",
+					AlbumName:   "mbdtf",
 				},
 			},
 			wantErr: false,
@@ -104,24 +104,24 @@ func TestAddSongsToPlaylist(t *testing.T) {
 			playlistID: 1,
 			songs: []model.SongIn{
 				{
-					Name:     "devil in a new dress",
-					ArtistID: "kanye west",
-					AlbumID:  "mbdtf",
+					Name:        "devil in a new dress",
+					ArtistNames: "kanye west",
+					AlbumName:   "mbdtf",
 				},
 				{
-					Name:     "runaway",
-					ArtistID: "kanye west",
-					AlbumID:  "mbdtf",
+					Name:        "runaway",
+					ArtistNames: "kanye west",
+					AlbumName:   "mbdtf",
 				},
 				{
-					Name:     "devil in a new dress",
-					ArtistID: "kanye west",
-					AlbumID:  "mbdtf",
+					Name:        "devil in a new dress",
+					ArtistNames: "kanye west",
+					AlbumName:   "mbdtf",
 				},
 				{
-					Name:     "runaway",
-					ArtistID: "kanye west",
-					AlbumID:  "mbdtf",
+					Name:        "runaway",
+					ArtistNames: "kanye west",
+					AlbumName:   "mbdtf",
 				},
 			},
 			wantErr: false,

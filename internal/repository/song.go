@@ -97,7 +97,7 @@ func (s *SongRepository) BulkInsert(ctx context.Context, songs []model.SongIn) (
 	valueArgs := make([]any, 0, len(songs)*5)
 	for _, song := range songs {
 		valueStrings = append(valueStrings, "(?, ?, ?, ?, ?)")
-		valueArgs = append(valueArgs, song.Name, song.ArtistID, song.AlbumID, createdAt, updatedAt)
+		valueArgs = append(valueArgs, song.Name, song.ArtistNames, song.AlbumName, createdAt, updatedAt)
 	}
 	query = sqlx.Rebind(
 		sqlx.DOLLAR,
@@ -138,7 +138,7 @@ func (s *SongRepository) GetIDsFromSongsDetail(ctx context.Context, songs []mode
 	valueArgs := make([]any, 0, len(songs)*3)
 	for _, song := range songs {
 		valueStrings = append(valueStrings, "(?, ?, ?)")
-		valueArgs = append(valueArgs, song.Name, song.ArtistID, song.AlbumID)
+		valueArgs = append(valueArgs, song.Name, song.ArtistNames, song.AlbumName)
 	}
 
 	query = sqlx.Rebind(

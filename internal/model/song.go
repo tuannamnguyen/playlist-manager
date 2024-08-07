@@ -9,7 +9,7 @@ type Song struct {
 }
 
 type SongIn struct {
-	Name     string `json:"song_name" db:"song_name"`
-	ArtistID string `json:"artist_id" db:"artist_id"`
-	AlbumID  string `json:"album_id" db:"album_id"`
+	Name        string `json:"song_name" db:"song_name"`
+	ArtistNames string `json:"artist_names" db:"artist_names"`
+	AlbumName   string `json:"album_name" db:"album_name"`
 }
