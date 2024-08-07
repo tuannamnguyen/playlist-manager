@@ -23,7 +23,7 @@ func setupTestDB(t *testing.T, initScriptPath string) (*sqlx.DB, func()) {
 
 	postgresContainer, err := postgres.Run(ctx,
 		"postgres:latest",
-		postgres.WithInitScripts(filepath.Join(".", "testdata", initScriptPath)),
+		postgres.WithInitScripts(filepath.Join("..", "..", "scripts", "sql", "testdata", initScriptPath)),
 		postgres.WithUsername(dbUser),
 		postgres.WithPassword(dbPassword),
 		testcontainers.WithWaitStrategy(
