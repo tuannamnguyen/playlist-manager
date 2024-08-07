@@ -1,51 +1,77 @@
-DROP DATABASE IF EXISTS playlist_manager;
-
 CREATE DATABASE playlist_manager;
 
 \c playlist_manager;
 
 CREATE TABLE IF NOT EXISTS users (
-  user_id TEXT NOT NULL,
-  user_name TEXT NOT NULL,
-  PRIMARY KEY (user_id)
+    userid SERIAL PRIMARY KEY,
+    username VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-INSERT INTO
-  users (user_id, user_name)
-VALUES
-  (
-    'google-oauth2|117047339491229984586',
-    'Nguyen Tuan Nam'
-  );
-
 CREATE TABLE IF NOT EXISTS playlist (
-  playlist_id SERIAL,
-  playlist_name TEXT NOT NULL,
-  user_id TEXT NOT NULL,
-  updated_at TIMESTAMP NOT NULL,
-  created_at TIMESTAMP NOT NULL,
-  PRIMARY KEY (playlist_id),
-  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+    playlistid SERIAL PRIMARY KEY,
+    playlist_name VARCHAR(100) NOT NULL,
+    creator_id INT NOT NULL,
+    userid INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (userid) REFERENCES user(userid) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS album (
+    album_id SERIAL PRIMARY KEY,
+    album_name VARCHAR(100) NOT NULL,
+    release_date DATE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS artist (
+    artist_id SERIAL PRIMARY KEY,
+    artist_name VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS album_artist (
+    artist_id INT NOT NULL,
+    album_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (artist_id, album_id),
+    FOREIGN KEY (artist_id) REFERENCES artist(artist_id) ON DELETE CASCADE,
+    FOREIGN KEY (album_id) REFERENCES album(album_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS song (
-  song_id SERIAL,
-  song_name TEXT NOT NULL,
-  artist_id TEXT NOT NULL,
-  album_id TEXT NOT NULL,
-  updated_at TIMESTAMP NOT NULL,
-  created_at TIMESTAMP NOT NULL,
-  PRIMARY KEY (song_id),
-  UNIQUE (song_name, artist_id, album_id)
+    song_id SERIAL PRIMARY KEY,
+    song_name VARCHAR(100) NOT NULL,
+    album_id INT NOT NULL,
+    duration INT,
+    genre VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (album_id) REFERENCES album(album_id) ON DELETE CASCADE
 );
 
-
 CREATE TABLE IF NOT EXISTS playlist_song (
-  playlist_id INT NOT NULL,
-  song_id INT NOT NULL,
-  updated_at TIMESTAMP NOT NULL,
-  created_at TIMESTAMP NOT NULL,
-  PRIMARY KEY (playlist_id, song_id),
-  FOREIGN KEY (playlist_id) REFERENCES playlist(playlist_id) ON DELETE CASCADE,
-  FOREIGN KEY (song_id) REFERENCES song(song_id) ON DELETE CASCADE
+    playlistid INT NOT NULL,
+    song_id INT NOT NULL,
+    song_order INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (playlistid, song_id),
+    FOREIGN KEY (playlistid) REFERENCES playlist(playlistid) ON DELETE CASCADE,
+    FOREIGN KEY (song_id) REFERENCES song(song_id) ON DELETE CASCADE
+);
+
+CREATE TABLE  IF NOT EXISTS artist_song (
+    artist_id INT NOT NULL,
+    song_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (artist_id, song_id),
+    FOREIGN KEY (artist_id) REFERENCES artist(artist_id) ON DELETE CASCADE,
+    FOREIGN KEY (song_id) REFERENCES song(song_id) ON DELETE CASCADE
 );
