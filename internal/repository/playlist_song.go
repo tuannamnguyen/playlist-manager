@@ -92,7 +92,7 @@ func (ps *PlaylistSongRepository) DeleteWithManyID(ctx context.Context, playlist
 
 }
 
-func (ps *PlaylistSongRepository) SelectAllSongsInPlaylist(ctx context.Context, playlistID int) ([]model.Song, error) {
+func (ps *PlaylistSongRepository) SelectAllSongsInPlaylist(ctx context.Context, playlistID int) ([]model.SongOutAPI, error) {
 	query := `WITH playlist_song_detail AS
 			(SELECT playlist_song.playlist_id, playlist_song.song_id
 			FROM playlist_song
@@ -107,9 +107,9 @@ func (ps *PlaylistSongRepository) SelectAllSongsInPlaylist(ctx context.Context, 
 	}
 	defer rows.Close()
 
-	var playlistSongs []model.Song
+	var playlistSongs []model.SongOutAPI
 	for rows.Next() {
-		var song model.Song
+		var song model.SongOutAPI
 		if err := rows.StructScan(&song); err != nil {
 			return nil, fmt.Errorf("scan song to struct: %v", err)
 		}

@@ -16,8 +16,8 @@ type PlaylistService interface {
 	GetByID(ctx context.Context, id int) (model.Playlist, error)
 	DeleteByID(ctx context.Context, id int) error
 
-	AddSongsToPlaylist(ctx context.Context, playlistID int, songs []model.SongIn) error
-	GetAllSongsFromPlaylist(ctx context.Context, playlistID int) ([]model.Song, error)
+	AddSongsToPlaylist(ctx context.Context, playlistID int, songs []model.SongInAPI) error
+	GetAllSongsFromPlaylist(ctx context.Context, playlistID int) ([]model.SongOutAPI, error)
 	DeleteSongsFromPlaylist(ctx context.Context, playlistID int, songsID []int) error
 }
 
@@ -91,7 +91,7 @@ func (p *PlaylistHandler) AddSongsToPlaylist(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error converting ID to int: %v", err))
 	}
 
-	var songs []model.SongIn
+	var songs []model.SongInAPI
 	err = c.Bind(&songs)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error binding request body to songs: %v", err))

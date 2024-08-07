@@ -23,7 +23,7 @@ func NewSongRepository(db *sqlx.DB) *SongRepository {
 	}
 }
 
-func (s *SongRepository) Insert(ctx context.Context, song model.Song) (int, error) {
+func (s *SongRepository) Insert(ctx context.Context, song model.SongOutAPI) (int, error) {
 	song.UpdatedAt = time.Now()
 	song.CreatedAt = time.Now()
 
@@ -42,8 +42,8 @@ func (s *SongRepository) Insert(ctx context.Context, song model.Song) (int, erro
 	return lastInsertID, nil
 }
 
-func (s *SongRepository) SelectWithManyID(ctx context.Context, ID []int) ([]model.Song, error) {
-	var songs []model.Song
+func (s *SongRepository) SelectWithManyID(ctx context.Context, ID []int) ([]model.SongOutAPI, error) {
+	var songs []model.SongOutAPI
 	query, args, err := sqlx.In("SELECT * FROM song WHERE song_id IN (?);", ID)
 	if err != nil {
 		return nil, fmt.Errorf("prepare select songs with many ID query: %w", err)
@@ -57,7 +57,7 @@ func (s *SongRepository) SelectWithManyID(ctx context.Context, ID []int) ([]mode
 	defer rows.Close()
 
 	for rows.Next() {
-		var songDetail model.Song
+		var songDetail model.SongOutAPI
 		if err := rows.StructScan(&songDetail); err != nil {
 			return nil, fmt.Errorf("scan song detail to struct: %w", err)
 		}
@@ -71,7 +71,7 @@ func (s *SongRepository) SelectWithManyID(ctx context.Context, ID []int) ([]mode
 	return songs, nil
 }
 
-func (s *SongRepository) BulkInsert(ctx context.Context, songs []model.SongIn) ([]int, error) {
+func (s *SongRepository) BulkInsert(ctx context.Context, songs []model.SongInAPI) ([]int, error) {
 	// start transaction
 	tx, err := s.db.Begin()
 	if err != nil {
@@ -130,7 +130,7 @@ func (s *SongRepository) BulkInsert(ctx context.Context, songs []model.SongIn) (
 
 }
 
-func (s *SongRepository) GetIDsFromSongsDetail(ctx context.Context, songs []model.SongIn) ([]int, error) {
+func (s *SongRepository) GetIDsFromSongsDetail(ctx context.Context, songs []model.SongInAPI) ([]int, error) {
 	query := `SELECT song_id
 		FROM song
 		WHERE (song_name, artist_id, album_id) IN (%s)`

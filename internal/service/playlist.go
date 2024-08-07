@@ -14,31 +14,41 @@ type PlaylistRepository interface {
 }
 
 type SongRepository interface {
-	Insert(ctx context.Context, song model.Song) (int, error)
-	BulkInsert(ctx context.Context, songs []model.SongIn) ([]int, error)
-	SelectWithManyID(ctx context.Context, ID []int) ([]model.Song, error)
-	GetIDsFromSongsDetail(ctx context.Context, songs []model.SongIn) ([]int, error)
+	InsertAndGetID(ctx context.Context, song model.SongInDB) (int, error)
 }
 
 type PlaylistSongRepository interface {
-	Insert(ctx context.Context, playlistID int, songID int) error
-	BulkInsert(ctx context.Context, playlistID int, songsID []int) error
-	SelectAll(ctx context.Context, playlistID int) ([]model.PlaylistSong, error)
 	DeleteWithManyID(ctx context.Context, playlistID int, songsID []int) error
-	SelectAllSongsInPlaylist(ctx context.Context, playlistID int) ([]model.Song, error)
+	SelectAllSongsInPlaylist(ctx context.Context, playlistID int) ([]model.SongOutAPI, error)
+}
+
+type AlbumRepository interface {
+	InsertAndGetID(ctx context.Context, albumName string) (int, error)
+}
+
+type ArtistRepository interface {
+	BulkInsertAndGetIDs(ctx context.Context, artistNames []string) ([]int, error)
+}
+
+type ArtistSongRepository interface {
+	Insert(ctx context.Context, songID int, artistIDs []int) error
 }
 
 type PlaylistService struct {
 	playlistRepo     PlaylistRepository
 	songRepo         SongRepository
 	playlistSongRepo PlaylistSongRepository
+	albumRepo        AlbumRepository
+	artistRepo       ArtistRepository
+	artistSongRepo ArtistSongRepository
 }
 
-func NewPlaylist(playlistRepo PlaylistRepository, songRepo SongRepository, playlistSongRepo PlaylistSongRepository) *PlaylistService {
+func NewPlaylist(playlistRepo PlaylistRepository, songRepo SongRepository, playlistSongRepo PlaylistSongRepository, albumRepo AlbumRepository) *PlaylistService {
 	return &PlaylistService{
 		playlistRepo:     playlistRepo,
 		songRepo:         songRepo,
 		playlistSongRepo: playlistSongRepo,
+		albumRepo:        albumRepo,
 	}
 }
 
@@ -58,16 +68,34 @@ func (p *PlaylistService) DeleteByID(ctx context.Context, id int) error {
 	return p.playlistRepo.DeleteByID(ctx, id)
 }
 
-func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID int, songs []model.SongIn) error {
-	// TODO: REDO THIS
+func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID int, songs []model.SongInAPI) error {
+	// TODO: THIS IS JUST A ROUGH DRAFT
+
+	// TODO: need better error handling
+	for _, song := range songs {
+		albumID, err := p.albumRepo.InsertAndGetID(ctx, song.AlbumName)
+		if err != nil {
+			return err
+		}
+
+		songID, err := p.songRepo.InsertAndGetID(ctx, model.SongInDB{
+			Name:    song.Name,
+			AlbumID: albumID,
+		})
+		if err != nil {
+			return err
+		}
+
+		artistIDs, err := p.artistRepo.BulkInsertAndGetIDs(ctx, song.ArtistNames)
+		if err != nil {
+			return err
+		}
+
+		err = p.artistSongRepo.Insert(ctx, songID, artistIDs)
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
-}
-
-func (p *PlaylistService) GetAllSongsFromPlaylist(ctx context.Context, playlistID int) ([]model.Song, error) {
-	return p.playlistSongRepo.SelectAllSongsInPlaylist(ctx, playlistID)
-}
-
-func (p *PlaylistService) DeleteSongsFromPlaylist(ctx context.Context, playlistID int, songsID []int) error {
-	return p.playlistSongRepo.DeleteWithManyID(ctx, playlistID, songsID)
 }
