@@ -27,6 +27,17 @@ func main() {
 		log.Fatalf("error reading .env: %v", err)
 	}
 
+	// setup HTTP client
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.MaxIdleConns = 100
+	transport.MaxConnsPerHost = 100
+	transport.MaxIdleConnsPerHost = 100
+
+	httpClient := &http.Client{
+		Timeout:   time.Minute,
+		Transport: transport,
+	}
+
 	// setup DB
 	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s",
 		os.Getenv("POSTGRES_HOST"),
@@ -46,7 +57,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM)
 	defer stop()
 
-	go startServer(e, db)
+	go startServer(e, db, httpClient)
 
 	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 10 seconds.
 	<-ctx.Done()
@@ -57,7 +68,7 @@ func main() {
 	}
 }
 
-func startServer(e *echo.Echo, db *sqlx.DB) {
+func startServer(e *echo.Echo, db *sqlx.DB, httpClient *http.Client) {
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.Logger())
 
@@ -65,20 +76,28 @@ func startServer(e *echo.Echo, db *sqlx.DB) {
 		return c.String(http.StatusOK, fmt.Sprintf("%s, World!", os.Getenv("HELLO")))
 	})
 
-	setupAPIRouter(e, db)
+	setupAPIRouter(e, db, httpClient)
 
 	if err := e.Start(":8080"); err != nil && err != http.ErrServerClosed {
 		e.Logger.Fatal("shutting down the server")
 	}
 }
 
-func setupAPIRouter(e *echo.Echo, db *sqlx.DB) {
+func setupAPIRouter(e *echo.Echo, db *sqlx.DB, httpClient *http.Client) {
 	apiRouter := e.Group("/api")
 
 	apiRouter.GET("/test", func(c echo.Context) error {
 		return c.String(http.StatusOK, "You have been authenticated")
 	})
+	playlistRouter := apiRouter.Group("/playlists")
+	searchRouter := apiRouter.Group("/search")
 
+	setupPlaylistRoutes(playlistRouter, db)
+	setupSearchRoutes(searchRouter, httpClient)
+
+}
+
+func setupPlaylistRoutes(router *echo.Group, db *sqlx.DB) {
 	// setup playlist endpoint
 	playlistRepository := repository.NewPlaylistRepository(db)
 	songRepository := repository.NewSongRepository(db)
@@ -87,16 +106,23 @@ func setupAPIRouter(e *echo.Echo, db *sqlx.DB) {
 	playlistService := service.NewPlaylist(playlistRepository, songRepository, playlistSongRepository)
 	playlistHandler := rest.NewPlaylistHandler(playlistService)
 
-	playlistRouter := apiRouter.Group("/playlists")
-
-	playlistRouter.POST("", playlistHandler.Add)
-	playlistRouter.GET("", playlistHandler.GetAll)
-	playlistRouter.GET("/:id", playlistHandler.GetByID)
-	playlistRouter.DELETE("/:id", playlistHandler.DeleteByID)
+	router.POST("", playlistHandler.Add)
+	router.GET("", playlistHandler.GetAll)
+	router.GET("/:id", playlistHandler.GetByID)
+	router.DELETE("/:id", playlistHandler.DeleteByID)
 
 	// playlist-songs table endpoint
 	playlistSongsEndpoint := "/:playlist_id/songs"
-	playlistRouter.POST(playlistSongsEndpoint, playlistHandler.AddSongsToPlaylist)
-	playlistRouter.GET(playlistSongsEndpoint, playlistHandler.GetAllSongsFromPlaylist)
-	playlistRouter.DELETE(playlistSongsEndpoint, playlistHandler.DeleteSongsFromPlaylist)
+	router.POST(playlistSongsEndpoint, playlistHandler.AddSongsToPlaylist)
+	router.GET(playlistSongsEndpoint, playlistHandler.GetAllSongsFromPlaylist)
+	router.DELETE(playlistSongsEndpoint, playlistHandler.DeleteSongsFromPlaylist)
+}
+
+func setupSearchRoutes(router *echo.Group, httpClient *http.Client) {
+	searchRepository := repository.NewSearchRepository(httpClient)
+
+	searchService := service.NewSearch(searchRepository)
+	searchHandler := rest.NewSearchHandler(searchService)
+
+	router.POST("", searchHandler.SearchMusicData)
 }
