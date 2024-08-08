@@ -95,6 +95,7 @@ CREATE TABLE IF NOT EXISTS playlist_song (
     song_id INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (playlist_id, song_id),
     FOREIGN KEY (playlist_id) REFERENCES playlist(playlist_id) ON DELETE CASCADE,
     FOREIGN KEY (song_id) REFERENCES song(song_id) ON DELETE CASCADE
 );

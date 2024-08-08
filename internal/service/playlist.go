@@ -18,8 +18,7 @@ type SongRepository interface {
 }
 
 type PlaylistSongRepository interface {
-	DeleteWithManyID(ctx context.Context, playlistID int, songsID []int) error
-	SelectAllSongsInPlaylist(ctx context.Context, playlistID int) ([]model.SongOutAPI, error)
+	BulkInsert(ctx context.Context, playlistID int, songsID []int) error
 }
 
 type AlbumRepository interface {
@@ -40,15 +39,24 @@ type PlaylistService struct {
 	playlistSongRepo PlaylistSongRepository
 	albumRepo        AlbumRepository
 	artistRepo       ArtistRepository
-	artistSongRepo ArtistSongRepository
+	artistSongRepo   ArtistSongRepository
 }
 
-func NewPlaylist(playlistRepo PlaylistRepository, songRepo SongRepository, playlistSongRepo PlaylistSongRepository, albumRepo AlbumRepository) *PlaylistService {
+func NewPlaylist(
+	playlistRepo PlaylistRepository,
+	songRepo SongRepository,
+	playlistSongRepo PlaylistSongRepository,
+	albumRepo AlbumRepository,
+	artistRepo ArtistRepository,
+	artistSongRepo ArtistSongRepository,
+) *PlaylistService {
 	return &PlaylistService{
 		playlistRepo:     playlistRepo,
 		songRepo:         songRepo,
 		playlistSongRepo: playlistSongRepo,
 		albumRepo:        albumRepo,
+		artistRepo:       artistRepo,
+		artistSongRepo:   artistSongRepo,
 	}
 }
 
@@ -69,9 +77,8 @@ func (p *PlaylistService) DeleteByID(ctx context.Context, id int) error {
 }
 
 func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID int, songs []model.SongInAPI) error {
-	// TODO: THIS IS JUST A ROUGH DRAFT
-
-	// TODO: need better error handling
+	// TODO: still a draft and need to see what can i improve here. need better error handling
+	var songsID []int
 	for _, song := range songs {
 		albumID, err := p.albumRepo.InsertAndGetID(ctx, song.AlbumName)
 		if err != nil {
@@ -85,6 +92,7 @@ func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID int
 		if err != nil {
 			return err
 		}
+		songsID = append(songsID, songID)
 
 		artistIDs, err := p.artistRepo.BulkInsertAndGetIDs(ctx, song.ArtistNames)
 		if err != nil {
@@ -97,5 +105,20 @@ func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID int
 		}
 	}
 
+	err := p.playlistSongRepo.BulkInsert(ctx, playlistID, songsID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *PlaylistService) GetAllSongsFromPlaylist(ctx context.Context, playlistID int) ([]model.SongOutAPI, error) {
+	// TODO: IMPLEMENT THIS LATER
+	return nil, nil
+}
+
+func (p *PlaylistService) DeleteSongsFromPlaylist(ctx context.Context, playlistID int, songsID []int) error {
+	// TODO: IMPLEMENT THIS LATER
 	return nil
 }

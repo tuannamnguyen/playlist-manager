@@ -15,6 +15,6 @@ type SongInAPI struct {
 }
 
 type SongInDB struct {
-	Name    string
-	AlbumID int
+	Name    string `db:"song_name"`
+	AlbumID int    `db:"album_id"`
 }
