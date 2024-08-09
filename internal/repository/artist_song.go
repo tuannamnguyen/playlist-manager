@@ -48,7 +48,7 @@ func (as *ArtistSongRepository) Insert(ctx context.Context, songID int, artistID
 		fmt.Sprintf(query, strings.Join(valueStrings, ",")),
 	)
 
-	_, err = as.db.ExecContext(ctx, query, valueArgs...)
+	_, err = tx.ExecContext(ctx, query, valueArgs...)
 	if err != nil {
 		return fmt.Errorf("bulk INSERT artist song: %w", err)
 	}

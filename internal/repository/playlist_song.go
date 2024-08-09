@@ -49,7 +49,7 @@ func (ps *PlaylistSongRepository) BulkInsert(ctx context.Context, playlistID int
 		fmt.Sprintf(query, strings.Join(valueStrings, ",")),
 	)
 
-	_, err = ps.db.ExecContext(ctx, query, valueArgs...)
+	_, err = tx.ExecContext(ctx, query, valueArgs...)
 	if err != nil {
 		return fmt.Errorf("bulk INSERT playlist song: %w", err)
 	}
