@@ -19,6 +19,7 @@ type PlaylistService interface {
 
 	// playlist-song operations
 	AddSongsToPlaylist(ctx context.Context, playlistID int, songs []model.SongInAPI) error
+	GetAllSongsFromPlaylist(ctx context.Context, playlistID int) ([]model.SongOutAPI, error)
 }
 
 type PlaylistHandler struct {
@@ -100,6 +101,20 @@ func (p *PlaylistHandler) AddSongsToPlaylist(c echo.Context) error {
 	err = p.Service.AddSongsToPlaylist(c.Request().Context(), playlistID, songs)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error adding songs to playlist: %v", err))
+	}
+
+	return c.JSON(http.StatusOK, songs)
+}
+
+func (p *PlaylistHandler) GetAllSongsFromPlaylist(c echo.Context) error {
+	playlistID, err := strconv.Atoi(c.Param("playlist_id"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error converting ID to int: %v", err))
+	}
+
+	songs, err := p.Service.GetAllSongsFromPlaylist(c.Request().Context(), playlistID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting all songs from playlist: %v", err))
 	}
 
 	return c.JSON(http.StatusOK, songs)
