@@ -22,7 +22,8 @@ func (s *SongRepository) InsertAndGetID(ctx context.Context, song model.SongInDB
 	row := s.db.QueryRowxContext(
 		ctx,
 		`INSERT INTO song (song_name, album_id)
-		VALUES ($1, $2)`,
+		VALUES ($1, $2)
+		RETURNING song_id`,
 		song.Name, song.AlbumID,
 	)
 

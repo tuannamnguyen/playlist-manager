@@ -33,6 +33,10 @@ type ArtistSongRepository interface {
 	Insert(ctx context.Context, songID int, artistIDs []int) error
 }
 
+type ArtistAlbumRepository interface {
+	Insert(ctx context.Context, artistID int, albumID int) error
+}
+
 type PlaylistService struct {
 	playlistRepo     PlaylistRepository
 	songRepo         SongRepository
@@ -40,6 +44,7 @@ type PlaylistService struct {
 	albumRepo        AlbumRepository
 	artistRepo       ArtistRepository
 	artistSongRepo   ArtistSongRepository
+	artistAlbumRepo  ArtistAlbumRepository
 }
 
 func NewPlaylist(
@@ -49,6 +54,7 @@ func NewPlaylist(
 	albumRepo AlbumRepository,
 	artistRepo ArtistRepository,
 	artistSongRepo ArtistSongRepository,
+	artistAlbumRepo ArtistAlbumRepository,
 ) *PlaylistService {
 	return &PlaylistService{
 		playlistRepo:     playlistRepo,
@@ -57,6 +63,7 @@ func NewPlaylist(
 		albumRepo:        albumRepo,
 		artistRepo:       artistRepo,
 		artistSongRepo:   artistSongRepo,
+		artistAlbumRepo:  artistAlbumRepo,
 	}
 }
 
@@ -77,10 +84,20 @@ func (p *PlaylistService) DeleteByID(ctx context.Context, id int) error {
 }
 
 func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID int, songs []model.SongInAPI) error {
-	// TODO: still a draft and need to see what can i improve here. need better error handling
+	// TODO: might need better error handling
 	var songsID []int
 	for _, song := range songs {
 		albumID, err := p.albumRepo.InsertAndGetID(ctx, song.AlbumName)
+		if err != nil {
+			return err
+		}
+
+		artistIDs, err := p.artistRepo.BulkInsertAndGetIDs(ctx, song.ArtistNames)
+		if err != nil {
+			return err
+		}
+
+		err = p.artistAlbumRepo.Insert(ctx, artistIDs[0], albumID)
 		if err != nil {
 			return err
 		}
@@ -92,17 +109,14 @@ func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID int
 		if err != nil {
 			return err
 		}
-		songsID = append(songsID, songID)
-
-		artistIDs, err := p.artistRepo.BulkInsertAndGetIDs(ctx, song.ArtistNames)
-		if err != nil {
-			return err
-		}
 
 		err = p.artistSongRepo.Insert(ctx, songID, artistIDs)
 		if err != nil {
 			return err
 		}
+
+		songsID = append(songsID, songID)
+
 	}
 
 	err := p.playlistSongRepo.BulkInsert(ctx, playlistID, songsID)

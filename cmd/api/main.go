@@ -105,6 +105,7 @@ func setupPlaylistRoutes(router *echo.Group, db *sqlx.DB) {
 	albumRepository := repository.NewAlbumRepository(db)
 	artistRepository := repository.NewArtistRepository(db)
 	artistSongRepository := repository.NewArtistSongRepository(db)
+	artistAlbumRepository := repository.NewArtistAlbumRepository(db)
 
 	playlistService := service.NewPlaylist(
 		playlistRepository,
@@ -113,6 +114,7 @@ func setupPlaylistRoutes(router *echo.Group, db *sqlx.DB) {
 		albumRepository,
 		artistRepository,
 		artistSongRepository,
+		artistAlbumRepository,
 	)
 	playlistHandler := rest.NewPlaylistHandler(playlistService)
 

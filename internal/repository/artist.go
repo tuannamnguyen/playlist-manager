@@ -32,7 +32,8 @@ func (a *ArtistRepository) BulkInsertAndGetIDs(ctx context.Context, artistNames 
 	}()
 
 	query := `INSERT INTO artist (artist_name)
-			VALUES %s`
+			VALUES %s
+			RETURNING artist_id`
 
 	valueStrings := make([]string, 0, len(artistNames))
 	valueArgs := make([]any, 0, len(artistNames))
