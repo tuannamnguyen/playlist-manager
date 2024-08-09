@@ -18,10 +18,18 @@ func NewAlbumRepository(db *sqlx.DB) *AlbumRepository {
 func (a *AlbumRepository) InsertAndGetID(ctx context.Context, albumName string) (int, error) {
 	row := a.db.QueryRowxContext(
 		ctx,
-		`INSERT INTO album (album_name)
-		VALUES ($1)
-		RETURNING album_id`,
-		albumName,
+		`WITH ins AS (
+			INSERT INTO album (album_name)
+			VALUES ($1)
+			ON CONFLICT DO NOTHING
+			RETURNING album_id
+		)
+		 SELECT album_id FROM ins
+		 UNION ALL
+		 SELECT album_id FROM album
+		 WHERE album_name = $2
+		 LIMIT 1`,
+		albumName, albumName,
 	)
 
 	var lastInsertID int

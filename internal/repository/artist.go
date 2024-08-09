@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
@@ -31,9 +32,24 @@ func (a *ArtistRepository) BulkInsertAndGetIDs(ctx context.Context, artistNames 
 		}
 	}()
 
-	query := `INSERT INTO artist (artist_name)
+	inQuery, inQueryArgs, err := sqlx.In(
+		`SELECT artist_id FROM artist WHERE artist_name IN (?)`,
+		artistNames,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("prepare in query to select artist ID: %w", err)
+	}
+
+	query := `WITH ins AS (
+			INSERT INTO artist (artist_name)
 			VALUES %s
-			RETURNING artist_id`
+			ON CONFLICT DO NOTHING
+			RETURNING artist_id
+		)
+			SELECT artist_id FROM ins
+			UNION ALL
+			%s
+			LIMIT %s`
 
 	valueStrings := make([]string, 0, len(artistNames))
 	valueArgs := make([]any, 0, len(artistNames))
@@ -45,10 +61,11 @@ func (a *ArtistRepository) BulkInsertAndGetIDs(ctx context.Context, artistNames 
 
 	query = sqlx.Rebind(
 		sqlx.DOLLAR,
-		fmt.Sprintf(query, strings.Join(valueStrings, ",")),
+		fmt.Sprintf(query, strings.Join(valueStrings, ","), inQuery, strconv.Itoa(len(artistNames))),
 	)
+	args := append(valueArgs, inQueryArgs...)
 
-	rows, err := tx.QueryxContext(ctx, query, valueArgs...)
+	rows, err := tx.QueryxContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("bulk INSERT artists: %w", err)
 	}

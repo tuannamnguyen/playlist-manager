@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS playlist (
     user_id INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (playlist_name, user_id),
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
@@ -39,9 +40,9 @@ EXECUTE PROCEDURE update_updated_at_column();
 CREATE TABLE IF NOT EXISTS album (
     album_id SERIAL PRIMARY KEY,
     album_name TEXT NOT NULL,
-    release_date DATE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (album_name)
 );
 
 CREATE TRIGGER set_timestamp_album
@@ -53,7 +54,8 @@ CREATE TABLE IF NOT EXISTS artist (
     artist_id SERIAL PRIMARY KEY,
     artist_name TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (artist_name)
 );
 
 CREATE TRIGGER set_timestamp_artist
