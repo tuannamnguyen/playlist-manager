@@ -6,3 +6,8 @@ type Playlist struct {
 	UserID string `json:"user_id" db:"user_id"`
 	Timestamp
 }
+
+type PlaylistIn struct {
+	Name   string `json:"playlist_name" db:"playlist_name"`
+	UserID string `json:"user_id" db:"user_id"`
+}

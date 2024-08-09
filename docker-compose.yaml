@@ -19,7 +19,7 @@ services:
    volumes:
      - pgdata:/var/lib/postgresql/data
      - type: bind
-       source: ./script.sql
+       source: ./scripts/sql/script.sql
        target: /docker-entrypoint-initdb.d/script.sql
        read_only: true
    ports:
