@@ -52,7 +52,7 @@ func NewSearchRepository(httpClient *http.Client) *SearchRepository {
 	return &SearchRepository{httpClient: httpClient}
 }
 
-func (s *SearchRepository) Song(track string, artist string) (model.SongIn, error) {
+func (s *SearchRepository) Song(track string, artist string) (model.SongInAPI, error) {
 	searchReqBody := SearchRequest{
 		Track:   track,
 		Artist:  artist,
@@ -61,31 +61,31 @@ func (s *SearchRepository) Song(track string, artist string) (model.SongIn, erro
 	}
 	searchReqBodyEncoded, err := json.Marshal(searchReqBody)
 	if err != nil {
-		return model.SongIn{}, fmt.Errorf("marshalling search request body: %w", err)
+		return model.SongInAPI{}, fmt.Errorf("marshalling search request body: %w", err)
 	}
 
 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/public/search", os.Getenv("MUSIC_API_ENDPOINT")), bytes.NewBuffer(searchReqBodyEncoded))
 	if err != nil {
-		return model.SongIn{}, fmt.Errorf("making search request body: %w", err)
+		return model.SongInAPI{}, fmt.Errorf("making search request body: %w", err)
 	}
 	req.Header.Set("Authorization", fmt.Sprintf("Token %s", os.Getenv("MUSIC_API_CLIENT_ID")))
 	req.Header.Set("Content-Type", echo.MIMEApplicationJSON)
 
 	res, err := s.httpClient.Do(req)
 	if err != nil || res.StatusCode != 200 {
-		return model.SongIn{}, fmt.Errorf("fetching info from music api: %w", err)
+		return model.SongInAPI{}, fmt.Errorf("fetching info from music api: %w", err)
 	}
 	defer res.Body.Close()
 
 	var searchRes SearchResponse
 	err = json.NewDecoder(res.Body).Decode(&searchRes)
 	if err != nil {
-		return model.SongIn{}, fmt.Errorf("decoding music api response: %w", err)
+		return model.SongInAPI{}, fmt.Errorf("decoding music api response: %w", err)
 	}
 
-	return model.SongIn{
-		Name:     searchRes.Tracks[0].Data.Name,
-		ArtistID: searchRes.Tracks[0].Data.ArtistNames[0], // TODO: UPDATE SONGS MODEL IN DATABASE LATER TO ALLOW MULTIPLE ARTISTS PER SONG
-		AlbumID:  searchRes.Tracks[0].Data.AlbumName,
+	return model.SongInAPI{
+		Name:        searchRes.Tracks[0].Data.Name,
+		ArtistNames: searchRes.Tracks[0].Data.ArtistNames,
+		AlbumName:   searchRes.Tracks[0].Data.AlbumName,
 	}, nil
 }

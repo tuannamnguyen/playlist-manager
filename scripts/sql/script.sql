@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS playlist (
     user_id INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (playlist_name, user_id),
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
@@ -39,9 +40,9 @@ EXECUTE PROCEDURE update_updated_at_column();
 CREATE TABLE IF NOT EXISTS album (
     album_id SERIAL PRIMARY KEY,
     album_name TEXT NOT NULL,
-    release_date DATE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (album_name)
 );
 
 CREATE TRIGGER set_timestamp_album
@@ -53,7 +54,8 @@ CREATE TABLE IF NOT EXISTS artist (
     artist_id SERIAL PRIMARY KEY,
     artist_name TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (artist_name)
 );
 
 CREATE TRIGGER set_timestamp_artist
@@ -61,7 +63,7 @@ BEFORE UPDATE ON artist
 FOR EACH ROW
 EXECUTE PROCEDURE update_updated_at_column();
 
-CREATE TABLE IF NOT EXISTS album_artist (
+CREATE TABLE IF NOT EXISTS artist_album (
     artist_id INT NOT NULL,
     album_id INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -71,8 +73,8 @@ CREATE TABLE IF NOT EXISTS album_artist (
     FOREIGN KEY (album_id) REFERENCES album(album_id) ON DELETE CASCADE
 );
 
-CREATE TRIGGER set_timestamp_album_artist
-BEFORE UPDATE ON album_artist
+CREATE TRIGGER set_timestamp_artist_album
+BEFORE UPDATE ON artist_album
 FOR EACH ROW
 EXECUTE PROCEDURE update_updated_at_column();
 
@@ -80,10 +82,9 @@ CREATE TABLE IF NOT EXISTS song (
     song_id SERIAL PRIMARY KEY,
     song_name TEXT NOT NULL,
     album_id INT NOT NULL,
-    duration INT DEFAULT NULL,
-    genre TEXT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (song_name, album_id),
     FOREIGN KEY (album_id) REFERENCES album(album_id) ON DELETE CASCADE
 );
 
@@ -95,9 +96,9 @@ EXECUTE PROCEDURE update_updated_at_column();
 CREATE TABLE IF NOT EXISTS playlist_song (
     playlist_id INT NOT NULL,
     song_id INT NOT NULL,
-    song_order INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (playlist_id, song_id),
     FOREIGN KEY (playlist_id) REFERENCES playlist(playlist_id) ON DELETE CASCADE,
     FOREIGN KEY (song_id) REFERENCES song(song_id) ON DELETE CASCADE
 );
@@ -134,38 +135,38 @@ INSERT INTO playlist (playlist_name, user_id) VALUES
 ('Workout Hits', 2),
 ('Classic Rock', 3);
 
--- Insert sample data into the album table
-INSERT INTO album (album_name, release_date) VALUES
-('Album 1', '2020-01-01'),
-('Album 2', '2021-06-15'),
-('Album 3', '2022-03-22');
+-- -- Insert sample data into the album table
+-- INSERT INTO album (album_name, release_date) VALUES
+-- ('Album 1', '2020-01-01'),
+-- ('Album 2', '2021-06-15'),
+-- ('Album 3', '2022-03-22');
 
--- Insert sample data into the artist table
-INSERT INTO artist (artist_name) VALUES
-('Artist 1'),
-('Artist 2'),
-('Artist 3');
+-- -- Insert sample data into the artist table
+-- INSERT INTO artist (artist_name) VALUES
+-- ('Artist 1'),
+-- ('Artist 2'),
+-- ('Artist 3');
 
--- Insert sample data into the album_artist table
-INSERT INTO album_artist (artist_id, album_id) VALUES
-(1, 1),
-(2, 2),
-(3, 3);
+-- -- Insert sample data into the artist_album table
+-- INSERT INTO artist_album (artist_id, album_id) VALUES
+-- (1, 1),
+-- (2, 2),
+-- (3, 3);
 
--- Insert sample data into the song table
-INSERT INTO song (song_name, album_id, duration, genre) VALUES
-('Song 1', 1, 210, 'Pop'),
-('Song 2', 2, 180, 'Rock'),
-('Song 3', 3, 240, 'Jazz');
+-- -- Insert sample data into the song table
+-- INSERT INTO song (song_name, album_id) VALUES
+-- ('Song 1', 1),
+-- ('Song 2', 2),
+-- ('Song 3', 3);
 
--- Insert sample data into the playlist_song table
-INSERT INTO playlist_song (playlist_id, song_id, song_order) VALUES
-(1, 1, 1),
-(2, 2, 1),
-(3, 3, 1);
+-- -- Insert sample data into the playlist_song table
+-- INSERT INTO playlist_song (playlist_id, song_id) VALUES
+-- (1, 1),
+-- (2, 2),
+-- (3, 3);
 
--- Insert sample data into the artist_song table
-INSERT INTO artist_song (artist_id, song_id) VALUES
-(1, 1),
-(2, 2),
-(3, 3);
+-- -- Insert sample data into the artist_song table
+-- INSERT INTO artist_song (artist_id, song_id) VALUES
+-- (1, 1),
+-- (2, 2),
+-- (3, 3);
