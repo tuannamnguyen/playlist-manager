@@ -102,8 +102,20 @@ func setupPlaylistRoutes(router *echo.Group, db *sqlx.DB) {
 	playlistRepository := repository.NewPlaylistRepository(db)
 	songRepository := repository.NewSongRepository(db)
 	playlistSongRepository := repository.NewPlaylistSongRepository(db)
+	albumRepository := repository.NewAlbumRepository(db)
+	artistRepository := repository.NewArtistRepository(db)
+	artistSongRepository := repository.NewArtistSongRepository(db)
+	artistAlbumRepository := repository.NewArtistAlbumRepository(db)
 
-	playlistService := service.NewPlaylist(playlistRepository, songRepository, playlistSongRepository)
+	playlistService := service.NewPlaylist(
+		playlistRepository,
+		songRepository,
+		playlistSongRepository,
+		albumRepository,
+		artistRepository,
+		artistSongRepository,
+		artistAlbumRepository,
+	)
 	playlistHandler := rest.NewPlaylistHandler(playlistService)
 
 	router.POST("", playlistHandler.Add)
@@ -114,8 +126,6 @@ func setupPlaylistRoutes(router *echo.Group, db *sqlx.DB) {
 	// playlist-songs table endpoint
 	playlistSongsEndpoint := "/:playlist_id/songs"
 	router.POST(playlistSongsEndpoint, playlistHandler.AddSongsToPlaylist)
-	router.GET(playlistSongsEndpoint, playlistHandler.GetAllSongsFromPlaylist)
-	router.DELETE(playlistSongsEndpoint, playlistHandler.DeleteSongsFromPlaylist)
 }
 
 func setupSearchRoutes(router *echo.Group, httpClient *http.Client) {
