@@ -63,6 +63,10 @@ func (a *ArtistRepository) BulkInsertAndGetIDs(ctx context.Context, artistNames 
 		insertedIDs = append(insertedIDs, id)
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("artist query iteration: %w", err)
+	}
+
 	err = tx.Commit()
 	if err != nil {
 		return nil, fmt.Errorf("commiting transaction bulk insert artists: %w", err)

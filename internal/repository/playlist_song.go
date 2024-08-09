@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
@@ -24,44 +23,40 @@ func NewPlaylistSongRepository(db *sqlx.DB) *PlaylistSongRepository {
 }
 
 func (ps *PlaylistSongRepository) BulkInsert(ctx context.Context, playlistID int, songsID []int) error {
-	tx, err := ps.db.Begin()
+	tx, err := ps.db.BeginTxx(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("begin transaction insert songs into playlist: %w", err)
+		return fmt.Errorf("begin transaction bulk insert playlist song: %w", err)
 	}
 	defer func() {
-		err := tx.Rollback()
+		err = tx.Rollback()
 		if err != nil && !errors.Is(err, sql.ErrTxDone) {
-			log.Printf("error rolling back transaction bulk insert songs in playlist: %v\n", err)
+			log.Printf("error rolling back transaction bulk insert playlist song: %v\n", err)
 		}
 	}()
 
-	createdAt := time.Now()
-	updatedAt := time.Now()
+	query := `INSERT INTO playlist_song (playlist_id, song_id)
+			VALUES %s`
 
-	query := `
-		INSERT INTO playlist_song (playlist_id, song_id, updated_at, created_at)
-		VALUES
-		%s
-	`
 	valueStrings := make([]string, 0, len(songsID))
-	valueArgs := make([]any, 0, len(songsID)*4)
-
+	valueArgs := make([]any, 0, len(songsID)*2)
 	for _, songID := range songsID {
-		valueStrings = append(valueStrings, "(?, ?, ?, ?)")
-		valueArgs = append(valueArgs, playlistID, songID, createdAt, updatedAt)
+		valueStrings = append(valueStrings, "(?, ?)")
+		valueArgs = append(valueArgs, playlistID, songID)
 	}
+
 	query = sqlx.Rebind(
 		sqlx.DOLLAR,
 		fmt.Sprintf(query, strings.Join(valueStrings, ",")),
 	)
 
-	_, err = tx.ExecContext(ctx, query, valueArgs...)
+	_, err = ps.db.ExecContext(ctx, query, valueArgs...)
 	if err != nil {
-		return fmt.Errorf("bulk INSERT songs in playlist: %w", err)
+		return fmt.Errorf("bulk INSERT playlist song: %w", err)
 	}
 
-	if err = tx.Commit(); err != nil {
-		return fmt.Errorf("commit transaction insert songs into playlist: %w", err)
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("commiting transaction playlist song: %w", err)
 	}
 
 	return nil
