@@ -21,10 +21,18 @@ func NewSongRepository(db *sqlx.DB) *SongRepository {
 func (s *SongRepository) InsertAndGetID(ctx context.Context, song model.SongInDB) (int, error) {
 	row := s.db.QueryRowxContext(
 		ctx,
-		`INSERT INTO song (song_name, album_id)
-		VALUES ($1, $2)
-		RETURNING song_id`,
-		song.Name, song.AlbumID,
+		`WITH ins AS (
+			INSERT INTO song (song_name, album_id)
+			VALUES ($1, $2)
+			ON CONFLICT DO NOTHING
+			RETURNING song_id
+		)
+			SELECT song_id FROM ins
+			UNION ALL
+			SELECT song_id FROM song
+			WHERE (song_name, album_id) IN (($3, $4))
+			LIMIT 1`,
+		song.Name, song.AlbumID, song.Name, song.AlbumID,
 	)
 
 	var lastInsertID int

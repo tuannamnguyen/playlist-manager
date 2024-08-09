@@ -84,6 +84,7 @@ CREATE TABLE IF NOT EXISTS song (
     album_id INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (song_name, album_id),
     FOREIGN KEY (album_id) REFERENCES album(album_id) ON DELETE CASCADE
 );
 
