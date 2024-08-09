@@ -35,7 +35,7 @@ func (ps *PlaylistSongRepository) BulkInsert(ctx context.Context, playlistID int
 	}()
 
 	query := `INSERT INTO playlist_song (playlist_id, song_id)
-			VALUES %s`
+			VALUES %s ON CONFLICT DO NOTHING`
 
 	valueStrings := make([]string, 0, len(songsID))
 	valueArgs := make([]any, 0, len(songsID)*2)
