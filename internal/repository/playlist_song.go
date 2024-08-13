@@ -78,8 +78,11 @@ func (ps *PlaylistSongRepository) GetAll(ctx context.Context, playlistID int) ([
 				ON ars.artist_id = ar.artist_id
 				WHERE pl.playlist_id = $1`
 
-	rows, err := ps.db.QueryxContext(ctx, query, playlistID)
+	var rows []model.SongOutDB
+	err := ps.db.SelectContext(ctx, rows, query)
 	if err != nil {
-		
+		return nil, fmt.Errorf("SELECT all songs in playlist: %w", err)
 	}
+
+	return parsePlaylistSongData(rows)
 }
