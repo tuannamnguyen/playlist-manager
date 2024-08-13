@@ -135,38 +135,38 @@ INSERT INTO playlist (playlist_name, user_id) VALUES
 ('Workout Hits', 2),
 ('Classic Rock', 3);
 
--- -- Insert sample data into the album table
--- INSERT INTO album (album_name, release_date) VALUES
--- ('Album 1', '2020-01-01'),
--- ('Album 2', '2021-06-15'),
--- ('Album 3', '2022-03-22');
+-- Insert sample data into the album table
+INSERT INTO album (album_name) VALUES
+('Album 1'),
+('Album 2'),
+('Album 3');
 
--- -- Insert sample data into the artist table
--- INSERT INTO artist (artist_name) VALUES
--- ('Artist 1'),
--- ('Artist 2'),
--- ('Artist 3');
+-- Insert sample data into the artist table
+INSERT INTO artist (artist_name) VALUES
+('Artist 1'),
+('Artist 2'),
+('Artist 3');
 
--- -- Insert sample data into the artist_album table
--- INSERT INTO artist_album (artist_id, album_id) VALUES
--- (1, 1),
--- (2, 2),
--- (3, 3);
+-- Insert sample data into the artist_album table
+INSERT INTO artist_album (artist_id, album_id) VALUES
+(1, 1),
+(2, 2),
+(3, 3);
 
--- -- Insert sample data into the song table
--- INSERT INTO song (song_name, album_id) VALUES
--- ('Song 1', 1),
--- ('Song 2', 2),
--- ('Song 3', 3);
+-- Insert sample data into the song table
+INSERT INTO song (song_name, album_id) VALUES
+('Song 1', 1),
+('Song 2', 2),
+('Song 3', 3);
 
--- -- Insert sample data into the playlist_song table
--- INSERT INTO playlist_song (playlist_id, song_id) VALUES
--- (1, 1),
--- (2, 2),
--- (3, 3);
+-- Insert sample data into the playlist_song table
+INSERT INTO playlist_song (playlist_id, song_id) VALUES
+(1, 1),
+(2, 2),
+(3, 3);
 
--- -- Insert sample data into the artist_song table
--- INSERT INTO artist_song (artist_id, song_id) VALUES
--- (1, 1),
--- (2, 2),
--- (3, 3);
+-- Insert sample data into the artist_song table
+INSERT INTO artist_song (artist_id, song_id) VALUES
+(1, 1),
+(2, 2),
+(3, 3);

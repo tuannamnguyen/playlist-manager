@@ -18,3 +18,10 @@ type SongInDB struct {
 	Name    string `db:"song_name"`
 	AlbumID int    `db:"album_id"`
 }
+
+type SongOutDB struct {
+	ID         int    `db:"song_id"`
+	Name       string `db:"song_name"`
+	ArtistName string `db:"artist_name"`
+	Timestamp
+}

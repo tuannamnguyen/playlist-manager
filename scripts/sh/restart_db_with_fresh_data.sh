@@ -3,4 +3,4 @@
 cd ../..
 docker compose down db
 docker volume prune --all --force
-docker compose up -d db pgadmin4
+docker compose up -d db
