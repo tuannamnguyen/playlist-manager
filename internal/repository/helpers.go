@@ -1,6 +1,10 @@
 package repository
 
-import "github.com/tuannamnguyen/playlist-manager/internal/model"
+import (
+	"slices"
+
+	"github.com/tuannamnguyen/playlist-manager/internal/model"
+)
 
 func parsePlaylistSongData(rows []model.SongOutDB) ([]model.SongOutAPI, error) {
 	songMap := make(map[int]*model.SongOutAPI)
@@ -8,7 +12,7 @@ func parsePlaylistSongData(rows []model.SongOutDB) ([]model.SongOutAPI, error) {
 	for _, row := range rows {
 		if song, exists := songMap[row.ID]; exists {
 			// Song already exists, just add the artist if it's not already there
-			if !contains(song.ArtistNames, row.ArtistName) {
+			if !slices.Contains(song.ArtistNames, row.ArtistName) {
 				song.ArtistNames = append(song.ArtistNames, row.ArtistName)
 			}
 		} else {
@@ -30,14 +34,4 @@ func parsePlaylistSongData(rows []model.SongOutDB) ([]model.SongOutAPI, error) {
 	}
 
 	return result, nil
-}
-
-// Helper function to check if a slice contains a string
-func contains(slice []string, str string) bool {
-	for _, v := range slice {
-		if v == str {
-			return true
-		}
-	}
-	return false
 }

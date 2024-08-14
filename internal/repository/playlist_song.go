@@ -79,7 +79,7 @@ func (ps *PlaylistSongRepository) GetAll(ctx context.Context, playlistID int) ([
 				WHERE pl.playlist_id = $1`
 
 	var rows []model.SongOutDB
-	err := ps.db.SelectContext(ctx, rows, query)
+	err := ps.db.SelectContext(ctx, &rows, query, playlistID)
 	if err != nil {
 		return nil, fmt.Errorf("SELECT all songs in playlist: %w", err)
 	}
