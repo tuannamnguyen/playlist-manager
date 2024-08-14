@@ -20,6 +20,7 @@ type SongRepository interface {
 type PlaylistSongRepository interface {
 	BulkInsert(ctx context.Context, playlistID int, songsID []int) error
 	GetAll(ctx context.Context, playlistID int) ([]model.SongOutAPI, error)
+	BulkDelete(ctx context.Context, playlistID int, songsID []int) error
 }
 
 type AlbumRepository interface {
@@ -132,6 +133,5 @@ func (p *PlaylistService) GetAllSongsFromPlaylist(ctx context.Context, playlistI
 }
 
 func (p *PlaylistService) DeleteSongsFromPlaylist(ctx context.Context, playlistID int, songsID []int) error {
-	// TODO: IMPLEMENT THIS LATER
-	return nil
+	return p.playlistSongRepo.BulkDelete(ctx, playlistID, songsID)
 }
