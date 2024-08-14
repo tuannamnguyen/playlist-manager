@@ -19,6 +19,7 @@ type SongRepository interface {
 
 type PlaylistSongRepository interface {
 	BulkInsert(ctx context.Context, playlistID int, songsID []int) error
+	GetAll(ctx context.Context, playlistID int) ([]model.SongOutAPI, error)
 }
 
 type AlbumRepository interface {
@@ -84,7 +85,6 @@ func (p *PlaylistService) DeleteByID(ctx context.Context, id int) error {
 }
 
 func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID int, songs []model.SongInAPI) error {
-	// TODO: might need better error handling
 	var songsID []int
 	for _, song := range songs {
 		albumID, err := p.albumRepo.InsertAndGetID(ctx, song.AlbumName)
@@ -128,8 +128,7 @@ func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID int
 }
 
 func (p *PlaylistService) GetAllSongsFromPlaylist(ctx context.Context, playlistID int) ([]model.SongOutAPI, error) {
-	// TODO: IMPLEMENT THIS LATER
-	return nil, nil
+	return p.playlistSongRepo.GetAll(ctx, playlistID)
 }
 
 func (p *PlaylistService) DeleteSongsFromPlaylist(ctx context.Context, playlistID int, songsID []int) error {

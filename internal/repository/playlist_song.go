@@ -10,6 +10,7 @@ import (
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
+	"github.com/tuannamnguyen/playlist-manager/internal/model"
 )
 
 type PlaylistSongRepository struct {
@@ -60,4 +61,28 @@ func (ps *PlaylistSongRepository) BulkInsert(ctx context.Context, playlistID int
 	}
 
 	return nil
+}
+
+func (ps *PlaylistSongRepository) GetAll(ctx context.Context, playlistID int) ([]model.SongOutAPI, error) {
+	query := `SELECT pls.song_id, s.song_name, al.album_name, ar.artist_name, pls.created_at, pls.updated_at
+				FROM playlist_song AS pls
+				JOIN playlist AS pl
+				ON pl.playlist_id = pls.playlist_id
+				JOIN song AS s
+				ON pls.song_id = s.song_id
+				JOIN album AS al
+				ON al.album_id = s.album_id
+				JOIN artist_song AS ars
+				ON s.song_id = ars.song_id
+				JOIN artist AS ar
+				ON ars.artist_id = ar.artist_id
+				WHERE pl.playlist_id = $1`
+
+	var rows []model.SongOutDB
+	err := ps.db.SelectContext(ctx, &rows, query, playlistID)
+	if err != nil {
+		return nil, fmt.Errorf("SELECT all songs in playlist: %w", err)
+	}
+
+	return parsePlaylistSongData(rows)
 }
