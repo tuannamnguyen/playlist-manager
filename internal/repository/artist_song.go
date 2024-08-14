@@ -31,7 +31,7 @@ func (as *ArtistSongRepository) Insert(ctx context.Context, songID int, artistID
 		}
 	}()
 
-	query := `INSERT INTO artist_song (song_id, artist_id, insertion_order)
+	query := `INSERT INTO artist_song (song_id, artist_id, artist_insertion_order)
 		VALUES %s
 		ON CONFLICT DO NOTHING`
 

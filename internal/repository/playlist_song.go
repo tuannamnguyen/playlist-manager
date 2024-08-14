@@ -86,3 +86,18 @@ func (ps *PlaylistSongRepository) GetAll(ctx context.Context, playlistID int) ([
 
 	return parsePlaylistSongData(rows)
 }
+
+func (ps *PlaylistSongRepository) BulkDelete(ctx context.Context, playlistID int, songsID []int) error {
+	query, args, err := sqlx.In("DELETE FROM playlist_song WHERE playlist_id = (?) AND song_id IN (?)", playlistID, songsID)
+	if err != nil {
+		return fmt.Errorf("prepare delete songs in playlist query: %w", err)
+	}
+	query = sqlx.Rebind(sqlx.DOLLAR, query)
+
+	_, err = ps.db.ExecContext(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("DELETE songs from playlist_song table: %w", err)
+	}
+
+	return nil
+}
