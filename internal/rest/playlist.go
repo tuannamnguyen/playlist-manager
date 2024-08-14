@@ -19,6 +19,8 @@ type PlaylistService interface {
 
 	// playlist-song operations
 	AddSongsToPlaylist(ctx context.Context, playlistID int, songs []model.SongInAPI) error
+	GetAllSongsFromPlaylist(ctx context.Context, playlistID int) ([]model.SongOutAPI, error)
+	DeleteSongsFromPlaylist(ctx context.Context, playlistID int, songsID []int) error
 }
 
 type PlaylistHandler struct {
@@ -103,4 +105,40 @@ func (p *PlaylistHandler) AddSongsToPlaylist(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, songs)
+}
+
+func (p *PlaylistHandler) GetAllSongsFromPlaylist(c echo.Context) error {
+	playlistID, err := strconv.Atoi(c.Param("playlist_id"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error converting ID to int: %v", err))
+	}
+
+	songs, err := p.Service.GetAllSongsFromPlaylist(c.Request().Context(), playlistID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting all songs from playlist: %v", err))
+	}
+
+	return c.JSON(http.StatusOK, songs)
+}
+
+func (p *PlaylistHandler) DeleteSongsFromPlaylist(c echo.Context) error {
+	playlistID, err := strconv.Atoi(c.Param("playlist_id"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error converting ID to int: %v", err))
+	}
+
+	var reqBody map[string][]int
+	err = c.Bind(&reqBody)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error binding list of songs ID: %v", err))
+	}
+
+	songsID := reqBody["songs_id"]
+
+	err = p.Service.DeleteSongsFromPlaylist(c.Request().Context(), playlistID, songsID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error delete songs from playlist: %v", err))
+	}
+
+	return c.JSON(http.StatusOK, reqBody)
 }

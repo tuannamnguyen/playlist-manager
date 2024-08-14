@@ -126,6 +126,8 @@ func setupPlaylistRoutes(router *echo.Group, db *sqlx.DB) {
 	// playlist-songs table endpoint
 	playlistSongsEndpoint := "/:playlist_id/songs"
 	router.POST(playlistSongsEndpoint, playlistHandler.AddSongsToPlaylist)
+	router.GET(playlistSongsEndpoint, playlistHandler.GetAllSongsFromPlaylist)
+	router.DELETE(playlistSongsEndpoint, playlistHandler.DeleteSongsFromPlaylist)
 }
 
 func setupSearchRoutes(router *echo.Group, httpClient *http.Client) {
