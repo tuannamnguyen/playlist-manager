@@ -85,7 +85,6 @@ func (p *PlaylistService) DeleteByID(ctx context.Context, id int) error {
 }
 
 func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID int, songs []model.SongInAPI) error {
-	// TODO: might need better error handling
 	var songsID []int
 	for _, song := range songs {
 		albumID, err := p.albumRepo.InsertAndGetID(ctx, song.AlbumName)

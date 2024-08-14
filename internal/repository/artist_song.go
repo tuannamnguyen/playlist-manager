@@ -31,16 +31,16 @@ func (as *ArtistSongRepository) Insert(ctx context.Context, songID int, artistID
 		}
 	}()
 
-	query := `INSERT INTO artist_song (song_id, artist_id)
+	query := `INSERT INTO artist_song (song_id, artist_id, insertion_order)
 		VALUES %s
 		ON CONFLICT DO NOTHING`
 
 	valueStrings := make([]string, 0, len(artistIDs))
-	valueArgs := make([]any, 0, len(artistIDs)*2)
+	valueArgs := make([]any, 0, len(artistIDs)*3)
 
-	for _, artistID := range artistIDs {
-		valueStrings = append(valueStrings, "(?, ?)")
-		valueArgs = append(valueArgs, songID, artistID)
+	for index, artistID := range artistIDs {
+		valueStrings = append(valueStrings, "(?, ?, ?)")
+		valueArgs = append(valueArgs, songID, artistID, index)
 	}
 
 	query = sqlx.Rebind(

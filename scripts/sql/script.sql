@@ -111,6 +111,7 @@ EXECUTE PROCEDURE update_updated_at_column();
 CREATE TABLE IF NOT EXISTS artist_song (
     artist_id INT NOT NULL,
     song_id INT NOT NULL,
+    insertion_order INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (artist_id, song_id),
@@ -166,7 +167,7 @@ INSERT INTO playlist_song (playlist_id, song_id) VALUES
 (3, 3);
 
 -- Insert sample data into the artist_song table
-INSERT INTO artist_song (artist_id, song_id) VALUES
-(1, 1),
-(2, 2),
-(3, 3);
+INSERT INTO artist_song (artist_id, song_id, insertion_order) VALUES
+(1, 1, 0),
+(2, 2, 0),
+(3, 3, 0);

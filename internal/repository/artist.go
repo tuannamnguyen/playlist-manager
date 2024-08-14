@@ -65,24 +65,10 @@ func (a *ArtistRepository) BulkInsertAndGetIDs(ctx context.Context, artistNames 
 	)
 	args := append(valueArgs, inQueryArgs...)
 
-	rows, err := tx.QueryxContext(ctx, query, args...)
+	var insertedIDs []int
+	err = tx.SelectContext(ctx, &insertedIDs, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("bulk INSERT artists: %w", err)
-	}
-	defer rows.Close()
-
-	var insertedIDs []int
-	for rows.Next() {
-		var id int
-		if err := rows.Scan(&id); err != nil {
-			return nil, fmt.Errorf("scanning inserted artist IDs: %w", err)
-		}
-
-		insertedIDs = append(insertedIDs, id)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("artist query iteration: %w", err)
 	}
 
 	err = tx.Commit()
