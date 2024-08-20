@@ -11,13 +11,18 @@ import (
 	"time"
 
 	"github.com/dotenv-org/godotenvvault"
+	"github.com/gorilla/sessions"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/markbates/goth"
+	"github.com/markbates/goth/gothic"
+	"github.com/markbates/goth/providers/spotify"
 	"github.com/tuannamnguyen/playlist-manager/internal/repository"
 	"github.com/tuannamnguyen/playlist-manager/internal/rest"
 	"github.com/tuannamnguyen/playlist-manager/internal/service"
+	spotifyauth "github.com/zmb3/spotify/v2/auth"
 )
 
 func main() {
@@ -51,6 +56,23 @@ func main() {
 		log.Fatalf("Unable to connect to database: %v\n", err)
 	}
 	defer db.Close()
+
+	// setup session and OAuth2
+	// TODO: look into this deeper later
+	key := os.Getenv("SESSION_SECRET")
+	store := sessions.NewCookieStore([]byte(key))
+
+	gothic.Store = store
+	goth.UseProviders(
+		spotify.New(
+			os.Getenv("SPOTIFY_ID"),
+			os.Getenv("SPOTIFY_SECRET"),
+			os.Getenv("SPOTIFY_REDIRECT_URL"),
+			spotifyauth.ScopePlaylistModifyPrivate,
+			spotifyauth.ScopePlaylistModifyPublic,
+			spotifyauth.ScopePlaylistReadPrivate,
+		),
+	)
 
 	// setup server
 	e := echo.New()
@@ -91,9 +113,11 @@ func setupAPIRouter(e *echo.Echo, db *sqlx.DB, httpClient *http.Client) {
 	})
 	playlistRouter := apiRouter.Group("/playlists")
 	searchRouter := apiRouter.Group("/search")
+	oauthRouter := apiRouter.Group("/oauth")
 
 	setupPlaylistRoutes(playlistRouter, db)
 	setupSearchRoutes(searchRouter, httpClient)
+	setupOAuthRoutes(oauthRouter)
 
 }
 
@@ -137,4 +161,10 @@ func setupSearchRoutes(router *echo.Group, httpClient *http.Client) {
 	searchHandler := rest.NewSearchHandler(searchService)
 
 	router.POST("", searchHandler.SearchMusicData)
+}
+
+func setupOAuthRoutes(router *echo.Group) {
+	oauthHandler := rest.NewOAuthHandler()
+
+	router.POST("/:provider", oauthHandler.LoginHandler)
 }
