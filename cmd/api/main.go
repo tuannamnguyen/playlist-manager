@@ -57,23 +57,6 @@ func main() {
 	}
 	defer db.Close()
 
-	// setup session and OAuth2
-	// TODO: look into this deeper later
-	key := os.Getenv("SESSION_SECRET")
-	store := sessions.NewCookieStore([]byte(key))
-
-	gothic.Store = store
-	goth.UseProviders(
-		spotify.New(
-			os.Getenv("SPOTIFY_ID"),
-			os.Getenv("SPOTIFY_SECRET"),
-			os.Getenv("SPOTIFY_REDIRECT_URL"),
-			spotifyauth.ScopePlaylistModifyPrivate,
-			spotifyauth.ScopePlaylistModifyPublic,
-			spotifyauth.ScopePlaylistReadPrivate,
-		),
-	)
-
 	// setup server
 	e := echo.New()
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM)
@@ -164,7 +147,24 @@ func setupSearchRoutes(router *echo.Group, httpClient *http.Client) {
 }
 
 func setupOAuthRoutes(router *echo.Group) {
-	oauthHandler := rest.NewOAuthHandler()
+	// setup session and OAuth2
+	// TODO: look into this deeper later
+	key := os.Getenv("SESSION_SECRET")
+	store := sessions.NewCookieStore([]byte(key))
+
+	gothic.Store = store
+	goth.UseProviders(
+		spotify.New(
+			os.Getenv("SPOTIFY_ID"),
+			os.Getenv("SPOTIFY_SECRET"),
+			os.Getenv("SPOTIFY_REDIRECT_URL"),
+			spotifyauth.ScopePlaylistModifyPrivate,
+			spotifyauth.ScopePlaylistModifyPublic,
+			spotifyauth.ScopePlaylistReadPrivate,
+		),
+	)
+
+	oauthHandler := rest.NewOAuthHandler(gothic.Store)
 
 	router.GET("/:provider", oauthHandler.LoginHandler)
 	router.GET("/callback/:provider", oauthHandler.CallbackHandler)
