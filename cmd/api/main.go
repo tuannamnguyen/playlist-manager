@@ -166,5 +166,6 @@ func setupSearchRoutes(router *echo.Group, httpClient *http.Client) {
 func setupOAuthRoutes(router *echo.Group) {
 	oauthHandler := rest.NewOAuthHandler()
 
-	router.POST("/:provider", oauthHandler.LoginHandler)
+	router.GET("/:provider", oauthHandler.LoginHandler)
+	router.GET("/callback/:provider", oauthHandler.CallbackHandler)
 }
