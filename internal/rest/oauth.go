@@ -44,8 +44,9 @@ func (o *OAuthHandler) CallbackHandler(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting session store: %w", err))
 	}
-	session.Values["access_token"] = user.AccessToken
-	session.Values["refresh_token"] = user.RefreshToken
+
+	session.Values[fmt.Sprintf("%s_access_token", provider)] = user.AccessToken
+	session.Values[fmt.Sprintf("%s_refresh_token", provider)] = user.RefreshToken
 
 	err = session.Save(c.Request(), c.Response())
 	if err != nil {
