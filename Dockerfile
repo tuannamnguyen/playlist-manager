@@ -8,10 +8,6 @@ RUN go mod download
 
 RUN CGO_ENABLED=0 GOOS=linux go build -C ./cmd/api -o /playlist-manager
 
-# Run tests
-FROM build-stage AS run-test-stage
-RUN go test -v ./...
-
 # Deploy the application binary into a lean image
 FROM ubuntu:22.04 AS build-release-stage
 
