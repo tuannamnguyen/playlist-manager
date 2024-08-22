@@ -1,6 +1,6 @@
 #!/bin/bash
 
 cd ../..
-docker compose up -d db pgadmin4
+docker compose --profile test_minimal up -d
 cd ./cmd/api
 go run .
