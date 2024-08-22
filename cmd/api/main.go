@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/dotenv-org/godotenvvault"
-	"github.com/gorilla/sessions"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
@@ -23,6 +22,7 @@ import (
 	"github.com/tuannamnguyen/playlist-manager/internal/rest"
 	"github.com/tuannamnguyen/playlist-manager/internal/service"
 	spotifyauth "github.com/zmb3/spotify/v2/auth"
+	"gopkg.in/boj/redistore.v1"
 )
 
 func main() {
@@ -56,6 +56,27 @@ func main() {
 		log.Fatalf("Unable to connect to database: %v\n", err)
 	}
 	defer db.Close()
+
+	// setup session and OAuth2
+	redisInfo := fmt.Sprintf("%s:%s", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT"))
+	key := os.Getenv("SESSION_SECRET")
+	store, err := redistore.NewRediStore(10, "tcp", redisInfo, os.Getenv("REDIS_PASSWORD"), []byte(key))
+	if err != nil {
+		log.Fatalf("Unable to connect to Redis for session store: %v", err)
+	}
+	defer store.Close()
+
+	gothic.Store = store
+	goth.UseProviders(
+		spotify.New(
+			os.Getenv("SPOTIFY_ID"),
+			os.Getenv("SPOTIFY_SECRET"),
+			os.Getenv("SPOTIFY_REDIRECT_URL"),
+			spotifyauth.ScopePlaylistModifyPrivate,
+			spotifyauth.ScopePlaylistModifyPublic,
+			spotifyauth.ScopePlaylistReadPrivate,
+		),
+	)
 
 	// setup server
 	e := echo.New()
@@ -101,7 +122,6 @@ func setupAPIRouter(e *echo.Echo, db *sqlx.DB, httpClient *http.Client) {
 	setupPlaylistRoutes(playlistRouter, db)
 	setupSearchRoutes(searchRouter, httpClient)
 	setupOAuthRoutes(oauthRouter)
-
 }
 
 func setupPlaylistRoutes(router *echo.Group, db *sqlx.DB) {
@@ -147,23 +167,6 @@ func setupSearchRoutes(router *echo.Group, httpClient *http.Client) {
 }
 
 func setupOAuthRoutes(router *echo.Group) {
-	// setup session and OAuth2
-	// TODO: look into this deeper later
-	key := os.Getenv("SESSION_SECRET")
-	store := sessions.NewCookieStore([]byte(key))
-
-	gothic.Store = store
-	goth.UseProviders(
-		spotify.New(
-			os.Getenv("SPOTIFY_ID"),
-			os.Getenv("SPOTIFY_SECRET"),
-			os.Getenv("SPOTIFY_REDIRECT_URL"),
-			spotifyauth.ScopePlaylistModifyPrivate,
-			spotifyauth.ScopePlaylistModifyPublic,
-			spotifyauth.ScopePlaylistReadPrivate,
-		),
-	)
-
 	oauthHandler := rest.NewOAuthHandler(gothic.Store)
 
 	router.GET("/:provider", oauthHandler.LoginHandler)

@@ -1,42 +1,70 @@
 services:
   app:
-   build: .
-   volumes:
-      - type: bind
-        source: ./cmd/api/.env
-        target: /.env
-        read_only: true
-   depends_on:
-     db:
-      condition: service_healthy
-      restart: true
-   ports:
-     - 8080:8080
+    build: .
+    volumes:
+       - type: bind
+         source: ./cmd/api/.env
+         target: /.env
+         read_only: true
+    depends_on:
+      db:
+       condition: service_healthy
+       restart: true
+      redis:
+       condition: service_healthy
+       restart: true
+    ports:
+      - 8080:8080
 
   db:
-   image: postgres
-   env_file: ./cmd/api/.env
-   volumes:
-     - pgdata:/var/lib/postgresql/data
-     - type: bind
-       source: ./scripts/sql/script.sql
-       target: /docker-entrypoint-initdb.d/script.sql
-       read_only: true
-   ports:
-     - 5432:5432
-   healthcheck:
-      test: ["CMD-SHELL", "psql -U postgres -d postgres -c 'SELECT 1' || exit 1"]
-      interval: 3s
-      timeout: 10s
+    image: postgres:16
+    env_file: ./cmd/api/.env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - type: bind
+        source: ./scripts/sql/script.sql
+        target: /docker-entrypoint-initdb.d/script.sql
+        read_only: true
+    ports:
+      - 5432:5432
+    healthcheck:
+       test: ["CMD-SHELL", "psql -U postgres -d postgres -c 'SELECT 1' || exit 1"]
+       interval: 3s
+       timeout: 10s
+       retries: 5
+
+  redis:
+    image: redis:7
+    command: redis-server --save 60 1 --loglevel warning
+    restart: on-failure:3
+    ports:
+     - 6379:6379
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 1s
+      timeout: 3s
       retries: 5
 
+  redis_ui:
+    image: redis/redisinsight
+    volumes:
+      - redisinsight:/data
+    ports:
+      - 5540:5540
+    profiles:
+      - dev
+
   pgadmin4:
-   image: elestio/pgadmin
-   env_file: ./cmd/api/.env
-   volumes:
-     - ./config/servers.json:/pgadmin4/servers.json
-   ports:
-   - 5433:5433
+    image: elestio/pgadmin:latest
+    env_file: ./cmd/api/.env
+    volumes:
+      - ./config/servers.json:/pgadmin4/servers.json
+    ports:
+      - 5433:5433
+    profiles:
+      - dev
+
 
 volumes:
   pgdata:
+  redisinsight:

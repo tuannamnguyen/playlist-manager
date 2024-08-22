@@ -12,10 +12,12 @@ require (
 	github.com/markbates/goth v1.80.0
 	github.com/stretchr/testify v1.9.0
 	github.com/zmb3/spotify/v2 v2.4.2
+	gopkg.in/boj/redistore.v1 v1.0.0-20160128113310-fc113767cd6b
 )
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/garyburd/redigo v1.6.4 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/gorilla/context v1.1.1 // indirect
