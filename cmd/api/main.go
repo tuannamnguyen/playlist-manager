@@ -65,6 +65,7 @@ func main() {
 		log.Fatalf("Unable to connect to Redis for session store: %v", err)
 	}
 	defer store.Close()
+	store.SetMaxAge(3600)
 
 	gothic.Store = store
 	goth.UseProviders(
