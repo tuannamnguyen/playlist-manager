@@ -99,6 +99,7 @@ func main() {
 func startServer(e *echo.Echo, db *sqlx.DB, httpClient *http.Client, store sessions.Store) {
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
 
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, fmt.Sprintf("%s, World!", os.Getenv("HELLO")))
