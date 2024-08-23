@@ -152,6 +152,7 @@ func (p *PlaylistHandler) DeleteSongsFromPlaylist(c echo.Context) error {
 	return c.JSON(http.StatusOK, reqBody)
 }
 
+// TODO: define a common handler for all services
 func (p *PlaylistHandler) SpotifyConvertHandler(c echo.Context) error {
 	playlistID, err := strconv.Atoi(c.Param("playlist_id"))
 	if err != nil {
@@ -194,5 +195,5 @@ func (p *PlaylistHandler) SpotifyConvertHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "error converting playlist to spotify: %v", err)
 	}
 
-	return nil
+	return c.NoContent(http.StatusOK)
 }

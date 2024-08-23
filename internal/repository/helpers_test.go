@@ -18,10 +18,9 @@ func TestParsePlaylistSongData(t *testing.T) {
 		rows []model.SongOutDB
 	}
 	tests := []struct {
-		name    string
-		args    args
-		want    []model.SongOutAPI
-		wantErr bool
+		name string
+		args args
+		want []model.SongOutAPI
 	}{
 		{
 			name: "success",
@@ -91,8 +90,7 @@ func TestParsePlaylistSongData(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := parsePlaylistSongData(tt.args.rows)
-			assert.NoError(t, err)
+			got := parsePlaylistSongData(tt.args.rows)
 			assert.Equal(t, tt.want, got)
 		})
 	}

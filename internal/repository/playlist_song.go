@@ -84,7 +84,7 @@ func (ps *PlaylistSongRepository) GetAll(ctx context.Context, playlistID int) ([
 		return nil, fmt.Errorf("SELECT all songs in playlist: %w", err)
 	}
 
-	return parsePlaylistSongData(rows)
+	return parsePlaylistSongData(rows), nil
 }
 
 func (ps *PlaylistSongRepository) BulkDelete(ctx context.Context, playlistID int, songsID []int) error {
