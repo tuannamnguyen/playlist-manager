@@ -2,6 +2,7 @@ package rest
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/sessions"
@@ -25,6 +26,11 @@ func (o *OAuthHandler) LoginHandler(c echo.Context) error {
 	q.Add("provider", provider)
 	c.Request().URL.RawQuery = q.Encode()
 
+	if _, err := gothic.CompleteUserAuth(c.Response(), c.Request()); err != nil {
+		return c.NoContent(http.StatusOK)
+	}
+	log.Println("oauth2 user already logged in")
+
 	gothic.BeginAuthHandler(c.Response(), c.Request())
 	return nil
 }
@@ -47,6 +53,7 @@ func (o *OAuthHandler) CallbackHandler(c echo.Context) error {
 
 	session.Values[fmt.Sprintf("%s_access_token", provider)] = user.AccessToken
 	session.Values[fmt.Sprintf("%s_refresh_token", provider)] = user.RefreshToken
+	session.Values[fmt.Sprintf("%s_token_expiry", provider)] = user.ExpiresAt
 
 	err = session.Save(c.Request(), c.Response())
 	if err != nil {
