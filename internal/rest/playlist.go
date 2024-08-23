@@ -187,7 +187,7 @@ func (p *PlaylistHandler) SpotifyConvertHandler(c echo.Context) error {
 		),
 	)
 
-	client := spotify.New(auth.Client(c.Request().Context(), token))
+	client := spotify.New(auth.Client(c.Request().Context(), token), spotify.WithRetry(true))
 
 	err = spotifyconverter.New(client).Export(c.Request().Context(), "test playlist", songs)
 	if err != nil {
