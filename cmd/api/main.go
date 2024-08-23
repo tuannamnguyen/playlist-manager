@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/dotenv-org/godotenvvault"
+	"github.com/gorilla/sessions"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
@@ -84,7 +85,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM)
 	defer stop()
 
-	go startServer(e, db, httpClient)
+	go startServer(e, db, httpClient, store)
 
 	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 10 seconds.
 	<-ctx.Done()
@@ -95,7 +96,7 @@ func main() {
 	}
 }
 
-func startServer(e *echo.Echo, db *sqlx.DB, httpClient *http.Client) {
+func startServer(e *echo.Echo, db *sqlx.DB, httpClient *http.Client, store sessions.Store) {
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.Logger())
 
@@ -103,14 +104,14 @@ func startServer(e *echo.Echo, db *sqlx.DB, httpClient *http.Client) {
 		return c.String(http.StatusOK, fmt.Sprintf("%s, World!", os.Getenv("HELLO")))
 	})
 
-	setupAPIRouter(e, db, httpClient)
+	setupAPIRouter(e, db, httpClient, store)
 
 	if err := e.Start(":8080"); err != nil && err != http.ErrServerClosed {
 		e.Logger.Fatal("shutting down the server")
 	}
 }
 
-func setupAPIRouter(e *echo.Echo, db *sqlx.DB, httpClient *http.Client) {
+func setupAPIRouter(e *echo.Echo, db *sqlx.DB, httpClient *http.Client, store sessions.Store) {
 	apiRouter := e.Group("/api")
 
 	apiRouter.GET("/test", func(c echo.Context) error {
@@ -120,12 +121,12 @@ func setupAPIRouter(e *echo.Echo, db *sqlx.DB, httpClient *http.Client) {
 	searchRouter := apiRouter.Group("/search")
 	oauthRouter := apiRouter.Group("/oauth")
 
-	setupPlaylistRoutes(playlistRouter, db)
+	setupPlaylistRoutes(playlistRouter, db, store)
 	setupSearchRoutes(searchRouter, httpClient)
-	setupOAuthRoutes(oauthRouter)
+	setupOAuthRoutes(oauthRouter, store)
 }
 
-func setupPlaylistRoutes(router *echo.Group, db *sqlx.DB) {
+func setupPlaylistRoutes(router *echo.Group, db *sqlx.DB, store sessions.Store) {
 	// setup playlist endpoint
 	playlistRepository := repository.NewPlaylistRepository(db)
 	songRepository := repository.NewSongRepository(db)
@@ -144,18 +145,22 @@ func setupPlaylistRoutes(router *echo.Group, db *sqlx.DB) {
 		artistSongRepository,
 		artistAlbumRepository,
 	)
-	playlistHandler := rest.NewPlaylistHandler(playlistService)
+	playlistHandler := rest.NewPlaylistHandler(playlistService, store)
 
+	// playlist CRUD
 	router.POST("", playlistHandler.Add)
 	router.GET("", playlistHandler.GetAll)
 	router.GET("/:id", playlistHandler.GetByID)
 	router.DELETE("/:id", playlistHandler.DeleteByID)
 
-	// playlist-songs table endpoint
+	// playlist-songs table endpoints
 	playlistSongsEndpoint := "/:playlist_id/songs"
 	router.POST(playlistSongsEndpoint, playlistHandler.AddSongsToPlaylist)
 	router.GET(playlistSongsEndpoint, playlistHandler.GetAllSongsFromPlaylist)
 	router.DELETE(playlistSongsEndpoint, playlistHandler.DeleteSongsFromPlaylist)
+
+	// conversion endpoints
+	router.POST("/:playlist_id/convert/spotify", playlistHandler.SpotifyConvertHandler)
 }
 
 func setupSearchRoutes(router *echo.Group, httpClient *http.Client) {
@@ -167,8 +172,8 @@ func setupSearchRoutes(router *echo.Group, httpClient *http.Client) {
 	router.POST("", searchHandler.SearchMusicData)
 }
 
-func setupOAuthRoutes(router *echo.Group) {
-	oauthHandler := rest.NewOAuthHandler(gothic.Store)
+func setupOAuthRoutes(router *echo.Group, store sessions.Store) {
+	oauthHandler := rest.NewOAuthHandler(store)
 
 	router.GET("/:provider", oauthHandler.LoginHandler)
 	router.GET("/callback/:provider", oauthHandler.CallbackHandler)

@@ -1,4 +1,4 @@
-package spotify
+package spotifyconverter
 
 import (
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
