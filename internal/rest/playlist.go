@@ -189,7 +189,7 @@ func (p *PlaylistHandler) SpotifyConvertHandler(c echo.Context) error {
 
 	client := spotify.New(auth.Client(c.Request().Context(), token))
 
-	err = spotifyconverter.New(client).Export("test playlist", songs)
+	err = spotifyconverter.New(client).Export(c.Request().Context(), "test playlist", songs)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "error converting playlist to spotify: %v", err)
 	}
