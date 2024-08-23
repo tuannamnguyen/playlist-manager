@@ -18,8 +18,6 @@ func New(client *spotify.Client) *SpotifyConverter {
 }
 
 func (s *SpotifyConverter) Export(ctx context.Context, playlistName string, songs []model.SongOutAPI) error {
-	// TODO: not done
-
 	// ? what if the playlist already exists
 	playlistID, err := s.createPlaylist(ctx, playlistName)
 	if err != nil {
@@ -27,7 +25,7 @@ func (s *SpotifyConverter) Export(ctx context.Context, playlistName string, song
 	}
 
 	// ? see if we can use goroutines here
-	var searchResults []*spotify.SearchResult
+	var tracksID []spotify.ID
 	for _, song := range songs {
 		searchQuery := fmt.Sprintf("track:%s artist:%s album:%s", song.Name, song.ArtistNames, song.AlbumName)
 		result, err := s.client.Search(
@@ -40,7 +38,12 @@ func (s *SpotifyConverter) Export(ctx context.Context, playlistName string, song
 			return fmt.Errorf("search for song in spotify: %w", err)
 		}
 
-		searchResults = append(searchResults, result)
+		tracksID = append(tracksID, result.Tracks.Tracks[0].ID)
+	}
+
+	_, err = s.client.AddTracksToPlaylist(ctx, spotify.ID(playlistID), tracksID...)
+	if err != nil {
+		return fmt.Errorf("add track to playlist: %w", err)
 	}
 
 	return nil
