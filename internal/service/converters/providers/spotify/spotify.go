@@ -41,6 +41,7 @@ func (s *SpotifyConverter) Export(ctx context.Context, playlistName string, song
 		tracksID = append(tracksID, result.Tracks.Tracks[0].ID)
 	}
 
+	// TODO: need to break into 100 songs chunk
 	_, err = s.client.AddTracksToPlaylist(ctx, spotify.ID(playlistID), tracksID...)
 	if err != nil {
 		return fmt.Errorf("add track to playlist: %w", err)

@@ -152,12 +152,13 @@ func (p *PlaylistHandler) DeleteSongsFromPlaylist(c echo.Context) error {
 	return c.JSON(http.StatusOK, reqBody)
 }
 
-// TODO: define a common handler for all services
-func (p *PlaylistHandler) SpotifyConvertHandler(c echo.Context) error {
+func (p *PlaylistHandler) ConvertHandler(c echo.Context) error {
 	playlistID, err := strconv.Atoi(c.Param("playlist_id"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error converting ID to int: %v", err))
 	}
+
+	provider := c.Param("provider")
 
 	songs, err := p.Service.GetAllSongsFromPlaylist(c.Request().Context(), playlistID)
 	if err != nil {
@@ -169,9 +170,9 @@ func (p *PlaylistHandler) SpotifyConvertHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting session values: %v", err))
 	}
 
-	accessToken := (sessionValues["spotify_access_token"]).(string)
-	refreshToken := (sessionValues["spotify_refresh_token"]).(string)
-	expiry := (sessionValues["spotify_token_expiry"]).(time.Time)
+	accessToken := (sessionValues[fmt.Sprintf("%s_access_token", provider)]).(string)
+	refreshToken := (sessionValues[fmt.Sprintf("%s_refresh_token", provider)]).(string)
+	expiry := (sessionValues[fmt.Sprintf("%s_token_expiry", provider)]).(time.Time)
 
 	token := &oauth2.Token{
 		AccessToken:  accessToken,
@@ -179,6 +180,10 @@ func (p *PlaylistHandler) SpotifyConvertHandler(c echo.Context) error {
 		Expiry:       expiry,
 	}
 
+	return spotifyConvertHandler(c, token, songs)
+}
+
+func spotifyConvertHandler(c echo.Context, token *oauth2.Token, songs []model.SongOutAPI) error {
 	auth := spotifyauth.New(
 		spotifyauth.WithRedirectURL(os.Getenv("SPOTIFY_REDIRECT_URL")),
 		spotifyauth.WithScopes(
@@ -190,7 +195,7 @@ func (p *PlaylistHandler) SpotifyConvertHandler(c echo.Context) error {
 
 	client := spotify.New(auth.Client(c.Request().Context(), token), spotify.WithRetry(true))
 
-	err = spotifyconverter.New(client).Export(c.Request().Context(), "test playlist", songs)
+	err := spotifyconverter.New(client).Export(c.Request().Context(), "test playlist", songs)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "error converting playlist to spotify: %v", err)
 	}
