@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/gob"
 	"fmt"
 	"log"
 	"net/http"
@@ -67,6 +68,8 @@ func main() {
 	}
 	defer store.Close()
 	store.SetMaxAge(3600)
+
+	gob.Register(time.Time{})
 
 	gothic.Store = store
 	goth.UseProviders(

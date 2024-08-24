@@ -171,17 +171,12 @@ func (p *PlaylistHandler) SpotifyConvertHandler(c echo.Context) error {
 
 	accessToken := (sessionValues["spotify_access_token"]).(string)
 	refreshToken := (sessionValues["spotify_refresh_token"]).(string)
-	expiry := (sessionValues["spotify_token_expiry"]).(string)
-
-	expiryTime, err := time.Parse(time.DateTime, expiry)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error parsing time: %v", err))
-	}
+	expiry := (sessionValues["spotify_token_expiry"]).(time.Time)
 
 	token := &oauth2.Token{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
-		Expiry:       expiryTime,
+		Expiry:       expiry,
 	}
 
 	auth := spotifyauth.New(
