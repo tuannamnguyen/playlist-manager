@@ -164,19 +164,24 @@ func (p *PlaylistHandler) SpotifyConvertHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting all songs from playlist: %v", err))
 	}
 
-	session, err := p.sessionStore.Get(c.Request(), "oauth-session")
+	sessionValues, err := getSessionValues(c, p.sessionStore)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting session store: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting session values: %v", err))
 	}
 
-	accessToken := (session.Values["spotify_access_token"]).(string)
-	refreshToken := (session.Values["spotify_refresh_token"]).(string)
-	expiry := (session.Values["spotify_token_expiry"]).(time.Time)
+	accessToken := (sessionValues["spotify_access_token"]).(string)
+	refreshToken := (sessionValues["spotify_refresh_token"]).(string)
+	expiry := (sessionValues["spotify_token_expiry"]).(string)
+
+	expiryTime, err := time.Parse(time.DateTime, expiry)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error parsing time: %v", err))
+	}
 
 	token := &oauth2.Token{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
-		Expiry:       expiry,
+		Expiry:       expiryTime,
 	}
 
 	auth := spotifyauth.New(

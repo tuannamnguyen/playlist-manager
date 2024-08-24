@@ -19,3 +19,12 @@ func saveSessionValues(c echo.Context, store sessions.Store, sessionValues map[a
 	}
 	return nil
 }
+
+func getSessionValues(c echo.Context, store sessions.Store) (map[any]any, error) {
+	session, err := store.Get(c.Request(), "oauth-session")
+	if err != nil {
+		return nil, err
+	}
+
+	return session.Values, nil
+}

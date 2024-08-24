@@ -43,7 +43,7 @@ func (o *OAuthHandler) CallbackHandler(c echo.Context) error {
 	sessionValues := make(map[any]any)
 	sessionValues[fmt.Sprintf("%s_access_token", provider)] = user.AccessToken
 	sessionValues[fmt.Sprintf("%s_refresh_token", provider)] = user.RefreshToken
-	sessionValues[fmt.Sprintf("%s_token_expiry", provider)] = user.ExpiresAt
+	sessionValues[fmt.Sprintf("%s_token_expiry", provider)] = user.ExpiresAt.String()
 
 	store := o.sessionStore
 
