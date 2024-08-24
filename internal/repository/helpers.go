@@ -6,7 +6,7 @@ import (
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
 )
 
-func parsePlaylistSongData(rows []model.SongOutDB) ([]model.SongOutAPI, error) {
+func parsePlaylistSongData(rows []model.SongOutDB) []model.SongOutAPI {
 	songMap := make(map[int]*model.SongOutAPI)
 
 	for _, row := range rows {
@@ -33,5 +33,5 @@ func parsePlaylistSongData(rows []model.SongOutDB) ([]model.SongOutAPI, error) {
 		result = append(result, *song)
 	}
 
-	return result, nil
+	return result
 }

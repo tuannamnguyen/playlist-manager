@@ -2,15 +2,13 @@ FROM golang:1.22 AS build-stage
 
 WORKDIR /app
 
-COPY ./ ./
+COPY go.mod go.sum ./
 
 RUN go mod download
 
-RUN CGO_ENABLED=0 GOOS=linux go build -C ./cmd/api -o /playlist-manager
+COPY ./ ./
 
-# Run tests
-FROM build-stage AS run-test-stage
-RUN go test -v ./...
+RUN CGO_ENABLED=0 GOOS=linux go build -C ./cmd/api -o /playlist-manager
 
 # Deploy the application binary into a lean image
 FROM ubuntu:22.04 AS build-release-stage
