@@ -2,7 +2,6 @@ package rest
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/gorilla/sessions"
@@ -25,11 +24,6 @@ func (o *OAuthHandler) LoginHandler(c echo.Context) error {
 	q := c.Request().URL.Query()
 	q.Add("provider", provider)
 	c.Request().URL.RawQuery = q.Encode()
-
-	if _, err := gothic.CompleteUserAuth(c.Response(), c.Request()); err != nil {
-		return c.NoContent(http.StatusOK)
-	}
-	log.Println("oauth2 user already logged in")
 
 	gothic.BeginAuthHandler(c.Response(), c.Request())
 	return nil
