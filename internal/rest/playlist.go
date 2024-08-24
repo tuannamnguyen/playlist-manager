@@ -152,6 +152,7 @@ func (p *PlaylistHandler) DeleteSongsFromPlaylist(c echo.Context) error {
 	return c.JSON(http.StatusOK, reqBody)
 }
 
+// TODO: define a common handler for all services
 func (p *PlaylistHandler) SpotifyConvertHandler(c echo.Context) error {
 	playlistID, err := strconv.Atoi(c.Param("playlist_id"))
 	if err != nil {
@@ -163,14 +164,14 @@ func (p *PlaylistHandler) SpotifyConvertHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting all songs from playlist: %v", err))
 	}
 
-	session, err := p.sessionStore.Get(c.Request(), "oauth-session")
+	sessionValues, err := getSessionValues(c, p.sessionStore)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting session store: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting session values: %v", err))
 	}
 
-	accessToken := (session.Values["spotify_access_token"]).(string)
-	refreshToken := (session.Values["spotify_refresh_token"]).(string)
-	expiry := (session.Values["spotify_token_expiry"]).(time.Time)
+	accessToken := (sessionValues["spotify_access_token"]).(string)
+	refreshToken := (sessionValues["spotify_refresh_token"]).(string)
+	expiry := (sessionValues["spotify_token_expiry"]).(time.Time)
 
 	token := &oauth2.Token{
 		AccessToken:  accessToken,
@@ -194,5 +195,5 @@ func (p *PlaylistHandler) SpotifyConvertHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "error converting playlist to spotify: %v", err)
 	}
 
-	return nil
+	return c.NoContent(http.StatusOK)
 }

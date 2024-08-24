@@ -2,7 +2,6 @@ package rest
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/gorilla/sessions"
@@ -26,11 +25,6 @@ func (o *OAuthHandler) LoginHandler(c echo.Context) error {
 	q.Add("provider", provider)
 	c.Request().URL.RawQuery = q.Encode()
 
-	if _, err := gothic.CompleteUserAuth(c.Response(), c.Request()); err != nil {
-		return c.NoContent(http.StatusOK)
-	}
-	log.Println("oauth2 user already logged in")
-
 	gothic.BeginAuthHandler(c.Response(), c.Request())
 	return nil
 }
@@ -46,18 +40,16 @@ func (o *OAuthHandler) CallbackHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error complete user auth: %w", err))
 	}
 
-	session, err := o.sessionStore.Get(c.Request(), "oauth-session")
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting session store: %w", err))
-	}
+	sessionValues := make(map[any]any)
+	sessionValues[fmt.Sprintf("%s_access_token", provider)] = user.AccessToken
+	sessionValues[fmt.Sprintf("%s_refresh_token", provider)] = user.RefreshToken
+	sessionValues[fmt.Sprintf("%s_token_expiry", provider)] = user.ExpiresAt
 
-	session.Values[fmt.Sprintf("%s_access_token", provider)] = user.AccessToken
-	session.Values[fmt.Sprintf("%s_refresh_token", provider)] = user.RefreshToken
-	session.Values[fmt.Sprintf("%s_token_expiry", provider)] = user.ExpiresAt
+	store := o.sessionStore
 
-	err = session.Save(c.Request(), c.Response())
+	err = saveSessionValues(c, store, sessionValues)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error saving session data: %w", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error saving session values: %w", err))
 	}
 
 	return c.JSON(http.StatusOK, user)
