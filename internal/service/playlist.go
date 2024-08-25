@@ -41,6 +41,10 @@ type ArtistAlbumRepository interface {
 	Insert(ctx context.Context, artistID int, albumID int) error
 }
 
+type Converter interface {
+	Export(ctx context.Context, playlistName string, songs []model.SongOutAPI) error
+}
+
 type PlaylistService struct {
 	playlistRepo     PlaylistRepository
 	songRepo         SongRepository
@@ -138,7 +142,7 @@ func (p *PlaylistService) DeleteSongsFromPlaylist(ctx context.Context, playlistI
 	return p.playlistSongRepo.BulkDelete(ctx, playlistID, songsID)
 }
 
-func (p *PlaylistService) Convert(r *http.Request, token *oauth2.Token, songs []model.SongOutAPI) error {
+func (p *PlaylistService) Convert(r *http.Request, provider string, token *oauth2.Token, songs []model.SongOutAPI) error {
 	// TODO: implement this
 	return nil
 }

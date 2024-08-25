@@ -26,7 +26,7 @@ type PlaylistService interface {
 	DeleteSongsFromPlaylist(ctx context.Context, playlistID int, songsID []int) error
 
 	// convert operation
-	Convert(r *http.Request, token *oauth2.Token, songs []model.SongOutAPI) error
+	Convert(r *http.Request, provider string, token *oauth2.Token, songs []model.SongOutAPI) error
 }
 
 type PlaylistHandler struct {
@@ -179,5 +179,5 @@ func (p *PlaylistHandler) ConvertHandler(c echo.Context) error {
 		Expiry:       expiry,
 	}
 
-	return p.Service.Convert(c.Request(), token, songs)
+	return p.Service.Convert(c.Request(), provider, token, songs)
 }
