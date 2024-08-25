@@ -2,8 +2,10 @@ package service
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
+	"golang.org/x/oauth2"
 )
 
 type PlaylistRepository interface {
@@ -134,4 +136,9 @@ func (p *PlaylistService) GetAllSongsFromPlaylist(ctx context.Context, playlistI
 
 func (p *PlaylistService) DeleteSongsFromPlaylist(ctx context.Context, playlistID int, songsID []int) error {
 	return p.playlistSongRepo.BulkDelete(ctx, playlistID, songsID)
+}
+
+func (p *PlaylistService) Convert(r *http.Request, token *oauth2.Token, songs []model.SongOutAPI) error {
+	// TODO: implement this
+	return nil
 }

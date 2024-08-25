@@ -24,6 +24,9 @@ type PlaylistService interface {
 	AddSongsToPlaylist(ctx context.Context, playlistID int, songs []model.SongInAPI) error
 	GetAllSongsFromPlaylist(ctx context.Context, playlistID int) ([]model.SongOutAPI, error)
 	DeleteSongsFromPlaylist(ctx context.Context, playlistID int, songsID []int) error
+
+	// convert operation
+	Convert(r *http.Request, token *oauth2.Token, songs []model.SongOutAPI) error
 }
 
 type PlaylistHandler struct {
@@ -176,5 +179,5 @@ func (p *PlaylistHandler) ConvertHandler(c echo.Context) error {
 		Expiry:       expiry,
 	}
 
-	return spotifyConvertHandler(c, token, songs)
+	return p.Service.Convert(c.Request(), token, songs)
 }
