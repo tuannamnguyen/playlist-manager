@@ -4,16 +4,12 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
-	spotifyconverter "github.com/tuannamnguyen/playlist-manager/internal/service/converters/providers/spotify"
-	"github.com/zmb3/spotify/v2"
-	spotifyauth "github.com/zmb3/spotify/v2/auth"
 	"golang.org/x/oauth2"
 )
 
@@ -181,24 +177,4 @@ func (p *PlaylistHandler) ConvertHandler(c echo.Context) error {
 	}
 
 	return spotifyConvertHandler(c, token, songs)
-}
-
-func spotifyConvertHandler(c echo.Context, token *oauth2.Token, songs []model.SongOutAPI) error {
-	auth := spotifyauth.New(
-		spotifyauth.WithRedirectURL(os.Getenv("SPOTIFY_REDIRECT_URL")),
-		spotifyauth.WithScopes(
-			spotifyauth.ScopePlaylistModifyPrivate,
-			spotifyauth.ScopePlaylistModifyPublic,
-			spotifyauth.ScopePlaylistReadPrivate,
-		),
-	)
-
-	client := spotify.New(auth.Client(c.Request().Context(), token), spotify.WithRetry(true))
-
-	err := spotifyconverter.New(client).Export(c.Request().Context(), "test playlist", songs)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "error converting playlist to spotify: %v", err)
-	}
-
-	return c.NoContent(http.StatusOK)
 }
