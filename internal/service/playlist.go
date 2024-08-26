@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
 	"golang.org/x/oauth2"
@@ -142,7 +141,11 @@ func (p *PlaylistService) DeleteSongsFromPlaylist(ctx context.Context, playlistI
 	return p.playlistSongRepo.BulkDelete(ctx, playlistID, songsID)
 }
 
-func (p *PlaylistService) Convert(r *http.Request, provider string, token *oauth2.Token, songs []model.SongOutAPI) error {
-	// TODO: implement this
-	return nil
+func (p *PlaylistService) Convert(ctx context.Context, provider string, token *oauth2.Token, songs []model.SongOutAPI) error {
+	converter, err := getConverter(ctx, provider, token)
+	if err != nil {
+		return err
+	}
+
+	return converter.Export(ctx, "test playlist", songs)
 }
