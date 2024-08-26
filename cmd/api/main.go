@@ -164,7 +164,7 @@ func setupPlaylistRoutes(router *echo.Group, db *sqlx.DB, store sessions.Store) 
 	router.DELETE(playlistSongsEndpoint, playlistHandler.DeleteSongsFromPlaylist)
 
 	// conversion endpoints
-	router.POST("/:playlist_id/convert/spotify", playlistHandler.SpotifyConvertHandler)
+	router.POST("/:playlist_id/convert/:provider", playlistHandler.ConvertHandler)
 }
 
 func setupSearchRoutes(router *echo.Group, httpClient *http.Client) {

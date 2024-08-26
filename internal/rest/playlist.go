@@ -4,16 +4,12 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
-	spotifyconverter "github.com/tuannamnguyen/playlist-manager/internal/service/converters/providers/spotify"
-	"github.com/zmb3/spotify/v2"
-	spotifyauth "github.com/zmb3/spotify/v2/auth"
 	"golang.org/x/oauth2"
 )
 
@@ -28,16 +24,19 @@ type PlaylistService interface {
 	AddSongsToPlaylist(ctx context.Context, playlistID int, songs []model.SongInAPI) error
 	GetAllSongsFromPlaylist(ctx context.Context, playlistID int) ([]model.SongOutAPI, error)
 	DeleteSongsFromPlaylist(ctx context.Context, playlistID int, songsID []int) error
+
+	// convert operation
+	Convert(ctx context.Context, provider string, token *oauth2.Token, songs []model.SongOutAPI) error
 }
 
 type PlaylistHandler struct {
-	Service      PlaylistService
+	service      PlaylistService
 	sessionStore sessions.Store
 }
 
 func NewPlaylistHandler(svc PlaylistService, store sessions.Store) *PlaylistHandler {
 	return &PlaylistHandler{
-		Service:      svc,
+		service:      svc,
 		sessionStore: store,
 	}
 }
@@ -49,7 +48,7 @@ func (p *PlaylistHandler) Add(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error binding playlist: %v", err))
 	}
 
-	err = p.Service.Add(c.Request().Context(), playlist)
+	err = p.service.Add(c.Request().Context(), playlist)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error add playlist: %v", err))
 	}
@@ -58,7 +57,7 @@ func (p *PlaylistHandler) Add(c echo.Context) error {
 }
 
 func (p *PlaylistHandler) GetAll(c echo.Context) error {
-	playlists, err := p.Service.GetAll(c.Request().Context())
+	playlists, err := p.service.GetAll(c.Request().Context())
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error get all playlists: %v", err))
 	}
@@ -72,7 +71,7 @@ func (p *PlaylistHandler) GetByID(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error converting ID to int: %v", err))
 	}
 
-	playlist, err := p.Service.GetByID(c.Request().Context(), id)
+	playlist, err := p.service.GetByID(c.Request().Context(), id)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error get playlist by ID: %v", err))
 	}
@@ -86,7 +85,7 @@ func (p *PlaylistHandler) DeleteByID(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error converting ID to int: %v", err))
 	}
 
-	err = p.Service.DeleteByID(c.Request().Context(), id)
+	err = p.service.DeleteByID(c.Request().Context(), id)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error delete playlist by ID: %v", err))
 	}
@@ -108,7 +107,7 @@ func (p *PlaylistHandler) AddSongsToPlaylist(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error binding request body to songs: %v", err))
 	}
 
-	err = p.Service.AddSongsToPlaylist(c.Request().Context(), playlistID, songs)
+	err = p.service.AddSongsToPlaylist(c.Request().Context(), playlistID, songs)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error adding songs to playlist: %v", err))
 	}
@@ -122,7 +121,7 @@ func (p *PlaylistHandler) GetAllSongsFromPlaylist(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error converting ID to int: %v", err))
 	}
 
-	songs, err := p.Service.GetAllSongsFromPlaylist(c.Request().Context(), playlistID)
+	songs, err := p.service.GetAllSongsFromPlaylist(c.Request().Context(), playlistID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting all songs from playlist: %v", err))
 	}
@@ -144,7 +143,7 @@ func (p *PlaylistHandler) DeleteSongsFromPlaylist(c echo.Context) error {
 
 	songsID := reqBody["songs_id"]
 
-	err = p.Service.DeleteSongsFromPlaylist(c.Request().Context(), playlistID, songsID)
+	err = p.service.DeleteSongsFromPlaylist(c.Request().Context(), playlistID, songsID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error delete songs from playlist: %v", err))
 	}
@@ -152,14 +151,15 @@ func (p *PlaylistHandler) DeleteSongsFromPlaylist(c echo.Context) error {
 	return c.JSON(http.StatusOK, reqBody)
 }
 
-// TODO: define a common handler for all services
-func (p *PlaylistHandler) SpotifyConvertHandler(c echo.Context) error {
+func (p *PlaylistHandler) ConvertHandler(c echo.Context) error {
 	playlistID, err := strconv.Atoi(c.Param("playlist_id"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error converting ID to int: %v", err))
 	}
 
-	songs, err := p.Service.GetAllSongsFromPlaylist(c.Request().Context(), playlistID)
+	provider := c.Param("provider")
+
+	songs, err := p.service.GetAllSongsFromPlaylist(c.Request().Context(), playlistID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting all songs from playlist: %v", err))
 	}
@@ -169,9 +169,9 @@ func (p *PlaylistHandler) SpotifyConvertHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting session values: %v", err))
 	}
 
-	accessToken := (sessionValues["spotify_access_token"]).(string)
-	refreshToken := (sessionValues["spotify_refresh_token"]).(string)
-	expiry := (sessionValues["spotify_token_expiry"]).(time.Time)
+	accessToken := (sessionValues[fmt.Sprintf("%s_access_token", provider)]).(string)
+	refreshToken := (sessionValues[fmt.Sprintf("%s_refresh_token", provider)]).(string)
+	expiry := (sessionValues[fmt.Sprintf("%s_token_expiry", provider)]).(time.Time)
 
 	token := &oauth2.Token{
 		AccessToken:  accessToken,
@@ -179,21 +179,5 @@ func (p *PlaylistHandler) SpotifyConvertHandler(c echo.Context) error {
 		Expiry:       expiry,
 	}
 
-	auth := spotifyauth.New(
-		spotifyauth.WithRedirectURL(os.Getenv("SPOTIFY_REDIRECT_URL")),
-		spotifyauth.WithScopes(
-			spotifyauth.ScopePlaylistModifyPrivate,
-			spotifyauth.ScopePlaylistModifyPublic,
-			spotifyauth.ScopePlaylistReadPrivate,
-		),
-	)
-
-	client := spotify.New(auth.Client(c.Request().Context(), token), spotify.WithRetry(true))
-
-	err = spotifyconverter.New(client).Export(c.Request().Context(), "test playlist", songs)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "error converting playlist to spotify: %v", err)
-	}
-
-	return c.NoContent(http.StatusOK)
+	return p.service.Convert(c.Request().Context(), provider, token, songs)
 }
