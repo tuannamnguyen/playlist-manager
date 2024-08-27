@@ -58,3 +58,17 @@ func (o *OAuthHandler) CallbackHandler(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, user)
 }
+
+func (o *OAuthHandler) LogoutHandler(c echo.Context) error {
+	provider := c.Param("provider")
+	q := c.Request().URL.Query()
+	q.Add("provider", provider)
+	c.Request().URL.RawQuery = q.Encode()
+
+	err := gothic.Logout(c.Response(), c.Request())
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error logging out from %v: %v", provider, err))
+	}
+
+	return c.Redirect(http.StatusTemporaryRedirect, "/")
+}
