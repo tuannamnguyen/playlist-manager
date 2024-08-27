@@ -25,8 +25,12 @@ func (o *OAuthHandler) LoginHandler(c echo.Context) error {
 	q.Add("provider", provider)
 	c.Request().URL.RawQuery = q.Encode()
 
-	gothic.BeginAuthHandler(c.Response(), c.Request())
-	return nil
+	if _, err := gothic.CompleteUserAuth(c.Response(), c.Request()); err == nil {
+		return c.NoContent(http.StatusOK)
+	} else {
+		gothic.BeginAuthHandler(c.Response(), c.Request())
+		return nil
+	}
 }
 
 func (o *OAuthHandler) CallbackHandler(c echo.Context) error {
