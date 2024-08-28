@@ -25,10 +25,7 @@ func (o *OAuthHandler) LoginHandler(c echo.Context) error {
 	q.Add("provider", provider)
 	c.Request().URL.RawQuery = q.Encode()
 
-	if _, err := gothic.CompleteUserAuth(c.Response(), c.Request()); err == nil {
-		return c.NoContent(http.StatusOK)
-	}
-
+	// TODO: check if user is logged in here
 	gothic.BeginAuthHandler(c.Response(), c.Request())
 	return nil
 }
@@ -51,7 +48,7 @@ func (o *OAuthHandler) CallbackHandler(c echo.Context) error {
 
 	store := o.sessionStore
 
-	err = saveSessionValues(c, store, sessionValues)
+	err = saveSessionValues(c.Request(), c.Response(), store, sessionValues)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error saving session values: %w", err))
 	}

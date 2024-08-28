@@ -164,7 +164,7 @@ func (p *PlaylistHandler) ConvertHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting all songs from playlist: %v", err))
 	}
 
-	sessionValues, err := getSessionValues(c, p.sessionStore)
+	sessionValues, err := getSessionValues(c.Request(), p.sessionStore)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting session values: %v", err))
 	}
