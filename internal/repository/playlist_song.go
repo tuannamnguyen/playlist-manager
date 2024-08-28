@@ -76,7 +76,8 @@ func (ps *PlaylistSongRepository) GetAll(ctx context.Context, playlistID int) ([
 				ON s.song_id = ars.song_id
 				JOIN artist AS ar
 				ON ars.artist_id = ar.artist_id
-				WHERE pl.playlist_id = $1`
+				WHERE pl.playlist_id = $1
+				ORDER BY song_id, ar.artist_id`
 
 	var rows []model.SongOutDB
 	err := ps.db.SelectContext(ctx, &rows, query, playlistID)

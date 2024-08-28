@@ -82,7 +82,7 @@ func TestParsePlaylistSongData(t *testing.T) {
 					ID:          5,
 					Name:        "runaway",
 					AlbumName:   "mbdtf",
-					ArtistNames: []string{"pusha t", "kanye west"}, // TODO: we'll need ordering here in the future
+					ArtistNames: []string{"pusha t", "kanye west"},
 					Timestamp:   fakeTimestamp,
 				},
 			},
