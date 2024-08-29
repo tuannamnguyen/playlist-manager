@@ -69,7 +69,7 @@ func main() {
 	defer store.Close()
 	store.SetMaxAge(3600)
 
-	gob.Register(time.Time{})
+	gob.Register(goth.User{})
 
 	gothic.Store = store
 	goth.UseProviders(
