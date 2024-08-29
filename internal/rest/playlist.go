@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
+	"github.com/markbates/goth"
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
 	"golang.org/x/oauth2"
 )
@@ -169,14 +169,12 @@ func (p *PlaylistHandler) ConvertHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting session values: %v", err))
 	}
 
-	accessToken := (sessionValues[fmt.Sprintf("%s_access_token", provider)]).(string)
-	refreshToken := (sessionValues[fmt.Sprintf("%s_refresh_token", provider)]).(string)
-	expiry := (sessionValues[fmt.Sprintf("%s_token_expiry", provider)]).(time.Time)
+	user := (sessionValues[fmt.Sprintf("%s_user_info", provider)]).(goth.User)
 
 	token := &oauth2.Token{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
-		Expiry:       expiry,
+		AccessToken:  user.AccessToken,
+		RefreshToken: user.RefreshToken,
+		Expiry:       user.ExpiresAt,
 	}
 
 	return p.service.Convert(c.Request().Context(), provider, token, songs)
