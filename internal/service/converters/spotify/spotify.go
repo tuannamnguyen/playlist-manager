@@ -3,8 +3,10 @@ package spotifyconverter
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/url"
 	"os"
+	"strings"
 
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
 	"github.com/zmb3/spotify/v2"
@@ -41,8 +43,10 @@ func (s *SpotifyConverter) Export(ctx context.Context, playlistName string, song
 	// ? see if we can use goroutines here
 	var tracksID []spotify.ID
 	for _, song := range songs {
-		// TODO: need to match songs better
-		searchQuery := fmt.Sprintf("track:%s artist:%s album:%s", song.Name, song.ArtistNames, song.AlbumName)
+		searchQuery := s.formatSearchQuery(song)
+		slog.Info(searchQuery)
+		slog.Info("url formatted search: ", "query", url.QueryEscape(searchQuery))
+
 		result, err := s.client.Search(
 			ctx,
 			url.QueryEscape(searchQuery),
@@ -67,6 +71,31 @@ func (s *SpotifyConverter) Export(ctx context.Context, playlistName string, song
 	return nil
 }
 
+func (s *SpotifyConverter) formatSearchQuery(song model.SongOutAPI) string {
+	// Helper function to wrap terms with spaces in quotes
+	wrapInQuotes := func(s string) string {
+		if strings.Contains(s, " ") {
+			return fmt.Sprintf(`"%s"`, s)
+		}
+		return s
+	}
+
+	// Format artist query
+	artistQuery := make([]string, len(song.ArtistNames))
+	for i, artist := range song.ArtistNames {
+		artistQuery[i] = fmt.Sprintf("artist:%s", wrapInQuotes(artist))
+	}
+	artists := strings.Join(artistQuery, " ")
+
+	// Format track, album, and year (if available)
+	trackQuery := fmt.Sprintf("track:%s", wrapInQuotes(song.Name))
+	albumQuery := fmt.Sprintf("album:%s", wrapInQuotes(song.AlbumName))
+
+	// Combine all parts of the query
+	queryParts := []string{trackQuery, artists, albumQuery}
+
+	return strings.Join(queryParts, " ")
+}
 func (s *SpotifyConverter) createPlaylist(ctx context.Context, playlistName string) (string, error) {
 	currentUser, err := s.client.CurrentUser(ctx)
 	if err != nil {
