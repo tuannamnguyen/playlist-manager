@@ -2,6 +2,7 @@ package repository
 
 import (
 	"slices"
+	"sort"
 
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
 )
@@ -32,6 +33,11 @@ func parsePlaylistSongData(rows []model.SongOutDB) []model.SongOutAPI {
 	for _, song := range songMap {
 		result = append(result, *song)
 	}
+
+	// Sort the result slice by ID before returning
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].ID < result[j].ID
+	})
 
 	return result
 }
