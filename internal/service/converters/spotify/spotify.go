@@ -96,6 +96,7 @@ func (s *SpotifyConverter) formatSearchQuery(song model.SongOutAPI) string {
 
 	return strings.Join(queryParts, " ")
 }
+
 func (s *SpotifyConverter) createPlaylist(ctx context.Context, playlistName string) (string, error) {
 	currentUser, err := s.client.CurrentUser(ctx)
 	if err != nil {
