@@ -23,10 +23,10 @@ func (p *PlaylistRepository) Insert(ctx context.Context, playlistModel model.Pla
 
 	_, err := p.db.ExecContext(
 		ctx,
-		`INSERT INTO playlist (playlist_name, user_id, updated_at, created_at)
-		VALUES ($1, $2, $3, $4)
+		`INSERT INTO playlist (playlist_name, user_id, user_name, updated_at, created_at)
+		VALUES ($1, $2, $3, $4, $5)
 		RETURNING playlist_id`,
-		playlistModel.Name, playlistModel.UserID, updatedAt, createdAt,
+		playlistModel.Name, playlistModel.UserID, playlistModel.Username, updatedAt, createdAt,
 	)
 
 	if err != nil {
