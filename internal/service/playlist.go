@@ -9,7 +9,7 @@ import (
 
 type PlaylistRepository interface {
 	Insert(ctx context.Context, playlistModel model.PlaylistIn) error
-	SelectAll(ctx context.Context) ([]model.Playlist, error)
+	SelectAll(ctx context.Context, userID string) ([]model.Playlist, error)
 	SelectWithID(ctx context.Context, id int) (model.Playlist, error)
 	DeleteByID(ctx context.Context, id int) error
 }
@@ -78,8 +78,8 @@ func (p *PlaylistService) Add(ctx context.Context, playlistModel model.PlaylistI
 	return p.playlistRepo.Insert(ctx, playlistModel)
 }
 
-func (p *PlaylistService) GetAll(ctx context.Context) ([]model.Playlist, error) {
-	return p.playlistRepo.SelectAll(ctx)
+func (p *PlaylistService) GetAll(ctx context.Context, userID string) ([]model.Playlist, error) {
+	return p.playlistRepo.SelectAll(ctx, userID)
 }
 
 func (p *PlaylistService) GetByID(ctx context.Context, id int) (model.Playlist, error) {

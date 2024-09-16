@@ -16,7 +16,7 @@ import (
 type PlaylistService interface {
 	// playlist operations
 	Add(ctx context.Context, playlistModel model.PlaylistIn) error
-	GetAll(ctx context.Context) ([]model.Playlist, error)
+	GetAll(ctx context.Context, userID string) ([]model.Playlist, error)
 	GetByID(ctx context.Context, id int) (model.Playlist, error)
 	DeleteByID(ctx context.Context, id int) error
 
@@ -61,7 +61,9 @@ func (p *PlaylistHandler) Add(c echo.Context) error {
 }
 
 func (p *PlaylistHandler) GetAll(c echo.Context) error {
-	playlists, err := p.service.GetAll(c.Request().Context())
+	userID := c.QueryParam("user_id")
+
+	playlists, err := p.service.GetAll(c.Request().Context(), userID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error get all playlists: %v", err))
 	}
