@@ -48,6 +48,10 @@ func (p *PlaylistHandler) Add(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error binding playlist: %v", err))
 	}
 
+	if err = c.Validate(playlist); err != nil {
+		return err
+	}
+
 	err = p.service.Add(c.Request().Context(), playlist)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error add playlist: %v", err))
