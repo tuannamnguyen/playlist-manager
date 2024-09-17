@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/dotenv-org/godotenvvault"
+	"github.com/go-playground/validator"
 	"github.com/gorilla/sessions"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
@@ -26,6 +27,18 @@ import (
 	spotifyauth "github.com/zmb3/spotify/v2/auth"
 	"gopkg.in/boj/redistore.v1"
 )
+
+type CustomValidator struct {
+	validator *validator.Validate
+}
+
+func (cv *CustomValidator) Validate(i any) error {
+	if err := cv.validator.Struct(i); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	return nil
+}
 
 func main() {
 	// setup .env
@@ -106,6 +119,8 @@ func startServer(e *echo.Echo, db *sqlx.DB, httpClient *http.Client, store sessi
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"http://localhost:4040"},
 	}))
+
+	e.Validator = &CustomValidator{validator: validator.New()}
 
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, fmt.Sprintf("%s, World!", os.Getenv("HELLO")))
