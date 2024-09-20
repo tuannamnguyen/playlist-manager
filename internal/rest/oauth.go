@@ -3,6 +3,7 @@ package rest
 import (
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
@@ -51,7 +52,7 @@ func (o *OAuthHandler) CallbackHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error saving session values: %w", err))
 	}
 
-	return c.JSON(http.StatusOK, user)
+	return c.Redirect(http.StatusTemporaryRedirect, os.Getenv("FRONTEND_URL"))
 }
 
 func (o *OAuthHandler) LogoutHandler(c echo.Context) error {
