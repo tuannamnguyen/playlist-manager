@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
+	"github.com/markbates/goth"
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
 	"golang.org/x/oauth2"
 )
@@ -16,7 +16,7 @@ import (
 type PlaylistService interface {
 	// playlist operations
 	Add(ctx context.Context, playlistModel model.PlaylistIn) error
-	GetAll(ctx context.Context) ([]model.Playlist, error)
+	GetAll(ctx context.Context, userID string) ([]model.Playlist, error)
 	GetByID(ctx context.Context, id int) (model.Playlist, error)
 	DeleteByID(ctx context.Context, id int) error
 
@@ -48,6 +48,10 @@ func (p *PlaylistHandler) Add(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error binding playlist: %v", err))
 	}
 
+	if err = c.Validate(playlist); err != nil {
+		return err
+	}
+
 	err = p.service.Add(c.Request().Context(), playlist)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error add playlist: %v", err))
@@ -57,7 +61,9 @@ func (p *PlaylistHandler) Add(c echo.Context) error {
 }
 
 func (p *PlaylistHandler) GetAll(c echo.Context) error {
-	playlists, err := p.service.GetAll(c.Request().Context())
+	userID := c.QueryParam("user_id")
+
+	playlists, err := p.service.GetAll(c.Request().Context(), userID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error get all playlists: %v", err))
 	}
@@ -164,19 +170,17 @@ func (p *PlaylistHandler) ConvertHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting all songs from playlist: %v", err))
 	}
 
-	sessionValues, err := getSessionValues(c.Request(), p.sessionStore)
+	sessionValues, err := getOauthSessionValues(c.Request(), p.sessionStore)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting session values: %v", err))
 	}
 
-	accessToken := (sessionValues[fmt.Sprintf("%s_access_token", provider)]).(string)
-	refreshToken := (sessionValues[fmt.Sprintf("%s_refresh_token", provider)]).(string)
-	expiry := (sessionValues[fmt.Sprintf("%s_token_expiry", provider)]).(time.Time)
+	user := (sessionValues[fmt.Sprintf("%s_user_info", provider)]).(goth.User)
 
 	token := &oauth2.Token{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
-		Expiry:       expiry,
+		AccessToken:  user.AccessToken,
+		RefreshToken: user.RefreshToken,
+		Expiry:       user.ExpiresAt,
 	}
 
 	return p.service.Convert(c.Request().Context(), provider, token, songs)

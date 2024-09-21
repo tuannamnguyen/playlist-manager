@@ -3,6 +3,7 @@ package rest
 import (
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
@@ -25,7 +26,16 @@ func (o *OAuthHandler) LoginHandler(c echo.Context) error {
 	q.Add("provider", provider)
 	c.Request().URL.RawQuery = q.Encode()
 
-	// TODO: check if user is logged in here
+	sessionValues, err := getOauthSessionValues(c.Request(), o.sessionStore)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting session values: %v", err))
+	}
+
+	_, ok := sessionValues[fmt.Sprintf("%s_user_info", provider)]
+	if ok {
+		return c.String(http.StatusOK, "user has already logged in")
+	}
+
 	gothic.BeginAuthHandler(c.Response(), c.Request())
 	return nil
 }
@@ -42,18 +52,16 @@ func (o *OAuthHandler) CallbackHandler(c echo.Context) error {
 	}
 
 	sessionValues := make(map[any]any)
-	sessionValues[fmt.Sprintf("%s_access_token", provider)] = user.AccessToken
-	sessionValues[fmt.Sprintf("%s_refresh_token", provider)] = user.RefreshToken
-	sessionValues[fmt.Sprintf("%s_token_expiry", provider)] = user.ExpiresAt
+	sessionValues[fmt.Sprintf("%s_user_info", provider)] = user
 
 	store := o.sessionStore
 
-	err = saveSessionValues(c.Request(), c.Response(), store, sessionValues)
+	err = saveOauthSessionValues(c.Request(), c.Response(), store, sessionValues)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error saving session values: %w", err))
 	}
 
-	return c.JSON(http.StatusOK, user)
+	return c.Redirect(http.StatusTemporaryRedirect, os.Getenv("FRONTEND_URL"))
 }
 
 func (o *OAuthHandler) LogoutHandler(c echo.Context) error {

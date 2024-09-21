@@ -10,26 +10,15 @@ BEGIN
 END;
 $$ LANGUAGE 'plpgsql';
 
-CREATE TABLE IF NOT EXISTS users (
-    user_id SERIAL PRIMARY KEY,
-    username TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TRIGGER set_timestamp_users
-BEFORE UPDATE ON users
-FOR EACH ROW
-EXECUTE PROCEDURE update_updated_at_column();
 
 CREATE TABLE IF NOT EXISTS playlist (
     playlist_id SERIAL PRIMARY KEY,
     playlist_name TEXT NOT NULL,
-    user_id INT NOT NULL,
+    user_id TEXT NOT NULL,
+    user_name TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE (playlist_name, user_id),
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+    UNIQUE (playlist_name, user_id)
 );
 
 CREATE TRIGGER set_timestamp_playlist
@@ -124,17 +113,12 @@ BEFORE UPDATE ON artist_song
 FOR EACH ROW
 EXECUTE PROCEDURE update_updated_at_column();
 
--- Insert sample data into the users table
-INSERT INTO users (username) VALUES
-('user1'),
-('user2'),
-('user3');
 
 -- Insert sample data into the playlist table
-INSERT INTO playlist (playlist_name, user_id) VALUES
-('Chill Vibes', 1),
-('Workout Hits', 2),
-('Classic Rock', 3);
+INSERT INTO playlist (playlist_name, user_id, user_name) VALUES
+('Chill Vibes', 'google-oauth2|117047339491229984586', 'Nguyen Tuan Nam'),
+('Workout Hits', 'auth0|6699dbf5833b63066b68e209', 'Nguyen Tuan Nam'),
+('Classic Rock', 'google-oauth2|106477541749932989337', 'Nguyen Tuan Nam');
 
 -- Insert sample data into the album table
 INSERT INTO album (album_name) VALUES

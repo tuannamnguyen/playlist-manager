@@ -23,10 +23,10 @@ func (p *PlaylistRepository) Insert(ctx context.Context, playlistModel model.Pla
 
 	_, err := p.db.ExecContext(
 		ctx,
-		`INSERT INTO playlist (playlist_name, user_id, updated_at, created_at)
-		VALUES ($1, $2, $3, $4)
+		`INSERT INTO playlist (playlist_name, user_id, user_name, updated_at, created_at)
+		VALUES ($1, $2, $3, $4, $5)
 		RETURNING playlist_id`,
-		playlistModel.Name, playlistModel.UserID, updatedAt, createdAt,
+		playlistModel.Name, playlistModel.UserID, playlistModel.Username, updatedAt, createdAt,
 	)
 
 	if err != nil {
@@ -36,25 +36,21 @@ func (p *PlaylistRepository) Insert(ctx context.Context, playlistModel model.Pla
 	return nil
 }
 
-func (p *PlaylistRepository) SelectAll(ctx context.Context) ([]model.Playlist, error) {
+func (p *PlaylistRepository) SelectAll(ctx context.Context, userID string) ([]model.Playlist, error) {
 	var playlists []model.Playlist
+	var query string
+	var args []interface{}
 
-	rows, err := p.db.QueryxContext(ctx, "SELECT * FROM playlist")
+	if userID != "" {
+		query = "SELECT * FROM playlist WHERE user_id = $1"
+		args = append(args, userID)
+	} else {
+		query = "SELECT * FROM playlist"
+	}
+
+	err := p.db.SelectContext(ctx, &playlists, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("SELECT playlist from db: %w", err)
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var playlist model.Playlist
-		if err := rows.StructScan(&playlist); err != nil {
-			return nil, fmt.Errorf("scan playlist to struct: %w", err)
-
-		}
-		playlists = append(playlists, playlist)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("playlist query iteration: %w", err)
 	}
 
 	return playlists, nil
