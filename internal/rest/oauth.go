@@ -26,7 +26,13 @@ func (o *OAuthHandler) LoginHandler(c echo.Context) error {
 	q.Add("provider", provider)
 	c.Request().URL.RawQuery = q.Encode()
 
-	// TODO: check if user is logged in here
+	cookiesList := c.Request().Cookies()
+	for _, cookie := range cookiesList {
+		if cookie.Name == "oauth-session" {
+			return c.String(http.StatusOK, "user has already logged in")
+		}
+	}
+
 	gothic.BeginAuthHandler(c.Response(), c.Request())
 	return nil
 }
