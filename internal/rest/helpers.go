@@ -6,7 +6,7 @@ import (
 	"github.com/gorilla/sessions"
 )
 
-func saveSessionValues(req *http.Request, res http.ResponseWriter, store sessions.Store, sessionValues map[any]any) error {
+func saveOauthSessionValues(req *http.Request, res http.ResponseWriter, store sessions.Store, sessionValues map[any]any) error {
 	session, err := store.Get(req, "oauth-session")
 	if err != nil {
 		return err
@@ -21,7 +21,7 @@ func saveSessionValues(req *http.Request, res http.ResponseWriter, store session
 	return nil
 }
 
-func getSessionValues(req *http.Request, store sessions.Store) (map[any]any, error) {
+func getOauthSessionValues(req *http.Request, store sessions.Store) (map[any]any, error) {
 	session, err := store.Get(req, "oauth-session")
 	if err != nil {
 		return nil, err

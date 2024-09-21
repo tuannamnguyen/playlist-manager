@@ -47,7 +47,7 @@ func (o *OAuthHandler) CallbackHandler(c echo.Context) error {
 
 	store := o.sessionStore
 
-	err = saveSessionValues(c.Request(), c.Response(), store, sessionValues)
+	err = saveOauthSessionValues(c.Request(), c.Response(), store, sessionValues)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error saving session values: %w", err))
 	}
