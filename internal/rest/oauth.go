@@ -26,11 +26,14 @@ func (o *OAuthHandler) LoginHandler(c echo.Context) error {
 	q.Add("provider", provider)
 	c.Request().URL.RawQuery = q.Encode()
 
-	cookiesList := c.Request().Cookies()
-	for _, cookie := range cookiesList {
-		if cookie.Name == "oauth-session" {
-			return c.String(http.StatusOK, "user has already logged in")
-		}
+	sessionValues, err := getOauthSessionValues(c.Request(), o.sessionStore)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting session values: %v", err))
+	}
+
+	_, ok := sessionValues[fmt.Sprintf("%s_user_info", provider)]
+	if ok {
+		return c.String(http.StatusOK, "user has already logged in")
 	}
 
 	gothic.BeginAuthHandler(c.Response(), c.Request())
