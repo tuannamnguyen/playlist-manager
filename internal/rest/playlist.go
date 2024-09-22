@@ -26,7 +26,7 @@ type PlaylistService interface {
 	DeleteSongsFromPlaylist(ctx context.Context, playlistID int, songsID []int) error
 
 	// convert operation
-	Convert(ctx context.Context, provider string, token *oauth2.Token, songs []model.SongOutAPI) error
+	Convert(ctx context.Context, provider string, token *oauth2.Token, playlistName string, songs []model.SongOutAPI) error
 }
 
 type PlaylistHandler struct {
@@ -158,12 +158,20 @@ func (p *PlaylistHandler) DeleteSongsFromPlaylist(c echo.Context) error {
 }
 
 func (p *PlaylistHandler) ConvertHandler(c echo.Context) error {
+	type reqBody struct {
+		PlaylistName string `json:"playlist_name"`
+	}
+
 	playlistID, err := strconv.Atoi(c.Param("playlist_id"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error converting ID to int: %v", err))
 	}
 
-	provider := c.Param("provider")
+	var newReqBody reqBody
+	err = c.Bind(&newReqBody)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error binding request body: %v", err))
+	}
 
 	songs, err := p.service.GetAllSongsFromPlaylist(c.Request().Context(), playlistID)
 	if err != nil {
@@ -175,13 +183,13 @@ func (p *PlaylistHandler) ConvertHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting session values: %v", err))
 	}
 
+	provider := c.Param("provider")
 	user := (sessionValues[fmt.Sprintf("%s_user_info", provider)]).(goth.User)
-
 	token := &oauth2.Token{
 		AccessToken:  user.AccessToken,
 		RefreshToken: user.RefreshToken,
 		Expiry:       user.ExpiresAt,
 	}
 
-	return p.service.Convert(c.Request().Context(), provider, token, songs)
+	return p.service.Convert(c.Request().Context(), provider, token, newReqBody.PlaylistName, songs)
 }

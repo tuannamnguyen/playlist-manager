@@ -141,11 +141,11 @@ func (p *PlaylistService) DeleteSongsFromPlaylist(ctx context.Context, playlistI
 	return p.playlistSongRepo.BulkDelete(ctx, playlistID, songsID)
 }
 
-func (p *PlaylistService) Convert(ctx context.Context, provider string, token *oauth2.Token, songs []model.SongOutAPI) error {
+func (p *PlaylistService) Convert(ctx context.Context, provider string, token *oauth2.Token, playlistName string, songs []model.SongOutAPI) error {
 	converter, err := getConverter(ctx, provider, token)
 	if err != nil {
 		return err
 	}
 
-	return converter.Export(ctx, "test playlist", songs)
+	return converter.Export(ctx, playlistName, songs)
 }
