@@ -11,6 +11,7 @@ require (
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/markbates/goth v1.80.0
+	github.com/rdbell/echo-pretty-logger v1.0.0
 	github.com/stretchr/testify v1.9.0
 	github.com/zmb3/spotify/v2 v2.4.2
 	golang.org/x/oauth2 v0.17.0

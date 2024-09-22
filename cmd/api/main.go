@@ -21,6 +21,7 @@ import (
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/spotify"
+	prettylogger "github.com/rdbell/echo-pretty-logger"
 	"github.com/tuannamnguyen/playlist-manager/internal/repository"
 	"github.com/tuannamnguyen/playlist-manager/internal/rest"
 	"github.com/tuannamnguyen/playlist-manager/internal/service"
@@ -114,10 +115,11 @@ func main() {
 
 func startServer(e *echo.Echo, db *sqlx.DB, httpClient *http.Client, store sessions.Store) {
 	e.Pre(middleware.RemoveTrailingSlash())
-	e.Use(middleware.Logger())
+	setupLogging(e)
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"http://localhost:4040"},
+		AllowOrigins:     []string{"http://localhost:4040"},
+		AllowCredentials: true,
 	}))
 
 	e.Validator = &CustomValidator{validator: validator.New()}
@@ -146,6 +148,16 @@ func setupAPIRouter(e *echo.Echo, db *sqlx.DB, httpClient *http.Client, store se
 	setupPlaylistRoutes(playlistRouter, db, store)
 	setupSearchRoutes(searchRouter, httpClient)
 	setupOAuthRoutes(oauthRouter, store)
+}
+
+func setupLogging(e *echo.Echo) {
+	loggingMode := os.Getenv("LOGGING_MODE")
+
+	if loggingMode == "dev" {
+		e.Use(prettylogger.Logger)
+	} else {
+		e.Use(middleware.Logger())
+	}
 }
 
 func setupPlaylistRoutes(router *echo.Group, db *sqlx.DB, store sessions.Store) {
@@ -199,5 +211,6 @@ func setupOAuthRoutes(router *echo.Group, store sessions.Store) {
 
 	router.GET("/:provider", oauthHandler.LoginHandler)
 	router.GET("/callback/:provider", oauthHandler.CallbackHandler)
+	router.GET("/check_auth/:provider", oauthHandler.CheckAuthHandler)
 	router.GET("/logout/:provider", oauthHandler.LogoutHandler)
 }
