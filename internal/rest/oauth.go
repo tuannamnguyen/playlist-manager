@@ -26,16 +26,6 @@ func (o *OAuthHandler) LoginHandler(c echo.Context) error {
 	q.Add("provider", provider)
 	c.Request().URL.RawQuery = q.Encode()
 
-	sessionValues, err := getOauthSessionValues(c.Request(), o.sessionStore)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting session values: %v", err))
-	}
-
-	_, ok := sessionValues[fmt.Sprintf("%s_user_info", provider)]
-	if ok {
-		return c.String(http.StatusOK, "user has already logged in")
-	}
-
 	gothic.BeginAuthHandler(c.Response(), c.Request())
 	return nil
 }
@@ -62,6 +52,25 @@ func (o *OAuthHandler) CallbackHandler(c echo.Context) error {
 	}
 
 	return c.Redirect(http.StatusTemporaryRedirect, os.Getenv("FRONTEND_URL"))
+}
+
+func (o *OAuthHandler) CheckAuthHandler(c echo.Context) error {
+	provider := c.Param("provider")
+	q := c.Request().URL.Query()
+	q.Add("provider", provider)
+	c.Request().URL.RawQuery = q.Encode()
+
+	sessionValues, err := getOauthSessionValues(c.Request(), o.sessionStore)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting session values: %v", err))
+	}
+
+	_, ok := sessionValues[fmt.Sprintf("%s_user_info", provider)]
+	if ok {
+		return c.String(http.StatusOK, fmt.Sprintf("user has authenticated with %s", provider))
+	}
+
+	return c.String(http.StatusUnauthorized, fmt.Sprintf("not authenticated with %s", provider))
 }
 
 func (o *OAuthHandler) LogoutHandler(c echo.Context) error {
