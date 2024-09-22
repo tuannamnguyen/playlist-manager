@@ -118,7 +118,8 @@ func startServer(e *echo.Echo, db *sqlx.DB, httpClient *http.Client, store sessi
 	setupLogging(e)
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"http://localhost:4040"},
+		AllowOrigins:     []string{"http://localhost:4040"},
+		AllowCredentials: true,
 	}))
 
 	e.Validator = &CustomValidator{validator: validator.New()}
