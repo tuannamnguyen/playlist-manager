@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -22,7 +21,7 @@ func (a *ArtistAlbumRepository) Insert(ctx context.Context, artistID int, albumI
 		artistID, albumID,
 	)
 	if err != nil {
-		return fmt.Errorf("INSERT artist album: %w", err)
+		return &queryError{err}
 	}
 
 	return nil

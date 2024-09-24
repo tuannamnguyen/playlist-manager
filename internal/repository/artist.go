@@ -23,7 +23,7 @@ func NewArtistRepository(db *sqlx.DB) *ArtistRepository {
 func (a *ArtistRepository) BulkInsertAndGetIDs(ctx context.Context, artistNames []string) ([]int, error) {
 	tx, err := a.db.BeginTxx(ctx, nil)
 	if err != nil {
-		return nil, fmt.Errorf("begin transaction insert bulk artists: %w", err)
+		return nil, &beginTransactionError{err}
 	}
 	defer func() {
 		err = tx.Rollback()
@@ -37,7 +37,7 @@ func (a *ArtistRepository) BulkInsertAndGetIDs(ctx context.Context, artistNames 
 		artistNames,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("prepare in query to select artist ID: %w", err)
+		return nil, &prepareInQueryError{err}
 	}
 
 	query := `WITH ins AS (
@@ -68,12 +68,12 @@ func (a *ArtistRepository) BulkInsertAndGetIDs(ctx context.Context, artistNames 
 	var insertedIDs []int
 	err = tx.SelectContext(ctx, &insertedIDs, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("bulk INSERT artists: %w", err)
+		return nil, &selectError{err}
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return nil, fmt.Errorf("commiting transaction bulk insert artists: %w", err)
+		return nil, &transactionCommitError{err}
 	}
 
 	return insertedIDs, nil
