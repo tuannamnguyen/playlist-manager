@@ -45,7 +45,7 @@ func (p *PlaylistHandler) Add(c echo.Context) error {
 	var playlist model.PlaylistIn
 	err := c.Bind(&playlist)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error binding playlist: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	if err = c.Validate(playlist); err != nil {
@@ -54,7 +54,7 @@ func (p *PlaylistHandler) Add(c echo.Context) error {
 
 	err = p.service.Add(c.Request().Context(), playlist)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error add playlist: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	return c.JSON(http.StatusCreated, playlist)
@@ -65,7 +65,7 @@ func (p *PlaylistHandler) GetAll(c echo.Context) error {
 
 	playlists, err := p.service.GetAll(c.Request().Context(), userID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error get all playlists: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	return c.JSON(http.StatusOK, playlists)
@@ -74,12 +74,12 @@ func (p *PlaylistHandler) GetAll(c echo.Context) error {
 func (p *PlaylistHandler) GetByID(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error converting ID to int: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	playlist, err := p.service.GetByID(c.Request().Context(), id)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error get playlist by ID: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	return c.JSON(http.StatusOK, playlist)
@@ -88,12 +88,12 @@ func (p *PlaylistHandler) GetByID(c echo.Context) error {
 func (p *PlaylistHandler) DeleteByID(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error converting ID to int: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	err = p.service.DeleteByID(c.Request().Context(), id)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error delete playlist by ID: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	return c.JSON(http.StatusOK, map[string]int{
@@ -104,18 +104,18 @@ func (p *PlaylistHandler) DeleteByID(c echo.Context) error {
 func (p *PlaylistHandler) AddSongsToPlaylist(c echo.Context) error {
 	playlistID, err := strconv.Atoi(c.Param("playlist_id"))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error converting ID to int: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	var songs []model.SongInAPI
 	err = c.Bind(&songs)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error binding request body to songs: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	err = p.service.AddSongsToPlaylist(c.Request().Context(), playlistID, songs)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error adding songs to playlist: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	return c.JSON(http.StatusOK, songs)
@@ -124,12 +124,12 @@ func (p *PlaylistHandler) AddSongsToPlaylist(c echo.Context) error {
 func (p *PlaylistHandler) GetAllSongsFromPlaylist(c echo.Context) error {
 	playlistID, err := strconv.Atoi(c.Param("playlist_id"))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error converting ID to int: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	songs, err := p.service.GetAllSongsFromPlaylist(c.Request().Context(), playlistID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting all songs from playlist: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	return c.JSON(http.StatusOK, songs)
@@ -138,20 +138,20 @@ func (p *PlaylistHandler) GetAllSongsFromPlaylist(c echo.Context) error {
 func (p *PlaylistHandler) DeleteSongsFromPlaylist(c echo.Context) error {
 	playlistID, err := strconv.Atoi(c.Param("playlist_id"))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error converting ID to int: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	var reqBody map[string][]int
 	err = c.Bind(&reqBody)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error binding list of songs ID: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	songsID := reqBody["songs_id"]
 
 	err = p.service.DeleteSongsFromPlaylist(c.Request().Context(), playlistID, songsID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error delete songs from playlist: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	return c.JSON(http.StatusOK, reqBody)
@@ -164,23 +164,23 @@ func (p *PlaylistHandler) ConvertHandler(c echo.Context) error {
 
 	playlistID, err := strconv.Atoi(c.Param("playlist_id"))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error converting ID to int: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	var newReqBody reqBody
 	err = c.Bind(&newReqBody)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error binding request body: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	songs, err := p.service.GetAllSongsFromPlaylist(c.Request().Context(), playlistID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting all songs from playlist: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	sessionValues, err := getOauthSessionValues(c.Request(), p.sessionStore)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting session values: %v", err))
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	provider := c.Param("provider")

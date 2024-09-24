@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -35,7 +34,7 @@ func (a *AlbumRepository) InsertAndGetID(ctx context.Context, albumName string) 
 	var lastInsertID int
 	err := row.Scan(&lastInsertID)
 	if err != nil {
-		return 0, fmt.Errorf("scanning last inserted album ID: %w", err)
+		return 0, &rowScanError{err}
 	}
 
 	return lastInsertID, nil
