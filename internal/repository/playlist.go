@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -30,7 +29,7 @@ func (p *PlaylistRepository) Insert(ctx context.Context, playlistModel model.Pla
 	)
 
 	if err != nil {
-		return fmt.Errorf("INSERT playlist into db: %w", err)
+		return &execError{err}
 	}
 
 	return nil
@@ -50,7 +49,7 @@ func (p *PlaylistRepository) SelectAll(ctx context.Context, userID string) ([]mo
 
 	err := p.db.SelectContext(ctx, &playlists, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("SELECT playlist from db: %w", err)
+		return nil, &selectError{err}
 	}
 
 	return playlists, nil
@@ -61,7 +60,7 @@ func (p *PlaylistRepository) SelectWithID(ctx context.Context, id int) (model.Pl
 
 	err := p.db.QueryRowxContext(ctx, "SELECT * FROM playlist WHERE playlist_id = $1", id).StructScan(&playlist)
 	if err != nil {
-		return model.Playlist{}, fmt.Errorf("SELECT playlist with id from db: %w", err)
+		return model.Playlist{}, &structScanError{err}
 	}
 
 	return playlist, nil
@@ -70,7 +69,7 @@ func (p *PlaylistRepository) SelectWithID(ctx context.Context, id int) (model.Pl
 func (p *PlaylistRepository) DeleteByID(ctx context.Context, id int) error {
 	_, err := p.db.ExecContext(ctx, "DELETE FROM playlist WHERE playlist_id = $1", id)
 	if err != nil {
-		return fmt.Errorf("DELETE playlist with id from db: %w", err)
+		return &execError{err}
 	}
 
 	return nil

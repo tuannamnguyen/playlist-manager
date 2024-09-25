@@ -18,6 +18,14 @@ func (q *queryError) Error() string {
 	return fmt.Sprintf("db query: %s", q.err.Error())
 }
 
+type structScanError struct {
+	err error
+}
+
+func (q *structScanError) Error() string {
+	return fmt.Sprintf("db query row: %s", q.err.Error())
+}
+
 type execError struct {
 	err error
 }
@@ -56,4 +64,20 @@ type prepareInQueryError struct {
 
 func (p *prepareInQueryError) Error() string {
 	return fmt.Sprintf("prepare IN query: %s", p.err.Error())
+}
+
+type requestMarshalError struct {
+	err error
+}
+
+func (r *requestMarshalError) Error() string {
+	return fmt.Sprintf("request marshall: %s", r.err.Error())
+}
+
+type responseDecodeError struct {
+	err error
+}
+
+func (r *responseDecodeError) Error() string {
+	return fmt.Sprintf("response decode: %s", r.err.Error())
 }

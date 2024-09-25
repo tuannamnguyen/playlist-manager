@@ -66,7 +66,7 @@ func (s *SearchRepository) Song(track string, artist string) (model.SongInAPI, e
 
 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/public/search", os.Getenv("MUSIC_API_ENDPOINT")), bytes.NewBuffer(searchReqBodyEncoded))
 	if err != nil {
-		return model.SongInAPI{}, fmt.Errorf("making search request body: %w", err)
+		return model.SongInAPI{}, &requestMarshalError{err}
 	}
 	req.Header.Set("Authorization", fmt.Sprintf("Token %s", os.Getenv("MUSIC_API_CLIENT_ID")))
 	req.Header.Set("Content-Type", echo.MIMEApplicationJSON)
@@ -80,7 +80,7 @@ func (s *SearchRepository) Song(track string, artist string) (model.SongInAPI, e
 	var searchRes SearchResponse
 	err = json.NewDecoder(res.Body).Decode(&searchRes)
 	if err != nil {
-		return model.SongInAPI{}, fmt.Errorf("decoding music api response: %w", err)
+		return model.SongInAPI{}, &responseDecodeError{err}
 	}
 
 	return model.SongInAPI{

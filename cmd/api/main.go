@@ -117,7 +117,7 @@ func startServer(e *echo.Echo, db *sqlx.DB, httpClient *http.Client, store sessi
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:     []string{"http://localhost:4040"},
+		AllowOrigins:     []string{os.Getenv("FRONTEND_URL")},
 		AllowCredentials: true,
 	}))
 
