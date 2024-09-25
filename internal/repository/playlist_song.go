@@ -26,7 +26,7 @@ func NewPlaylistSongRepository(db *sqlx.DB) *PlaylistSongRepository {
 func (ps *PlaylistSongRepository) BulkInsert(ctx context.Context, playlistID int, songsID []int) error {
 	tx, err := ps.db.BeginTxx(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("begin transaction bulk insert playlist song: %w", err)
+		return &beginTransactionError{err}
 	}
 	defer func() {
 		err = tx.Rollback()
@@ -52,12 +52,12 @@ func (ps *PlaylistSongRepository) BulkInsert(ctx context.Context, playlistID int
 
 	_, err = tx.ExecContext(ctx, query, valueArgs...)
 	if err != nil {
-		return fmt.Errorf("bulk INSERT playlist song: %w", err)
+		return &execError{err}
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return fmt.Errorf("commiting transaction playlist song: %w", err)
+		return &transactionCommitError{err}
 	}
 
 	return nil
@@ -82,7 +82,7 @@ func (ps *PlaylistSongRepository) GetAll(ctx context.Context, playlistID int) ([
 	var rows []model.SongOutDB
 	err := ps.db.SelectContext(ctx, &rows, query, playlistID)
 	if err != nil {
-		return nil, fmt.Errorf("SELECT all songs in playlist: %w", err)
+		return nil, &selectError{err}
 	}
 
 	return parsePlaylistSongData(rows), nil
@@ -97,7 +97,7 @@ func (ps *PlaylistSongRepository) BulkDelete(ctx context.Context, playlistID int
 
 	_, err = ps.db.ExecContext(ctx, query, args...)
 	if err != nil {
-		return fmt.Errorf("DELETE songs from playlist_song table: %w", err)
+		return &execError{err}
 	}
 
 	return nil

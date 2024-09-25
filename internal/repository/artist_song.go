@@ -22,7 +22,7 @@ func NewArtistSongRepository(db *sqlx.DB) *ArtistSongRepository {
 func (as *ArtistSongRepository) Insert(ctx context.Context, songID int, artistIDs []int) error {
 	tx, err := as.db.BeginTxx(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("begin transaction insert arist song: %w", err)
+		return &beginTransactionError{err}
 	}
 	defer func() {
 		err = tx.Rollback()
@@ -50,12 +50,12 @@ func (as *ArtistSongRepository) Insert(ctx context.Context, songID int, artistID
 
 	_, err = tx.ExecContext(ctx, query, valueArgs...)
 	if err != nil {
-		return fmt.Errorf("bulk INSERT artist song: %w", err)
+		return &execError{err}
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return fmt.Errorf("commiting transaction artist song: %w", err)
+		return &transactionCommitError{err}
 	}
 
 	return nil
