@@ -41,6 +41,7 @@ type SearchRequest struct {
 	Track   string   `json:"track"`
 	Artist  string   `json:"artist"`
 	Type    string   `json:"type"`
+	Album   string   `json:"album"`
 	Sources []string `json:"sources"`
 }
 
@@ -52,10 +53,11 @@ func NewSearchRepository(httpClient *http.Client) *SearchRepository {
 	return &SearchRepository{httpClient: httpClient}
 }
 
-func (s *SearchRepository) Song(track string, artist string) (model.SongInAPI, error) {
+func (s *SearchRepository) Song(track string, artist string, album string) (model.SongInAPI, error) {
 	searchReqBody := SearchRequest{
 		Track:   track,
 		Artist:  artist,
+		Album:   album,
 		Type:    "track",
 		Sources: []string{"spotify"},
 	}
