@@ -191,5 +191,12 @@ func (p *PlaylistHandler) ConvertHandler(c echo.Context) error {
 		Expiry:       user.ExpiresAt,
 	}
 
-	return p.service.Convert(c.Request().Context(), provider, token, newReqBody.PlaylistName, songs)
+	err = p.service.Convert(c.Request().Context(), provider, token, newReqBody.PlaylistName, songs)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{
+		"message": "Converted successfully",
+	})
 }
