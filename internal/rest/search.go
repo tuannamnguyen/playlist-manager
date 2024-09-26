@@ -8,7 +8,7 @@ import (
 )
 
 type SearchService interface {
-	SongSearch(track string, artist string) (model.SongInAPI, error)
+	SongSearch(track string, artist string, album string) (model.SongInAPI, error)
 }
 
 type SearchHandler struct {
@@ -23,6 +23,7 @@ func (s *SearchHandler) SearchMusicData(c echo.Context) error {
 	type searchBody struct {
 		Track  string `json:"track"`
 		Artist string `json:"artist"`
+		Album  string `json:"album"`
 	}
 
 	var reqBody searchBody
@@ -31,7 +32,7 @@ func (s *SearchHandler) SearchMusicData(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "error binding search body")
 	}
 
-	song, err := s.service.SongSearch(reqBody.Track, reqBody.Artist)
+	song, err := s.service.SongSearch(reqBody.Track, reqBody.Artist, reqBody.Album)
 	if err != nil {
 		c.Logger().Error()
 		return echo.NewHTTPError(http.StatusInternalServerError, "error searching for song")

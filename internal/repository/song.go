@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
@@ -38,7 +37,7 @@ func (s *SongRepository) InsertAndGetID(ctx context.Context, song model.SongInDB
 	var lastInsertID int
 	err := row.Scan(&lastInsertID)
 	if err != nil {
-		return 0, fmt.Errorf("scanning last inserted song ID: %w", err)
+		return 0, &rowScanError{err}
 	}
 
 	return lastInsertID, nil
