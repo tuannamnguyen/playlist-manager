@@ -57,7 +57,7 @@ func mapSinglePlaylistDBToApiResponse(playlistOutDB model.PlaylistOutDB) model.P
 	if playlistOutDB.PlaylistDescription.Valid {
 		playlistDescription = playlistOutDB.PlaylistDescription.String
 	} else {
-		playlistDescription = "You have not added a description"
+		playlistDescription = ""
 	}
 
 	playlistAPIResponse := model.Playlist{
