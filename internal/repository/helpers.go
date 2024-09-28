@@ -41,3 +41,32 @@ func parsePlaylistSongData(rows []model.SongOutDB) []model.SongOutAPI {
 
 	return result
 }
+
+func mapPlaylistDBToAPI(playlistsOutDB []model.PlaylistOutDB) []model.Playlist {
+	var playlists []model.Playlist
+	for _, playlistOutDB := range playlistsOutDB {
+		playlistAPIResponse := mapSinglePlaylistDBToApiResponse(playlistOutDB)
+
+		playlists = append(playlists, playlistAPIResponse)
+	}
+	return playlists
+}
+
+func mapSinglePlaylistDBToApiResponse(playlistOutDB model.PlaylistOutDB) model.Playlist {
+	var playlistDescription string
+	if playlistOutDB.PlaylistDescription.Valid {
+		playlistDescription = playlistOutDB.PlaylistDescription.String
+	} else {
+		playlistDescription = "You have not added a description"
+	}
+
+	playlistAPIResponse := model.Playlist{
+		ID:                  playlistOutDB.ID,
+		Name:                playlistOutDB.Name,
+		PlaylistDescription: playlistDescription,
+		UserID:              playlistOutDB.UserID,
+		Username:            playlistOutDB.Username,
+		Timestamp:           playlistOutDB.Timestamp,
+	}
+	return playlistAPIResponse
+}

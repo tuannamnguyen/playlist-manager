@@ -1,11 +1,22 @@
 package model
 
+import "database/sql"
+
 type Playlist struct {
 	ID                  int    `json:"playlist_id" db:"playlist_id"`
 	Name                string `json:"playlist_name" db:"playlist_name"`
 	PlaylistDescription string `json:"playlist_description" db:"playlist_description"`
 	UserID              string `json:"user_id" db:"user_id"`
 	Username            string `json:"user_name" db:"user_name"`
+	Timestamp
+}
+
+type PlaylistOutDB struct {
+	ID                  int            `json:"playlist_id" db:"playlist_id"`
+	Name                string         `json:"playlist_name" db:"playlist_name"`
+	PlaylistDescription sql.NullString `json:"playlist_description" db:"playlist_description"`
+	UserID              string         `json:"user_id" db:"user_id"`
+	Username            string         `json:"user_name" db:"user_name"`
 	Timestamp
 }
 
