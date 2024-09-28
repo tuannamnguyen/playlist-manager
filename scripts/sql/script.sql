@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS playlist (
     playlist_name TEXT NOT NULL,
     user_id TEXT NOT NULL,
     user_name TEXT NOT NULL,
+    playlist_description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (playlist_name, user_id)
