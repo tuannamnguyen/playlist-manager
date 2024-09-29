@@ -109,8 +109,10 @@ func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID int
 		}
 
 		songID, err := p.songRepo.InsertAndGetID(ctx, model.SongInDB{
-			Name:    song.Name,
-			AlbumID: albumID,
+			Name:     song.Name,
+			AlbumID:  albumID,
+			Duration: song.Duration,
+			ImageURL: "https://picsum.photos/200/300", // TODO: remove this hardcode later
 		})
 		if err != nil {
 			return err

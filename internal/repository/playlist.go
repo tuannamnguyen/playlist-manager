@@ -22,10 +22,10 @@ func (p *PlaylistRepository) Insert(ctx context.Context, playlistModel model.Pla
 
 	_, err := p.db.ExecContext(
 		ctx,
-		`INSERT INTO playlist (playlist_name, user_id, user_name, updated_at, created_at)
-		VALUES ($1, $2, $3, $4, $5)
+		`INSERT INTO playlist (playlist_name, user_id, user_name, playlist_description, updated_at, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING playlist_id`,
-		playlistModel.Name, playlistModel.UserID, playlistModel.Username, updatedAt, createdAt,
+		playlistModel.Name, playlistModel.UserID, playlistModel.Username, playlistModel.PlaylistDescription, updatedAt, createdAt,
 	)
 
 	if err != nil {
@@ -36,7 +36,7 @@ func (p *PlaylistRepository) Insert(ctx context.Context, playlistModel model.Pla
 }
 
 func (p *PlaylistRepository) SelectAll(ctx context.Context, userID string) ([]model.Playlist, error) {
-	var playlists []model.Playlist
+	var playlistsOutDB []model.PlaylistOutDB
 	var query string
 	var args []interface{}
 
@@ -47,23 +47,25 @@ func (p *PlaylistRepository) SelectAll(ctx context.Context, userID string) ([]mo
 		query = "SELECT * FROM playlist"
 	}
 
-	err := p.db.SelectContext(ctx, &playlists, query, args...)
+	err := p.db.SelectContext(ctx, &playlistsOutDB, query, args...)
 	if err != nil {
 		return nil, &selectError{err}
 	}
+
+	playlists := mapPlaylistDBToAPI(playlistsOutDB)
 
 	return playlists, nil
 }
 
 func (p *PlaylistRepository) SelectWithID(ctx context.Context, id int) (model.Playlist, error) {
-	var playlist model.Playlist
+	var playlist model.PlaylistOutDB
 
 	err := p.db.QueryRowxContext(ctx, "SELECT * FROM playlist WHERE playlist_id = $1", id).StructScan(&playlist)
 	if err != nil {
 		return model.Playlist{}, &structScanError{err}
 	}
 
-	return playlist, nil
+	return mapSinglePlaylistDBToApiResponse(playlist), nil
 }
 
 func (p *PlaylistRepository) DeleteByID(ctx context.Context, id int) error {
