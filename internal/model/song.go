@@ -27,5 +27,7 @@ type SongOutDB struct {
 	Name       string `db:"song_name"`
 	AlbumName  string `db:"album_name"`
 	ArtistName string `db:"artist_name"`
+	ImageURL   string `db:"image_url"`
+	Duration   int    `db:"duration"`
 	Timestamp
 }
