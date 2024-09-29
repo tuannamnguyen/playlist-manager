@@ -8,8 +8,10 @@ type SongInAPI struct {
 }
 
 type SongInDB struct {
-	Name    string `db:"song_name"`
-	AlbumID int    `db:"album_id"`
+	Name     string `db:"song_name"`
+	AlbumID  int    `db:"album_id"`
+	ImageURL string `db:"image_url"`
+	Duration int    `db:"duration"`
 }
 
 type SongOutAPI struct {

@@ -23,6 +23,8 @@ func parsePlaylistSongData(rows []model.SongOutDB) []model.SongOutAPI {
 				Name:        row.Name,
 				ArtistNames: []string{row.ArtistName},
 				AlbumName:   row.AlbumName,
+				ImageURL:    row.ImageURL,
+				Duration:    row.Duration,
 				Timestamp:   row.Timestamp,
 			}
 		}
