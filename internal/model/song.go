@@ -4,6 +4,7 @@ type SongInAPI struct {
 	Name        string   `json:"song_name"`
 	ArtistNames []string `json:"artist_names"`
 	AlbumName   string   `json:"album_name"`
+	Duration    int      `json:"duration"`
 }
 
 type SongInDB struct {
@@ -16,6 +17,8 @@ type SongOutAPI struct {
 	Name        string   `json:"song_name"`
 	ArtistNames []string `json:"artist_names"`
 	AlbumName   string   `json:"album_name"`
+	ImageURL    string   `json:"image_url"`
+	Duration    int      `json:"duration"`
 	Timestamp
 }
 
