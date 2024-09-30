@@ -28,6 +28,10 @@ services:
         source: ./scripts/sql/script.sql
         target: /docker-entrypoint-initdb.d/script.sql
         read_only: true
+      - type: bind
+        source: ./scripts/sql/fake_data.sql
+        target: /fake_data.sql
+        read_only: true
     ports:
       - 5432:5432
     healthcheck:

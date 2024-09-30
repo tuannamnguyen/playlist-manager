@@ -16,16 +16,22 @@ func NewPlaylistRepository(db *sqlx.DB) *PlaylistRepository {
 	return &PlaylistRepository{db}
 }
 
-func (p *PlaylistRepository) Insert(ctx context.Context, playlistModel model.PlaylistIn) error {
+func (p *PlaylistRepository) Insert(ctx context.Context, playlistModel model.PlaylistInDB) error {
 	updatedAt := time.Now()
 	createdAt := time.Now()
 
 	_, err := p.db.ExecContext(
 		ctx,
-		`INSERT INTO playlist (playlist_name, user_id, user_name, playlist_description, updated_at, created_at)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		`INSERT INTO playlist (playlist_name, user_id, user_name, playlist_description, updated_at, created_at, image_url)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		RETURNING playlist_id`,
-		playlistModel.Name, playlistModel.UserID, playlistModel.Username, playlistModel.PlaylistDescription, updatedAt, createdAt,
+		playlistModel.Name,
+		playlistModel.UserID,
+		playlistModel.Username,
+		playlistModel.PlaylistDescription,
+		updatedAt,
+		createdAt,
+		playlistModel.ImageURL,
 	)
 
 	if err != nil {

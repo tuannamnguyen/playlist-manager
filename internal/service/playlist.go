@@ -8,7 +8,7 @@ import (
 )
 
 type PlaylistRepository interface {
-	Insert(ctx context.Context, playlistModel model.PlaylistIn) error
+	Insert(ctx context.Context, playlistModel model.PlaylistInDB) error
 	SelectAll(ctx context.Context, userID string) ([]model.Playlist, error)
 	SelectWithID(ctx context.Context, id int) (model.Playlist, error)
 	DeleteByID(ctx context.Context, id int) error
@@ -75,7 +75,15 @@ func NewPlaylist(
 }
 
 func (p *PlaylistService) Add(ctx context.Context, playlistModel model.PlaylistIn) error {
-	return p.playlistRepo.Insert(ctx, playlistModel)
+	playlistInDBModel := model.PlaylistInDB{
+		Name:                playlistModel.Name,
+		PlaylistDescription: playlistModel.PlaylistDescription,
+		UserID:              playlistModel.UserID,
+		Username:            playlistModel.Username,
+		ImageURL:            "https://picsum.photos/200/300", // TODO: remove this hardcode later
+	}
+
+	return p.playlistRepo.Insert(ctx, playlistInDBModel)
 }
 
 func (p *PlaylistService) GetAll(ctx context.Context, userID string) ([]model.Playlist, error) {
