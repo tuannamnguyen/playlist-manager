@@ -13,5 +13,6 @@ terraform {
 }
 
 provider "google" {
-  project = "playlist-manager-430015"
+  project = "playlist-manager-437214"
+  region  = "asia-southeast1"
 }
