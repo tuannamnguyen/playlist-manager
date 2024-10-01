@@ -89,3 +89,11 @@ type putObjectError struct {
 func (p *putObjectError) Error() string {
 	return fmt.Sprintf("put object in storage: %s", p.err.Error())
 }
+
+type presignedGetError struct {
+	err error
+}
+
+func (p *presignedGetError) Error() string {
+	return fmt.Sprintf("get presigned get url: %s", p.err.Error())
+}

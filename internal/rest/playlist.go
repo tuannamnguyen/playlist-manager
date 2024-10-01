@@ -20,7 +20,7 @@ type PlaylistService interface {
 	GetAll(ctx context.Context, userID string) ([]model.Playlist, error)
 	GetByID(ctx context.Context, id int) (model.Playlist, error)
 	DeleteByID(ctx context.Context, id int) error
-	AddPictureForPlaylist(ctx context.Context, playlistID string, file multipart.File, header *multipart.FileHeader) error
+	AddPictureForPlaylist(ctx context.Context, playlistID string, file multipart.File, header *multipart.FileHeader) (string, error)
 
 	// playlist-song operations
 	AddSongsToPlaylist(ctx context.Context, playlistID int, songs []model.SongInAPI) error
@@ -117,12 +117,14 @@ func (p *PlaylistHandler) UploadPictureForPlaylist(c echo.Context) error {
 	}
 	defer file.Close()
 
-	err = p.service.AddPictureForPlaylist(c.Request().Context(), playlistID, file, header)
+	preSignedURL, err := p.service.AddPictureForPlaylist(c.Request().Context(), playlistID, file, header)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	return c.NoContent(http.StatusOK) // TODO: update this later
+	return c.JSON(http.StatusOK, map[string]string{
+		"image_url": preSignedURL,
+	})
 }
 
 func (p *PlaylistHandler) AddSongsToPlaylist(c echo.Context) error {

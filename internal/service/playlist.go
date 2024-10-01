@@ -13,7 +13,7 @@ type PlaylistRepository interface {
 	SelectAll(ctx context.Context, userID string) ([]model.Playlist, error)
 	SelectWithID(ctx context.Context, id int) (model.Playlist, error)
 	DeleteByID(ctx context.Context, id int) error
-	AddPlaylistPicture(ctx context.Context, playlistID string, file multipart.File, header *multipart.FileHeader) error
+	AddPlaylistPicture(ctx context.Context, playlistID string, file multipart.File, header *multipart.FileHeader) (string, error)
 }
 
 type SongRepository interface {
@@ -100,7 +100,7 @@ func (p *PlaylistService) DeleteByID(ctx context.Context, id int) error {
 	return p.playlistRepo.DeleteByID(ctx, id)
 }
 
-func (p *PlaylistService) AddPictureForPlaylist(ctx context.Context, playlistID string, file multipart.File, header *multipart.FileHeader) error {
+func (p *PlaylistService) AddPictureForPlaylist(ctx context.Context, playlistID string, file multipart.File, header *multipart.FileHeader) (string, error) {
 	return p.playlistRepo.AddPlaylistPicture(ctx, playlistID, file, header)
 }
 

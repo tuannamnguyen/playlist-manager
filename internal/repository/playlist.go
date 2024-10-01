@@ -88,7 +88,7 @@ func (p *PlaylistRepository) DeleteByID(ctx context.Context, id int) error {
 	return nil
 }
 
-func (p *PlaylistRepository) AddPlaylistPicture(ctx context.Context, playlistID string, file multipart.File, header *multipart.FileHeader) error {
+func (p *PlaylistRepository) AddPlaylistPicture(ctx context.Context, playlistID string, file multipart.File, header *multipart.FileHeader) (string, error) {
 	bucketName := "playlist-cover"
 	contentType := header.Header.Get("Content-Type")
 
@@ -108,8 +108,13 @@ func (p *PlaylistRepository) AddPlaylistPicture(ctx context.Context, playlistID 
 	)
 
 	if err != nil {
-		return &putObjectError{err}
+		return "", &putObjectError{err}
 	}
 
-	return nil
+	preSignedURL, err := p.minioClient.PresignedGetObject(ctx, bucketName, filename, 24*time.Hour, nil)
+	if err != nil {
+		return "", &presignedGetError{err}
+	}
+
+	return preSignedURL.String(), nil
 }
