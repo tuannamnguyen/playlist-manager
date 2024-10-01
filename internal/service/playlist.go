@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"mime/multipart"
 
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
 	"golang.org/x/oauth2"
@@ -12,6 +13,7 @@ type PlaylistRepository interface {
 	SelectAll(ctx context.Context, userID string) ([]model.Playlist, error)
 	SelectWithID(ctx context.Context, id int) (model.Playlist, error)
 	DeleteByID(ctx context.Context, id int) error
+	AddPlaylistPicture(ctx context.Context, playlistID string, file multipart.File, header *multipart.FileHeader) error
 }
 
 type SongRepository interface {
@@ -96,6 +98,10 @@ func (p *PlaylistService) GetByID(ctx context.Context, id int) (model.Playlist, 
 
 func (p *PlaylistService) DeleteByID(ctx context.Context, id int) error {
 	return p.playlistRepo.DeleteByID(ctx, id)
+}
+
+func (p *PlaylistService) AddPictureForPlaylist(ctx context.Context, playlistID string, file multipart.File, header *multipart.FileHeader) error {
+	return p.playlistRepo.AddPlaylistPicture(ctx, playlistID, file, header)
 }
 
 func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID int, songs []model.SongInAPI) error {

@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 	"fmt"
+	"mime/multipart"
 	"net/http"
 	"strconv"
 
@@ -19,6 +20,7 @@ type PlaylistService interface {
 	GetAll(ctx context.Context, userID string) ([]model.Playlist, error)
 	GetByID(ctx context.Context, id int) (model.Playlist, error)
 	DeleteByID(ctx context.Context, id int) error
+	AddPictureForPlaylist(ctx context.Context, playlistID string, file multipart.File, header *multipart.FileHeader) error
 
 	// playlist-song operations
 	AddSongsToPlaylist(ctx context.Context, playlistID int, songs []model.SongInAPI) error
@@ -99,6 +101,28 @@ func (p *PlaylistHandler) DeleteByID(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]int{
 		"playlist_id": id,
 	})
+}
+
+func (p *PlaylistHandler) UploadPictureForPlaylist(c echo.Context) error {
+	playlistID := c.Param("id")
+
+	header, err := c.FormFile("image")
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	file, err := header.Open()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	defer file.Close()
+
+	err = p.service.AddPictureForPlaylist(c.Request().Context(), playlistID, file, header)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	return c.NoContent(http.StatusOK) // TODO: update this later
 }
 
 func (p *PlaylistHandler) AddSongsToPlaylist(c echo.Context) error {
