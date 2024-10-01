@@ -121,6 +121,7 @@ func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID int
 			AlbumID:  albumID,
 			Duration: song.Duration,
 			ImageURL: song.ImageURL,
+			ISRC:     song.ISRC,
 		})
 		if err != nil {
 			return err

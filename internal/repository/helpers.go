@@ -17,6 +17,13 @@ func parsePlaylistSongData(rows []model.SongOutDB) []model.SongOutAPI {
 				song.ArtistNames = append(song.ArtistNames, row.ArtistName)
 			}
 		} else {
+			var ISRC string
+			if row.ISRC.Valid {
+				ISRC = row.ISRC.String
+			} else {
+				ISRC = ""
+			}
+
 			// Create a new song entry
 			songMap[row.ID] = &model.SongOutAPI{
 				ID:          row.ID,
@@ -26,6 +33,7 @@ func parsePlaylistSongData(rows []model.SongOutDB) []model.SongOutAPI {
 				ImageURL:    row.ImageURL,
 				Duration:    row.Duration,
 				Timestamp:   row.Timestamp,
+				ISRC:        ISRC,
 			}
 		}
 	}
@@ -84,6 +92,7 @@ func transformSearchAPIResponse(searchRes SearchResponse) []model.SongInAPI {
 			AlbumName:   track.Data.AlbumName,
 			Duration:    track.Data.Duration,
 			ImageURL:    track.Data.ImageURL,
+			ISRC:        track.Data.ISRC,
 		}
 	}
 
