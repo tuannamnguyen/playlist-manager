@@ -2,18 +2,23 @@ package repository
 
 import (
 	"context"
+	"fmt"
+	"mime/multipart"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	"github.com/minio/minio-go/v7"
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
 )
 
 type PlaylistRepository struct {
-	db *sqlx.DB
+	db          *sqlx.DB
+	minioClient *minio.Client
 }
 
-func NewPlaylistRepository(db *sqlx.DB) *PlaylistRepository {
-	return &PlaylistRepository{db}
+func NewPlaylistRepository(db *sqlx.DB, minioClient *minio.Client) *PlaylistRepository {
+	return &PlaylistRepository{db, minioClient}
 }
 
 func (p *PlaylistRepository) Insert(ctx context.Context, playlistModel model.PlaylistInDB) error {
@@ -81,4 +86,35 @@ func (p *PlaylistRepository) DeleteByID(ctx context.Context, id int) error {
 	}
 
 	return nil
+}
+
+func (p *PlaylistRepository) AddPlaylistPicture(ctx context.Context, playlistID string, file multipart.File, header *multipart.FileHeader) (string, error) {
+	bucketName := "playlist-cover"
+	contentType := header.Header.Get("Content-Type")
+
+	timestamp := time.Now().Format(time.RFC3339)
+	uuid := uuid.New().String()
+	filename := fmt.Sprintf("%s/%s_%s_%s", playlistID, timestamp, uuid, header.Filename)
+
+	_, err := p.minioClient.PutObject(
+		ctx,
+		bucketName,
+		filename,
+		file,
+		header.Size,
+		minio.PutObjectOptions{
+			ContentType: contentType,
+		},
+	)
+
+	if err != nil {
+		return "", &putObjectError{err}
+	}
+
+	preSignedURL, err := p.minioClient.PresignedGetObject(ctx, bucketName, filename, 24*time.Hour, nil)
+	if err != nil {
+		return "", &presignedGetError{err}
+	}
+
+	return preSignedURL.String(), nil
 }
