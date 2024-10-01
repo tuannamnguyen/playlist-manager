@@ -64,7 +64,7 @@ func (ps *PlaylistSongRepository) BulkInsert(ctx context.Context, playlistID int
 }
 
 func (ps *PlaylistSongRepository) GetAll(ctx context.Context, playlistID int) ([]model.SongOutAPI, error) {
-	query := `SELECT pls.song_id, s.song_name, s.image_url, s.duration, al.album_name, ar.artist_name, pls.created_at, pls.updated_at
+	query := `SELECT pls.song_id, s.song_name, s.image_url, s.duration, s.isrc, al.album_name, ar.artist_name, pls.created_at, pls.updated_at
 				FROM playlist_song AS pls
 				JOIN playlist AS pl
 				ON pl.playlist_id = pls.playlist_id

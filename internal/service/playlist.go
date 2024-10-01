@@ -120,7 +120,8 @@ func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID int
 			Name:     song.Name,
 			AlbumID:  albumID,
 			Duration: song.Duration,
-			ImageURL: "https://picsum.photos/200/300", // TODO: remove this hardcode later
+			ImageURL: song.ImageURL,
+			ISRC:     song.ISRC,
 		})
 		if err != nil {
 			return err

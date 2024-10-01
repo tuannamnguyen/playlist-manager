@@ -1,8 +1,8 @@
 -- Insert sample data into the playlist table
-INSERT INTO playlist (playlist_name, user_id, user_name) VALUES
-('Chill Vibes', 'google-oauth2|117047339491229984586', 'Nguyen Tuan Nam'),
-('Workout Hits', 'auth0|6699dbf5833b63066b68e209', 'Nguyen Tuan Nam'),
-('Classic Rock', 'google-oauth2|106477541749932989337', 'Nguyen Tuan Nam');
+INSERT INTO playlist (playlist_name, user_id, user_name, image_url) VALUES
+('Chill Vibes', 'google-oauth2|117047339491229984586', 'Nguyen Tuan Nam', 'https://picsum.photos/200/300'),
+('Workout Hits', 'auth0|6699dbf5833b63066b68e209', 'Nguyen Tuan Nam', 'https://picsum.photos/200/300'),
+('Classic Rock', 'google-oauth2|106477541749932989337', 'Nguyen Tuan Nam', 'https://picsum.photos/200/300');
 
 -- Insert sample data into the album table
 INSERT INTO album (album_name) VALUES
