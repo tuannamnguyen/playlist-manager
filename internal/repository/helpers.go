@@ -73,3 +73,19 @@ func mapSinglePlaylistDBToApiResponse(playlistOutDB model.PlaylistOutDB) model.P
 	}
 	return playlistAPIResponse
 }
+
+func transformSearchAPIResponse(searchRes SearchResponse) []model.SongInAPI {
+	result := make([]model.SongInAPI, len(searchRes.Tracks))
+
+	for i, track := range searchRes.Tracks {
+		result[i] = model.SongInAPI{
+			Name:        track.Data.Name,
+			ArtistNames: track.Data.ArtistNames,
+			AlbumName:   track.Data.AlbumName,
+			Duration:    track.Data.Duration,
+			ImageURL:    track.Data.ImageURL,
+		}
+	}
+
+	return result
+}
