@@ -16,7 +16,7 @@ import (
 
 type PlaylistService interface {
 	// playlist operations
-	Add(ctx context.Context, playlistModel model.PlaylistIn) error
+	Add(ctx context.Context, playlistModel model.PlaylistIn) (int, error)
 	GetAll(ctx context.Context, userID string) ([]model.Playlist, error)
 	GetByID(ctx context.Context, id int) (model.Playlist, error)
 	DeleteByID(ctx context.Context, id int) error
@@ -54,12 +54,14 @@ func (p *PlaylistHandler) Add(c echo.Context) error {
 		return err
 	}
 
-	err = p.service.Add(c.Request().Context(), playlist)
+	id, err := p.service.Add(c.Request().Context(), playlist)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	return c.JSON(http.StatusCreated, playlist)
+	return c.JSON(http.StatusCreated, map[string]int{
+		"playlist_id": id,
+	})
 }
 
 func (p *PlaylistHandler) GetAll(c echo.Context) error {
