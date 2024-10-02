@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"mime/multipart"
+	"os"
 	"time"
 
 	"github.com/google/uuid"
@@ -96,7 +97,7 @@ func (p *PlaylistRepository) AddPlaylistPicture(ctx context.Context, playlistID 
 	uuid := uuid.New().String()
 	filename := fmt.Sprintf("%s/%s_%s_%s", playlistID, timestamp, uuid, header.Filename)
 
-	_, err := p.minioClient.PutObject(
+	info, err := p.minioClient.PutObject(
 		ctx,
 		bucketName,
 		filename,
@@ -111,10 +112,5 @@ func (p *PlaylistRepository) AddPlaylistPicture(ctx context.Context, playlistID 
 		return "", &putObjectError{err}
 	}
 
-	preSignedURL, err := p.minioClient.PresignedGetObject(ctx, bucketName, filename, 24*time.Hour, nil)
-	if err != nil {
-		return "", &presignedGetError{err}
-	}
-
-	return preSignedURL.String(), nil
+	return fmt.Sprintf("%s/%s/%s", os.Getenv("OBJECT_STORAGE_ENDPOINT"), info.Bucket, info.Key), nil
 }
