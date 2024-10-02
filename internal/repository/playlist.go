@@ -114,7 +114,7 @@ func (p *PlaylistRepository) AddPlaylistPicture(ctx context.Context, playlistID 
 		return "", &putObjectError{err}
 	}
 
-	imageURL := fmt.Sprintf("%s/%s/%s", os.Getenv("OBJECT_STORAGE_ENDPOINT"), info.Bucket, info.Key)
+	imageURL := fmt.Sprintf("http://%s/%s/%s", os.Getenv("OBJECT_STORAGE_ENDPOINT"), info.Bucket, info.Key)
 
 	_, err = p.db.ExecContext(ctx,
 		`UPDATE playlist

@@ -42,6 +42,8 @@ func (cv *CustomValidator) Validate(i any) error {
 	return nil
 }
 
+var bucketName = "playlist-cover"
+
 func main() {
 	// setup .env
 	err := godotenvvault.Load()
@@ -85,6 +87,18 @@ func main() {
 	})
 	if err != nil {
 		log.Fatalf("error setting up minio client: %s", err)
+	}
+
+	exists, err := minioClient.BucketExists(context.Background(), bucketName)
+	if err != nil {
+		log.Fatalf("error checking bucket exists: %s", err)
+	}
+
+	if !exists {
+		err = minioClient.MakeBucket(context.Background(), bucketName, minio.MakeBucketOptions{})
+		if err != nil {
+			log.Fatalf("error creating new bucket: %s", err)
+		}
 	}
 
 	// setup session and OAuth2
