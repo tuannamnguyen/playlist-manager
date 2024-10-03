@@ -13,6 +13,7 @@ require (
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/markbates/goth v1.80.0
 	github.com/minio/minio-go/v7 v7.0.77
+	github.com/rhnvrm/lyric-api-go v0.1.4
 	github.com/stretchr/testify v1.9.0
 	github.com/zmb3/spotify/v2 v2.4.2
 	golang.org/x/oauth2 v0.17.0
@@ -20,6 +21,8 @@ require (
 )
 
 require (
+	github.com/PuerkitoBio/goquery v1.4.1 // indirect
+	github.com/andybalholm/cascadia v1.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/garyburd/redigo v1.6.4 // indirect
@@ -29,9 +32,11 @@ require (
 	github.com/goccy/go-json v0.10.3 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/gopherjs/gopherjs v1.17.2 // indirect
 	github.com/gorilla/context v1.1.1 // indirect
 	github.com/gorilla/mux v1.6.2 // indirect
 	github.com/gorilla/securecookie v1.1.1 // indirect
+	github.com/gosimple/slug v1.2.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
@@ -45,6 +50,7 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/minio/md5-simd v1.1.2 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/rainycape/unidecode v0.0.0-20150907023854-cb7f23ec59be // indirect
 	github.com/rs/xid v1.6.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
