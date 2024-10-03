@@ -53,41 +53,42 @@ func NewSearchRepository(httpClient *http.Client) *SearchRepository {
 	return &SearchRepository{httpClient: httpClient}
 }
 
-func (s *SearchRepository) Song(track string, artist string, album string) (model.SongInAPI, error) {
+func (s *SearchRepository) Song(track string, artist string, album string) ([]model.SongInAPI, error) {
 	searchReqBody := SearchRequest{
-		Track:   track,
-		Artist:  artist,
-		Album:   album,
-		Type:    "track",
-		Sources: []string{"spotify"},
+		Track:  track,
+		Artist: artist,
+		Album:  album,
+		Type:   "track",
+		Sources: []string{
+			"spotify",
+			"appleMusic",
+			"tidal",
+			"amazonMusic",
+		},
 	}
 	searchReqBodyEncoded, err := json.Marshal(searchReqBody)
 	if err != nil {
-		return model.SongInAPI{}, fmt.Errorf("marshalling search request body: %w", err)
+		return nil, fmt.Errorf("marshalling search request body: %w", err)
 	}
 
 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/public/search", os.Getenv("MUSIC_API_ENDPOINT")), bytes.NewBuffer(searchReqBodyEncoded))
 	if err != nil {
-		return model.SongInAPI{}, &requestMarshalError{err}
+		return nil, &requestMarshalError{err}
 	}
 	req.Header.Set("Authorization", fmt.Sprintf("Token %s", os.Getenv("MUSIC_API_CLIENT_ID")))
 	req.Header.Set("Content-Type", echo.MIMEApplicationJSON)
 
 	res, err := s.httpClient.Do(req)
 	if err != nil || res.StatusCode != 200 {
-		return model.SongInAPI{}, fmt.Errorf("fetching info from music api: %w", err)
+		return nil, fmt.Errorf("fetching info from music api: %w", err)
 	}
 	defer res.Body.Close()
 
 	var searchRes SearchResponse
 	err = json.NewDecoder(res.Body).Decode(&searchRes)
 	if err != nil {
-		return model.SongInAPI{}, &responseDecodeError{err}
+		return nil, &responseDecodeError{err}
 	}
 
-	return model.SongInAPI{
-		Name:        searchRes.Tracks[0].Data.Name,
-		ArtistNames: searchRes.Tracks[0].Data.ArtistNames,
-		AlbumName:   searchRes.Tracks[0].Data.AlbumName,
-	}, nil
+	return transformSearchAPIResponse(searchRes), nil
 }

@@ -21,20 +21,21 @@ func (s *SongRepository) InsertAndGetID(ctx context.Context, song model.SongInDB
 	row := s.db.QueryRowxContext(
 		ctx,
 		`WITH ins AS (
-			INSERT INTO song (song_name, album_id, image_url, duration)
-			VALUES ($1, $2, $3, $4)
+			INSERT INTO song (song_name, album_id, image_url, duration, isrc)
+			VALUES ($1, $2, $3, $4, $5)
 			ON CONFLICT DO NOTHING
 			RETURNING song_id
 		)
 			SELECT song_id FROM ins
 			UNION ALL
 			SELECT song_id FROM song
-			WHERE (song_name, album_id) IN (($5, $6))
+			WHERE (song_name, album_id) IN (($6, $7))
 			LIMIT 1`,
 		song.Name,
 		song.AlbumID,
 		song.ImageURL,
 		song.Duration,
+		song.ISRC,
 		song.Name,
 		song.AlbumID,
 	)

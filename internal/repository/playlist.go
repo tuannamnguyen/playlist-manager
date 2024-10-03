@@ -2,25 +2,31 @@ package repository
 
 import (
 	"context"
+	"fmt"
+	"mime/multipart"
+	"os"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	"github.com/minio/minio-go/v7"
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
 )
 
 type PlaylistRepository struct {
-	db *sqlx.DB
+	db          *sqlx.DB
+	minioClient *minio.Client
 }
 
-func NewPlaylistRepository(db *sqlx.DB) *PlaylistRepository {
-	return &PlaylistRepository{db}
+func NewPlaylistRepository(db *sqlx.DB, minioClient *minio.Client) *PlaylistRepository {
+	return &PlaylistRepository{db, minioClient}
 }
 
-func (p *PlaylistRepository) Insert(ctx context.Context, playlistModel model.PlaylistInDB) error {
+func (p *PlaylistRepository) Insert(ctx context.Context, playlistModel model.PlaylistInDB) (int, error) {
 	updatedAt := time.Now()
 	createdAt := time.Now()
 
-	_, err := p.db.ExecContext(
+	row := p.db.QueryRowxContext(
 		ctx,
 		`INSERT INTO playlist (playlist_name, user_id, user_name, playlist_description, updated_at, created_at, image_url)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -34,11 +40,13 @@ func (p *PlaylistRepository) Insert(ctx context.Context, playlistModel model.Pla
 		playlistModel.ImageURL,
 	)
 
+	var lastInsertID int
+	err := row.Scan(&lastInsertID)
 	if err != nil {
-		return &execError{err}
+		return 0, &rowScanError{err}
 	}
 
-	return nil
+	return lastInsertID, nil
 }
 
 func (p *PlaylistRepository) SelectAll(ctx context.Context, userID string) ([]model.Playlist, error) {
@@ -81,4 +89,43 @@ func (p *PlaylistRepository) DeleteByID(ctx context.Context, id int) error {
 	}
 
 	return nil
+}
+
+func (p *PlaylistRepository) AddPlaylistPicture(ctx context.Context, playlistID string, file multipart.File, header *multipart.FileHeader) (string, error) {
+	bucketName := "playlist-cover"
+	contentType := header.Header.Get("Content-Type")
+
+	timestamp := time.Now().Format(time.RFC3339)
+	uuid := uuid.New().String()
+	filename := fmt.Sprintf("%s/%s_%s_%s", playlistID, timestamp, uuid, header.Filename)
+
+	info, err := p.minioClient.PutObject(
+		ctx,
+		bucketName,
+		filename,
+		file,
+		header.Size,
+		minio.PutObjectOptions{
+			ContentType: contentType,
+		},
+	)
+
+	if err != nil {
+		return "", &putObjectError{err}
+	}
+
+	imageURL := fmt.Sprintf("http://%s/%s/%s", os.Getenv("OBJECT_STORAGE_ENDPOINT"), info.Bucket, info.Key)
+
+	_, err = p.db.ExecContext(ctx,
+		`UPDATE playlist
+	SET image_url = $1
+	WHERE playlist_id = $2`,
+		imageURL,
+		playlistID,
+	)
+	if err != nil {
+		return "", &execError{err}
+	}
+
+	return imageURL, nil
 }

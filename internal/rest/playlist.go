@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 	"fmt"
+	"mime/multipart"
 	"net/http"
 	"strconv"
 
@@ -15,10 +16,11 @@ import (
 
 type PlaylistService interface {
 	// playlist operations
-	Add(ctx context.Context, playlistModel model.PlaylistIn) error
+	Add(ctx context.Context, playlistModel model.PlaylistIn) (int, error)
 	GetAll(ctx context.Context, userID string) ([]model.Playlist, error)
 	GetByID(ctx context.Context, id int) (model.Playlist, error)
 	DeleteByID(ctx context.Context, id int) error
+	AddPictureForPlaylist(ctx context.Context, playlistID string, file multipart.File, header *multipart.FileHeader) (string, error)
 
 	// playlist-song operations
 	AddSongsToPlaylist(ctx context.Context, playlistID int, songs []model.SongInAPI) error
@@ -52,12 +54,14 @@ func (p *PlaylistHandler) Add(c echo.Context) error {
 		return err
 	}
 
-	err = p.service.Add(c.Request().Context(), playlist)
+	id, err := p.service.Add(c.Request().Context(), playlist)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	return c.JSON(http.StatusCreated, playlist)
+	return c.JSON(http.StatusCreated, map[string]int{
+		"playlist_id": id,
+	})
 }
 
 func (p *PlaylistHandler) GetAll(c echo.Context) error {
@@ -98,6 +102,30 @@ func (p *PlaylistHandler) DeleteByID(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, map[string]int{
 		"playlist_id": id,
+	})
+}
+
+func (p *PlaylistHandler) UploadPictureForPlaylist(c echo.Context) error {
+	playlistID := c.Param("id")
+
+	header, err := c.FormFile("image")
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	file, err := header.Open()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	defer file.Close()
+
+	preSignedURL, err := p.service.AddPictureForPlaylist(c.Request().Context(), playlistID, file, header)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{
+		"image_url": preSignedURL,
 	})
 }
 

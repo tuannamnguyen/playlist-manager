@@ -90,9 +90,10 @@ func (s *SpotifyConverter) formatSearchQuery(song model.SongOutAPI) string {
 	// Format track, album, and year (if available)
 	trackQuery := fmt.Sprintf("track:%s", wrapInQuotes(song.Name))
 	albumQuery := fmt.Sprintf("album:%s", wrapInQuotes(song.AlbumName))
+	isrcQuery := fmt.Sprintf("isrc:%s", wrapInQuotes(song.ISRC))
 
 	// Combine all parts of the query
-	queryParts := []string{trackQuery, artists, albumQuery}
+	queryParts := []string{trackQuery, artists, albumQuery, isrcQuery}
 
 	return strings.Join(queryParts, " ")
 }

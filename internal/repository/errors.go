@@ -81,3 +81,11 @@ type responseDecodeError struct {
 func (r *responseDecodeError) Error() string {
 	return fmt.Sprintf("response decode: %s", r.err.Error())
 }
+
+type putObjectError struct {
+	err error
+}
+
+func (p *putObjectError) Error() string {
+	return fmt.Sprintf("put object in storage: %s", p.err.Error())
+}
