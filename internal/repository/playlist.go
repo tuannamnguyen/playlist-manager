@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"mime/multipart"
+	"os"
 	"time"
 
 	"github.com/google/uuid"
@@ -21,11 +22,11 @@ func NewPlaylistRepository(db *sqlx.DB, minioClient *minio.Client) *PlaylistRepo
 	return &PlaylistRepository{db, minioClient}
 }
 
-func (p *PlaylistRepository) Insert(ctx context.Context, playlistModel model.PlaylistInDB) error {
+func (p *PlaylistRepository) Insert(ctx context.Context, playlistModel model.PlaylistInDB) (int, error) {
 	updatedAt := time.Now()
 	createdAt := time.Now()
 
-	_, err := p.db.ExecContext(
+	row := p.db.QueryRowxContext(
 		ctx,
 		`INSERT INTO playlist (playlist_name, user_id, user_name, playlist_description, updated_at, created_at, image_url)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -39,11 +40,13 @@ func (p *PlaylistRepository) Insert(ctx context.Context, playlistModel model.Pla
 		playlistModel.ImageURL,
 	)
 
+	var lastInsertID int
+	err := row.Scan(&lastInsertID)
 	if err != nil {
-		return &execError{err}
+		return 0, &rowScanError{err}
 	}
 
-	return nil
+	return lastInsertID, nil
 }
 
 func (p *PlaylistRepository) SelectAll(ctx context.Context, userID string) ([]model.Playlist, error) {
@@ -96,7 +99,7 @@ func (p *PlaylistRepository) AddPlaylistPicture(ctx context.Context, playlistID 
 	uuid := uuid.New().String()
 	filename := fmt.Sprintf("%s/%s_%s_%s", playlistID, timestamp, uuid, header.Filename)
 
-	_, err := p.minioClient.PutObject(
+	info, err := p.minioClient.PutObject(
 		ctx,
 		bucketName,
 		filename,
@@ -111,10 +114,18 @@ func (p *PlaylistRepository) AddPlaylistPicture(ctx context.Context, playlistID 
 		return "", &putObjectError{err}
 	}
 
-	preSignedURL, err := p.minioClient.PresignedGetObject(ctx, bucketName, filename, 24*time.Hour, nil)
+	imageURL := fmt.Sprintf("http://%s/%s/%s", os.Getenv("OBJECT_STORAGE_ENDPOINT"), info.Bucket, info.Key)
+
+	_, err = p.db.ExecContext(ctx,
+		`UPDATE playlist
+	SET image_url = $1
+	WHERE playlist_id = $2`,
+		imageURL,
+		playlistID,
+	)
 	if err != nil {
-		return "", &presignedGetError{err}
+		return "", &execError{err}
 	}
 
-	return preSignedURL.String(), nil
+	return imageURL, nil
 }
