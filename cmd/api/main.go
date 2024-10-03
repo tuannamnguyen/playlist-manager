@@ -25,8 +25,8 @@ import (
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/tuannamnguyen/playlist-manager/internal/repository"
 	"github.com/tuannamnguyen/playlist-manager/internal/rest"
+	"github.com/tuannamnguyen/playlist-manager/internal/rest/gothprovider/genius"
 	"github.com/tuannamnguyen/playlist-manager/internal/service"
-	spotifyauth "github.com/zmb3/spotify/v2/auth"
 	"gopkg.in/boj/redistore.v1"
 )
 
@@ -119,9 +119,15 @@ func main() {
 			os.Getenv("SPOTIFY_ID"),
 			os.Getenv("SPOTIFY_SECRET"),
 			os.Getenv("SPOTIFY_REDIRECT_URL"),
-			spotifyauth.ScopePlaylistModifyPrivate,
-			spotifyauth.ScopePlaylistModifyPublic,
-			spotifyauth.ScopePlaylistReadPrivate,
+			spotify.ScopePlaylistModifyPrivate,
+			spotify.ScopePlaylistModifyPublic,
+			spotify.ScopePlaylistReadPrivate,
+		),
+		genius.New(
+			os.Getenv("GENIUS_CLIENT_ID"),
+			os.Getenv("GENIUS_CLIENT_SECRET"),
+			os.Getenv("GENIUS_REDIRECT_URL"),
+			genius.ScopeMe,
 		),
 	)
 

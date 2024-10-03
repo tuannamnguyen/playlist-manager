@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 
 	"github.com/markbates/goth"
 	"golang.org/x/oauth2"
@@ -120,7 +121,7 @@ func userFromReader(r io.Reader, user *goth.User) error {
 			User struct {
 				Name     string `json:"name"`
 				Email    string `json:"email"`
-				ID       string `json:"id"`
+				ID       int    `json:"id"`
 				PhotoURL string `json:"photo_url"`
 			} `json:"user"`
 		} `json:"response"`
@@ -133,7 +134,7 @@ func userFromReader(r io.Reader, user *goth.User) error {
 
 	user.Name = geniusUserRes.Response.User.Name
 	user.Email = geniusUserRes.Response.User.Email
-	user.UserID = geniusUserRes.Response.User.ID
+	user.UserID = strconv.Itoa(geniusUserRes.Response.User.ID)
 	user.AvatarURL = geniusUserRes.Response.User.PhotoURL
 
 	return nil
