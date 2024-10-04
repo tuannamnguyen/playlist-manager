@@ -183,7 +183,7 @@ func setupAPIRouter(e *echo.Echo, db *sqlx.DB, httpClient *http.Client, store se
 	setupPlaylistRoutes(playlistRouter, db, store, minioClient)
 	setupSearchRoutes(searchRouter, httpClient)
 	setupOAuthRoutes(oauthRouter, store)
-	setupMetadataRoutes(metadataRouter)
+	setupMetadataRoutes(metadataRouter, store)
 }
 
 func setupPlaylistRoutes(router *echo.Group, db *sqlx.DB, store sessions.Store, minioClient *minio.Client) {
@@ -242,9 +242,10 @@ func setupOAuthRoutes(router *echo.Group, store sessions.Store) {
 	router.GET("/logout/:provider", oauthHandler.LogoutHandler)
 }
 
-func setupMetadataRoutes(router *echo.Group) {
+func setupMetadataRoutes(router *echo.Group, store sessions.Store) {
 	metadataService := service.NewMetadataService()
-	metadataHandler := rest.NewMetadataHandler(metadataService)
+	metadataHandler := rest.NewMetadataHandler(metadataService, store)
 
 	router.POST("/song_lyrics", metadataHandler.GetLyrics)
+	router.GET("/artist_information", metadataHandler.GetArtistInformation)
 }

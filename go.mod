@@ -4,6 +4,7 @@ go 1.22.3
 
 require (
 	github.com/auth0/go-jwt-middleware/v2 v2.2.1
+	github.com/broxgit/genius v0.1.2
 	github.com/dotenv-org/godotenvvault v0.6.0
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/google/uuid v1.6.0
@@ -23,6 +24,7 @@ require (
 require (
 	github.com/PuerkitoBio/goquery v1.4.1 // indirect
 	github.com/andybalholm/cascadia v1.0.0 // indirect
+	github.com/broxgit/common v0.0.0-20230608152442-9da45e59fc4f // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/garyburd/redigo v1.6.4 // indirect
@@ -52,6 +54,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rainycape/unidecode v0.0.0-20150907023854-cb7f23ec59be // indirect
 	github.com/rs/xid v1.6.0 // indirect
+	github.com/rs/zerolog v1.29.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	golang.org/x/crypto v0.26.0 // indirect
