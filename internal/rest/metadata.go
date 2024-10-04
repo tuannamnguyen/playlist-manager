@@ -50,5 +50,7 @@ func (m *MetadataHandler) GetArtistInformation(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	return c.Redirect(http.StatusTemporaryRedirect, artistURL)
+	return c.JSON(http.StatusOK, map[string]string{
+		"redirect_url": artistURL,
+	})
 }
