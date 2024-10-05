@@ -76,6 +76,7 @@ func main() {
 	}
 	defer db.Close()
 
+	// TODO: change to gcs (maybe)
 	// setup minio client
 	endpoint := os.Getenv("OBJECT_STORAGE_ENDPOINT")
 	accessKeyID := os.Getenv("MINIO_ACCESS_KEY")
@@ -239,6 +240,7 @@ func setupOAuthRoutes(router *echo.Group, store sessions.Store) {
 
 	router.GET("/:provider", oauthHandler.LoginHandler)
 	router.GET("/callback/:provider", oauthHandler.CallbackHandler)
+	router.GET("/token/:provider", oauthHandler.GetAccessTokenHandler)
 	router.GET("/check_auth/:provider", oauthHandler.CheckAuthHandler)
 	router.GET("/logout/:provider", oauthHandler.LogoutHandler)
 }
