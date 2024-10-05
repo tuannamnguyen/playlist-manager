@@ -239,6 +239,7 @@ func setupOAuthRoutes(router *echo.Group, store sessions.Store) {
 
 	router.GET("/:provider", oauthHandler.LoginHandler)
 	router.GET("/callback/:provider", oauthHandler.CallbackHandler)
+	router.GET("/token/:provider", oauthHandler.GetAccessTokenHandler)
 	router.GET("/check_auth/:provider", oauthHandler.CheckAuthHandler)
 	router.GET("/logout/:provider", oauthHandler.LogoutHandler)
 }
