@@ -122,6 +122,7 @@ func main() {
 			spotify.ScopePlaylistModifyPrivate,
 			spotify.ScopePlaylistModifyPublic,
 			spotify.ScopePlaylistReadPrivate,
+			spotify.ScopeStreaming,
 		),
 		genius.New(
 			os.Getenv("GENIUS_CLIENT_ID"),
