@@ -42,10 +42,16 @@ func (cv *CustomValidator) Validate(i any) error {
 }
 
 func main() {
+	if err := run(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func run() error {
 	// setup .env
 	err := godotenvvault.Load()
 	if err != nil {
-		log.Fatalf("error reading .env: %v", err)
+		return fmt.Errorf("error reading .env: %v", err)
 	}
 
 	// setup HTTP client
@@ -69,14 +75,14 @@ func main() {
 	)
 	db, err := sqlx.Connect("pgx", psqlInfo)
 	if err != nil {
-		log.Fatalf("Unable to connect to database: %v\n", err)
+		return fmt.Errorf("unable to connect to database: %v", err)
 	}
 	defer db.Close()
 
 	// setup Google Cloud Storage
 	gcsClient, err := storage.NewClient(context.Background())
 	if err != nil {
-		log.Fatalf("failed to create new gcs client: %s", err)
+		return fmt.Errorf("failed to create new gcs client: %s", err)
 	}
 	defer gcsClient.Close()
 
@@ -85,7 +91,7 @@ func main() {
 	key := os.Getenv("SESSION_SECRET")
 	store, err := redistore.NewRediStore(10, "tcp", redisInfo, os.Getenv("REDIS_PASSWORD"), []byte(key))
 	if err != nil {
-		log.Fatalf("Unable to connect to Redis for session store: %v", err)
+		return fmt.Errorf("unable to connect to Redis for session store: %v", err)
 	}
 	defer store.Close()
 	store.SetMaxAge(3600)
@@ -125,6 +131,8 @@ func main() {
 	if err := e.Shutdown(ctx); err != nil {
 		e.Logger.Fatal(err)
 	}
+
+	return nil
 }
 
 func startServer(e *echo.Echo, db *sqlx.DB, httpClient *http.Client, store sessions.Store, gcsClient *storage.Client) {
