@@ -77,7 +77,7 @@ func NewPlaylist(
 }
 
 func (p *PlaylistService) Add(ctx context.Context, playlistModel model.PlaylistIn, imageFile multipart.File, imageHeader *multipart.FileHeader) error {
-	imageURL, err := p.playlistRepo.AddPlaylistPicture(ctx, imageFile, imageHeader)
+	imageName, err := p.playlistRepo.AddPlaylistPicture(ctx, imageFile, imageHeader)
 	if err != nil {
 		return err
 	}
@@ -87,7 +87,7 @@ func (p *PlaylistService) Add(ctx context.Context, playlistModel model.PlaylistI
 		PlaylistDescription: playlistModel.PlaylistDescription,
 		UserID:              playlistModel.UserID,
 		Username:            playlistModel.Username,
-		ImageURL:            imageURL,
+		ImageName:           imageName,
 	}
 
 	return p.playlistRepo.Insert(ctx, playlistInDBModel)

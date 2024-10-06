@@ -29,7 +29,7 @@ func (p *PlaylistRepository) Insert(ctx context.Context, playlistModel model.Pla
 
 	_, err := p.db.ExecContext(
 		ctx,
-		`INSERT INTO playlist (playlist_name, user_id, user_name, playlist_description, updated_at, created_at, image_url)
+		`INSERT INTO playlist (playlist_name, user_id, user_name, playlist_description, updated_at, created_at, image_name)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		RETURNING playlist_id`,
 		playlistModel.Name,
@@ -38,7 +38,7 @@ func (p *PlaylistRepository) Insert(ctx context.Context, playlistModel model.Pla
 		playlistModel.PlaylistDescription,
 		updatedAt,
 		createdAt,
-		playlistModel.ImageURL,
+		playlistModel.ImageName,
 	)
 
 	if err != nil {
@@ -65,6 +65,7 @@ func (p *PlaylistRepository) SelectAll(ctx context.Context, userID string) ([]mo
 		return nil, &selectError{err}
 	}
 
+	// TODO: given image name, generate signed URL to return to API
 	playlists := mapPlaylistDBToAPI(playlistsOutDB)
 
 	return playlists, nil
@@ -95,7 +96,7 @@ func (p *PlaylistRepository) AddPlaylistPicture(ctx context.Context, file multip
 
 	timestamp := time.Now().Format(time.RFC3339)
 	uuid := uuid.New().String()
-	objectName := fmt.Sprintf("%s/%s_%s", timestamp, uuid, header.Filename)
+	objectName := fmt.Sprintf("playlist_cover/%s_%s_%s", timestamp, uuid, header.Filename)
 
 	object := p.gcsClient.Bucket(bucketName).Object(objectName)
 
@@ -112,5 +113,5 @@ func (p *PlaylistRepository) AddPlaylistPicture(ctx context.Context, file multip
 		return "", &gcsCloseObjectWriter{err}
 	}
 
-	return fmt.Sprintf("https://storage.googleapis.com/%s/%s", bucketName, objectName), nil
+	return objectName, nil
 }

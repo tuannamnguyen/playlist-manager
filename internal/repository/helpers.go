@@ -77,7 +77,7 @@ func mapSinglePlaylistDBToApiResponse(playlistOutDB model.PlaylistOutDB) model.P
 		UserID:              playlistOutDB.UserID,
 		Username:            playlistOutDB.Username,
 		Timestamp:           playlistOutDB.Timestamp,
-		ImageURL:            playlistOutDB.ImageURL,
+		ImageURL:            playlistOutDB.ImageName,
 	}
 	return playlistAPIResponse
 }
