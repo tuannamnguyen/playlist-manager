@@ -19,11 +19,11 @@ func NewPlaylistRepository(db *sqlx.DB, gcsClient *storage.Client) *PlaylistRepo
 	return &PlaylistRepository{db, gcsClient}
 }
 
-func (p *PlaylistRepository) Insert(ctx context.Context, playlistModel model.PlaylistInDB) (int, error) {
+func (p *PlaylistRepository) Insert(ctx context.Context, playlistModel model.PlaylistInDB) error {
 	updatedAt := time.Now()
 	createdAt := time.Now()
 
-	row := p.db.QueryRowxContext(
+	_, err := p.db.ExecContext(
 		ctx,
 		`INSERT INTO playlist (playlist_name, user_id, user_name, playlist_description, updated_at, created_at, image_url)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -37,13 +37,11 @@ func (p *PlaylistRepository) Insert(ctx context.Context, playlistModel model.Pla
 		playlistModel.ImageURL,
 	)
 
-	var lastInsertID int
-	err := row.Scan(&lastInsertID)
 	if err != nil {
-		return 0, &rowScanError{err}
+		return &execError{err}
 	}
 
-	return lastInsertID, nil
+	return nil
 }
 
 func (p *PlaylistRepository) SelectAll(ctx context.Context, userID string) ([]model.Playlist, error) {
@@ -88,7 +86,7 @@ func (p *PlaylistRepository) DeleteByID(ctx context.Context, id int) error {
 	return nil
 }
 
-func (p *PlaylistRepository) AddPlaylistPicture(ctx context.Context, playlistID string, file multipart.File, header *multipart.FileHeader) (string, error) {
+func (p *PlaylistRepository) AddPlaylistPicture(ctx context.Context, file multipart.File, header *multipart.FileHeader) (string, error) {
 	// TODO: reimplement this
 	return "", nil
 }

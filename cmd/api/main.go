@@ -192,7 +192,6 @@ func setupPlaylistRoutes(router *echo.Group, db *sqlx.DB, store sessions.Store, 
 	router.GET("", playlistHandler.GetAll)
 	router.GET("/:id", playlistHandler.GetByID)
 	router.DELETE("/:id", playlistHandler.DeleteByID)
-	router.POST("/:id/image", playlistHandler.UploadPictureForPlaylist)
 
 	// playlist-songs table endpoints
 	playlistSongsEndpoint := "/:playlist_id/songs"
