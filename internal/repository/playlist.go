@@ -2,24 +2,21 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"mime/multipart"
-	"os"
 	"time"
 
-	"github.com/google/uuid"
+	"cloud.google.com/go/storage"
 	"github.com/jmoiron/sqlx"
-	"github.com/minio/minio-go/v7"
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
 )
 
 type PlaylistRepository struct {
-	db          *sqlx.DB
-	minioClient *minio.Client
+	db        *sqlx.DB
+	gcsClient *storage.Client
 }
 
-func NewPlaylistRepository(db *sqlx.DB, minioClient *minio.Client) *PlaylistRepository {
-	return &PlaylistRepository{db, minioClient}
+func NewPlaylistRepository(db *sqlx.DB, gcsClient *storage.Client) *PlaylistRepository {
+	return &PlaylistRepository{db, gcsClient}
 }
 
 func (p *PlaylistRepository) Insert(ctx context.Context, playlistModel model.PlaylistInDB) (int, error) {
@@ -92,40 +89,6 @@ func (p *PlaylistRepository) DeleteByID(ctx context.Context, id int) error {
 }
 
 func (p *PlaylistRepository) AddPlaylistPicture(ctx context.Context, playlistID string, file multipart.File, header *multipart.FileHeader) (string, error) {
-	bucketName := "playlist-cover"
-	contentType := header.Header.Get("Content-Type")
-
-	timestamp := time.Now().Format(time.RFC3339)
-	uuid := uuid.New().String()
-	filename := fmt.Sprintf("%s/%s_%s_%s", playlistID, timestamp, uuid, header.Filename)
-
-	info, err := p.minioClient.PutObject(
-		ctx,
-		bucketName,
-		filename,
-		file,
-		header.Size,
-		minio.PutObjectOptions{
-			ContentType: contentType,
-		},
-	)
-
-	if err != nil {
-		return "", &putObjectError{err}
-	}
-
-	imageURL := fmt.Sprintf("http://%s/%s/%s", os.Getenv("OBJECT_STORAGE_ENDPOINT"), info.Bucket, info.Key)
-
-	_, err = p.db.ExecContext(ctx,
-		`UPDATE playlist
-	SET image_url = $1
-	WHERE playlist_id = $2`,
-		imageURL,
-		playlistID,
-	)
-	if err != nil {
-		return "", &execError{err}
-	}
-
-	return imageURL, nil
+	// TODO: reimplement this
+	return "", nil
 }
