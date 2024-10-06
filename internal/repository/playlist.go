@@ -2,10 +2,14 @@ package repository
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"mime/multipart"
+	"os"
 	"time"
 
 	"cloud.google.com/go/storage"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
 )
@@ -87,6 +91,26 @@ func (p *PlaylistRepository) DeleteByID(ctx context.Context, id int) error {
 }
 
 func (p *PlaylistRepository) AddPlaylistPicture(ctx context.Context, file multipart.File, header *multipart.FileHeader) (string, error) {
-	// TODO: reimplement this
-	return "", nil
+	bucketName := os.Getenv("GCS_BUCKET_NAME")
+
+	timestamp := time.Now().Format(time.RFC3339)
+	uuid := uuid.New().String()
+	objectName := fmt.Sprintf("%s/%s_%s", timestamp, uuid, header.Filename)
+
+	object := p.gcsClient.Bucket(bucketName).Object(objectName)
+
+	object = object.If(storage.Conditions{
+		DoesNotExist: true,
+	})
+
+	wc := object.NewWriter(ctx)
+	if _, err := io.Copy(wc, file); err != nil {
+		return "", &gcsIOCopyError{err}
+	}
+
+	if err := wc.Close(); err != nil {
+		return "", &gcsCloseObjectWriter{err}
+	}
+
+	return fmt.Sprintf("https://storage.googleapis.com/%s/%s", bucketName, objectName), nil
 }

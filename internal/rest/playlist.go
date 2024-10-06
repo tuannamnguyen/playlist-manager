@@ -50,7 +50,7 @@ func (p *PlaylistHandler) Add(c echo.Context) error {
 		Username:            c.FormValue("user_name"),
 	}
 
-	header, err := c.FormFile("image")
+	header, err := c.FormFile("playlist_cover_image")
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}

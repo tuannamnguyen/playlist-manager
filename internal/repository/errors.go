@@ -81,3 +81,19 @@ type responseDecodeError struct {
 func (r *responseDecodeError) Error() string {
 	return fmt.Sprintf("response decode: %s", r.err.Error())
 }
+
+type gcsIOCopyError struct {
+	err error
+}
+
+func (g *gcsIOCopyError) Error() string {
+	return fmt.Sprintf("gcs IO copy: %s", g.err.Error())
+}
+
+type gcsCloseObjectWriter struct {
+	err error
+}
+
+func (g *gcsCloseObjectWriter) Error() string {
+	return fmt.Sprintf("gcs writer close: %s", g.err.Error())
+}
