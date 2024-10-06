@@ -65,10 +65,7 @@ func (p *PlaylistRepository) SelectAll(ctx context.Context, userID string) ([]mo
 		return nil, &selectError{err}
 	}
 
-	// TODO: given image name, generate signed URL to return to API
-	playlists := mapPlaylistDBToAPI(playlistsOutDB)
-
-	return playlists, nil
+	return p.mapPlaylistDBToAPI(playlistsOutDB)
 }
 
 func (p *PlaylistRepository) SelectWithID(ctx context.Context, id int) (model.Playlist, error) {
@@ -79,7 +76,7 @@ func (p *PlaylistRepository) SelectWithID(ctx context.Context, id int) (model.Pl
 		return model.Playlist{}, &structScanError{err}
 	}
 
-	return mapSinglePlaylistDBToApiResponse(playlist), nil
+	return p.mapSinglePlaylistDBToApiResponse(playlist)
 }
 
 func (p *PlaylistRepository) DeleteByID(ctx context.Context, id int) error {
