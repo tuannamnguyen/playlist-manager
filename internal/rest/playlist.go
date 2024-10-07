@@ -3,6 +3,8 @@ package rest
 import (
 	"context"
 	"fmt"
+	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"strconv"
@@ -60,6 +62,21 @@ func (p *PlaylistHandler) Add(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	defer file.Close()
+
+	buff := make([]byte, 512)
+	if _, err := file.Read(buff); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	log.Println(http.DetectContentType(buff))
+
+	if http.DetectContentType(buff) != "image/jpeg" {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid file type for playlist cover")
+	}
+
+	if _, err := file.Seek(0, io.SeekStart); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
 
 	err = p.service.Add(c.Request().Context(), playlist, file, header)
 	if err != nil {
