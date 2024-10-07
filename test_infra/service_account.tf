@@ -4,8 +4,15 @@ resource "google_service_account" "backend_test_service_account" {
   create_ignore_already_exists = true
 }
 
-resource "google_service_account_iam_binding" "iam_binding_token_creator" {
-  service_account_id = google_service_account.backend_test_service_account.id
-  role               = "roles/iam.serviceAccountTokenCreator"
-  members            = ["serviceAccount:${google_service_account.backend_test_service_account.email}"]
+
+resource "google_project_iam_member" "token_creator_iam_test" {
+  project = "playlist-manager-437214"
+  member  = "serviceAccount:${google_service_account.backend_test_service_account.email}"
+  role    = "roles/iam.serviceAccountTokenCreator"
+}
+
+resource "google_project_iam_member" "storage_object_user_iam" {
+  project = "playlist-manager-437214"
+  member  = "serviceAccount:${google_service_account.backend_test_service_account.email}"
+  role    = "roles/storage.objectUser"
 }

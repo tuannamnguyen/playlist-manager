@@ -153,6 +153,7 @@ func startServer(e *echo.Echo, db *sqlx.DB, httpClient *http.Client, store sessi
 	setupAPIRouter(e, db, httpClient, store, gcsClient)
 
 	if err := e.Start(":8080"); err != nil && err != http.ErrServerClosed {
+		// if error here, check if there are any other apps running on the same port
 		e.Logger.Fatal("shutting down the server")
 	}
 }
