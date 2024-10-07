@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"encoding/base64"
+	"fmt"
 	"os"
 	"slices"
 	"sort"
@@ -96,8 +98,15 @@ func (p *PlaylistRepository) mapSinglePlaylistDBToApiResponse(playlistOutDB mode
 func (p *PlaylistRepository) generateSignedURLFromObjectName(objectName string) (string, error) {
 	bucketName := os.Getenv("GCS_BUCKET_NAME")
 
+	privateKeyB64Encoded := os.Getenv("GCP_PRIVATE_ACCOUNT_PRIVATE_KEY_B64_ENCODED")
+	privateKey, err := base64.RawStdEncoding.DecodeString(privateKeyB64Encoded)
+	if err != nil {
+		return "", fmt.Errorf("decoding base 64 private key: %w", err)
+	}
+
 	opts := &storage.SignedURLOptions{
 		GoogleAccessID: os.Getenv("GCP_SERVICE_ACCOUNT"),
+		PrivateKey:     privateKey,
 		Scheme:         storage.SigningSchemeV4,
 		Method:         "GET",
 		Expires:        time.Now().Add(15 * time.Minute),
