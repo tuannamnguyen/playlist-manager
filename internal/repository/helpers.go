@@ -1,9 +1,14 @@
 package repository
 
 import (
+	"encoding/base64"
+	"fmt"
+	"os"
 	"slices"
 	"sort"
+	"time"
 
+	"cloud.google.com/go/storage"
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
 )
 
@@ -52,22 +57,30 @@ func parsePlaylistSongData(rows []model.SongOutDB) []model.SongOutAPI {
 	return result
 }
 
-func mapPlaylistDBToAPI(playlistsOutDB []model.PlaylistOutDB) []model.Playlist {
+func (p *PlaylistRepository) mapPlaylistDBToAPI(playlistsOutDB []model.PlaylistOutDB) ([]model.Playlist, error) {
 	var playlists []model.Playlist
 	for _, playlistOutDB := range playlistsOutDB {
-		playlistAPIResponse := mapSinglePlaylistDBToApiResponse(playlistOutDB)
+		playlistAPIResponse, err := p.mapSinglePlaylistDBToApiResponse(playlistOutDB)
+		if err != nil {
+			return nil, err
+		}
 
 		playlists = append(playlists, playlistAPIResponse)
 	}
-	return playlists
+	return playlists, nil
 }
 
-func mapSinglePlaylistDBToApiResponse(playlistOutDB model.PlaylistOutDB) model.Playlist {
+func (p *PlaylistRepository) mapSinglePlaylistDBToApiResponse(playlistOutDB model.PlaylistOutDB) (model.Playlist, error) {
 	var playlistDescription string
 	if playlistOutDB.PlaylistDescription.Valid {
 		playlistDescription = playlistOutDB.PlaylistDescription.String
 	} else {
 		playlistDescription = ""
+	}
+
+	imageURL, err := p.generateSignedURLFromObjectName(playlistOutDB.ImageName)
+	if err != nil {
+		return model.Playlist{}, err
 	}
 
 	playlistAPIResponse := model.Playlist{
@@ -77,9 +90,34 @@ func mapSinglePlaylistDBToApiResponse(playlistOutDB model.PlaylistOutDB) model.P
 		UserID:              playlistOutDB.UserID,
 		Username:            playlistOutDB.Username,
 		Timestamp:           playlistOutDB.Timestamp,
-		ImageURL:            playlistOutDB.ImageURL,
+		ImageURL:            imageURL,
 	}
-	return playlistAPIResponse
+	return playlistAPIResponse, nil
+}
+
+func (p *PlaylistRepository) generateSignedURLFromObjectName(objectName string) (string, error) {
+	bucketName := os.Getenv("GCS_BUCKET_NAME")
+
+	privateKeyB64Encoded := os.Getenv("GCP_PRIVATE_ACCOUNT_PRIVATE_KEY_B64_ENCODED")
+	privateKey, err := base64.RawStdEncoding.DecodeString(privateKeyB64Encoded)
+	if err != nil {
+		return "", fmt.Errorf("decoding base 64 private key: %w", err)
+	}
+
+	opts := &storage.SignedURLOptions{
+		GoogleAccessID: os.Getenv("GCP_SERVICE_ACCOUNT"),
+		PrivateKey:     privateKey,
+		Scheme:         storage.SigningSchemeV4,
+		Method:         "GET",
+		Expires:        time.Now().Add(15 * time.Minute),
+	}
+
+	url, err := p.gcsClient.Bucket(bucketName).SignedURL(objectName, opts)
+	if err != nil {
+		return "", &gcsGetSignedURLError{err}
+	}
+
+	return url, nil
 }
 
 func transformSearchAPIResponse(searchRes SearchResponse) []model.SongInAPI {

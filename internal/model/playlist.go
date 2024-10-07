@@ -18,7 +18,7 @@ type PlaylistOutDB struct {
 	PlaylistDescription sql.NullString `db:"playlist_description"`
 	UserID              string         `db:"user_id"`
 	Username            string         `db:"user_name"`
-	ImageURL            string         `db:"image_url"`
+	ImageName           string         `db:"image_name"`
 	Timestamp
 }
 
@@ -27,7 +27,7 @@ type PlaylistInDB struct {
 	PlaylistDescription string `db:"playlist_description"`
 	UserID              string `db:"user_id"`
 	Username            string `db:"user_name"`
-	ImageURL            string `db:"image_url"`
+	ImageName           string `db:"image_name"`
 }
 
 type PlaylistIn struct {

@@ -16,11 +16,10 @@ import (
 
 type PlaylistService interface {
 	// playlist operations
-	Add(ctx context.Context, playlistModel model.PlaylistIn) (int, error)
+	Add(ctx context.Context, playlistModel model.PlaylistIn, imageFile multipart.File, imageHeader *multipart.FileHeader) error
 	GetAll(ctx context.Context, userID string) ([]model.Playlist, error)
 	GetByID(ctx context.Context, id int) (model.Playlist, error)
 	DeleteByID(ctx context.Context, id int) error
-	AddPictureForPlaylist(ctx context.Context, playlistID string, file multipart.File, header *multipart.FileHeader) (string, error)
 
 	// playlist-song operations
 	AddSongsToPlaylist(ctx context.Context, playlistID int, songs []model.SongInAPI) error
@@ -44,24 +43,30 @@ func NewPlaylistHandler(svc PlaylistService, store sessions.Store) *PlaylistHand
 }
 
 func (p *PlaylistHandler) Add(c echo.Context) error {
-	var playlist model.PlaylistIn
-	err := c.Bind(&playlist)
+	playlist := model.PlaylistIn{
+		Name:                c.FormValue("playlist_name"),
+		PlaylistDescription: c.FormValue("playlist_description"),
+		UserID:              c.FormValue("user_id"),
+		Username:            c.FormValue("user_name"),
+	}
+
+	header, err := c.FormFile("playlist_cover_image")
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	if err = c.Validate(playlist); err != nil {
-		return err
+	file, err := header.Open()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
+	defer file.Close()
 
-	id, err := p.service.Add(c.Request().Context(), playlist)
+	err = p.service.Add(c.Request().Context(), playlist, file, header)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	return c.JSON(http.StatusCreated, map[string]int{
-		"playlist_id": id,
-	})
+	return c.JSON(http.StatusOK, playlist)
 }
 
 func (p *PlaylistHandler) GetAll(c echo.Context) error {
@@ -102,30 +107,6 @@ func (p *PlaylistHandler) DeleteByID(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, map[string]int{
 		"playlist_id": id,
-	})
-}
-
-func (p *PlaylistHandler) UploadPictureForPlaylist(c echo.Context) error {
-	playlistID := c.Param("id")
-
-	header, err := c.FormFile("image")
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
-	}
-
-	file, err := header.Open()
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
-	}
-	defer file.Close()
-
-	preSignedURL, err := p.service.AddPictureForPlaylist(c.Request().Context(), playlistID, file, header)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
-	}
-
-	return c.JSON(http.StatusOK, map[string]string{
-		"image_url": preSignedURL,
 	})
 }
 

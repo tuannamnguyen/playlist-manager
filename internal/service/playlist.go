@@ -9,11 +9,11 @@ import (
 )
 
 type PlaylistRepository interface {
-	Insert(ctx context.Context, playlistModel model.PlaylistInDB) (int, error)
+	Insert(ctx context.Context, playlistModel model.PlaylistInDB) error
 	SelectAll(ctx context.Context, userID string) ([]model.Playlist, error)
 	SelectWithID(ctx context.Context, id int) (model.Playlist, error)
 	DeleteByID(ctx context.Context, id int) error
-	AddPlaylistPicture(ctx context.Context, playlistID string, file multipart.File, header *multipart.FileHeader) (string, error)
+	AddPlaylistPicture(ctx context.Context, file multipart.File, header *multipart.FileHeader) (string, error)
 }
 
 type SongRepository interface {
@@ -76,13 +76,18 @@ func NewPlaylist(
 	}
 }
 
-func (p *PlaylistService) Add(ctx context.Context, playlistModel model.PlaylistIn) (int, error) {
+func (p *PlaylistService) Add(ctx context.Context, playlistModel model.PlaylistIn, imageFile multipart.File, imageHeader *multipart.FileHeader) error {
+	imageName, err := p.playlistRepo.AddPlaylistPicture(ctx, imageFile, imageHeader)
+	if err != nil {
+		return err
+	}
+
 	playlistInDBModel := model.PlaylistInDB{
 		Name:                playlistModel.Name,
 		PlaylistDescription: playlistModel.PlaylistDescription,
 		UserID:              playlistModel.UserID,
 		Username:            playlistModel.Username,
-		ImageURL:            "https://picsum.photos/200/300", // TODO: remove this hardcode later
+		ImageName:           imageName,
 	}
 
 	return p.playlistRepo.Insert(ctx, playlistInDBModel)
@@ -98,10 +103,6 @@ func (p *PlaylistService) GetByID(ctx context.Context, id int) (model.Playlist, 
 
 func (p *PlaylistService) DeleteByID(ctx context.Context, id int) error {
 	return p.playlistRepo.DeleteByID(ctx, id)
-}
-
-func (p *PlaylistService) AddPictureForPlaylist(ctx context.Context, playlistID string, file multipart.File, header *multipart.FileHeader) (string, error) {
-	return p.playlistRepo.AddPlaylistPicture(ctx, playlistID, file, header)
 }
 
 func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID int, songs []model.SongInAPI) error {

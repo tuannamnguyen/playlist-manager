@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"cloud.google.com/go/storage"
 	"github.com/dotenv-org/godotenvvault"
 	"github.com/go-playground/validator"
 	"github.com/gorilla/sessions"
@@ -21,8 +22,6 @@ import (
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/spotify"
-	"github.com/minio/minio-go/v7"
-	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/tuannamnguyen/playlist-manager/internal/repository"
 	"github.com/tuannamnguyen/playlist-manager/internal/rest"
 	"github.com/tuannamnguyen/playlist-manager/internal/rest/gothprovider/genius"
@@ -42,13 +41,17 @@ func (cv *CustomValidator) Validate(i any) error {
 	return nil
 }
 
-var bucketName = "playlist-cover"
-
 func main() {
+	if err := run(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func run() error {
 	// setup .env
 	err := godotenvvault.Load()
 	if err != nil {
-		log.Fatalf("error reading .env: %v", err)
+		return fmt.Errorf("error reading .env: %v", err)
 	}
 
 	// setup HTTP client
@@ -72,41 +75,23 @@ func main() {
 	)
 	db, err := sqlx.Connect("pgx", psqlInfo)
 	if err != nil {
-		log.Fatalf("Unable to connect to database: %v\n", err)
+		return fmt.Errorf("unable to connect to database: %v", err)
 	}
 	defer db.Close()
 
-	// setup minio client
-	endpoint := os.Getenv("OBJECT_STORAGE_ENDPOINT")
-	accessKeyID := os.Getenv("MINIO_ACCESS_KEY")
-	secretKeyID := os.Getenv("MINIO_SECRET_KEY")
-
-	minioClient, err := minio.New(endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(accessKeyID, secretKeyID, ""),
-		Secure: false,
-	})
+	// setup Google Cloud Storage
+	gcsClient, err := storage.NewClient(context.Background())
 	if err != nil {
-		log.Fatalf("error setting up minio client: %s", err)
+		return fmt.Errorf("failed to create new gcs client: %s", err)
 	}
-
-	exists, err := minioClient.BucketExists(context.Background(), bucketName)
-	if err != nil {
-		log.Fatalf("error checking bucket exists: %s", err)
-	}
-
-	if !exists {
-		err = minioClient.MakeBucket(context.Background(), bucketName, minio.MakeBucketOptions{})
-		if err != nil {
-			log.Fatalf("error creating new bucket: %s", err)
-		}
-	}
+	defer gcsClient.Close()
 
 	// setup session and OAuth2
 	redisInfo := fmt.Sprintf("%s:%s", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT"))
 	key := os.Getenv("SESSION_SECRET")
 	store, err := redistore.NewRediStore(10, "tcp", redisInfo, os.Getenv("REDIS_PASSWORD"), []byte(key))
 	if err != nil {
-		log.Fatalf("Unable to connect to Redis for session store: %v", err)
+		return fmt.Errorf("unable to connect to Redis for session store: %v", err)
 	}
 	defer store.Close()
 	store.SetMaxAge(3600)
@@ -137,7 +122,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM)
 	defer stop()
 
-	go startServer(e, db, httpClient, store, minioClient)
+	go startServer(e, db, httpClient, store, gcsClient)
 
 	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 10 seconds.
 	<-ctx.Done()
@@ -146,9 +131,11 @@ func main() {
 	if err := e.Shutdown(ctx); err != nil {
 		e.Logger.Fatal(err)
 	}
+
+	return nil
 }
 
-func startServer(e *echo.Echo, db *sqlx.DB, httpClient *http.Client, store sessions.Store, minioClient *minio.Client) {
+func startServer(e *echo.Echo, db *sqlx.DB, httpClient *http.Client, store sessions.Store, gcsClient *storage.Client) {
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
@@ -163,14 +150,15 @@ func startServer(e *echo.Echo, db *sqlx.DB, httpClient *http.Client, store sessi
 		return c.String(http.StatusOK, fmt.Sprintf("%s, World!", os.Getenv("HELLO")))
 	})
 
-	setupAPIRouter(e, db, httpClient, store, minioClient)
+	setupAPIRouter(e, db, httpClient, store, gcsClient)
 
 	if err := e.Start(":8080"); err != nil && err != http.ErrServerClosed {
+		// if error here, check if there are any other apps running on the same port
 		e.Logger.Fatal("shutting down the server")
 	}
 }
 
-func setupAPIRouter(e *echo.Echo, db *sqlx.DB, httpClient *http.Client, store sessions.Store, minioClient *minio.Client) {
+func setupAPIRouter(e *echo.Echo, db *sqlx.DB, httpClient *http.Client, store sessions.Store, gcsClient *storage.Client) {
 	apiRouter := e.Group("/api")
 
 	apiRouter.GET("/test", func(c echo.Context) error {
@@ -181,15 +169,15 @@ func setupAPIRouter(e *echo.Echo, db *sqlx.DB, httpClient *http.Client, store se
 	oauthRouter := apiRouter.Group("/oauth")
 	metadataRouter := apiRouter.Group("/metadata")
 
-	setupPlaylistRoutes(playlistRouter, db, store, minioClient)
+	setupPlaylistRoutes(playlistRouter, db, store, gcsClient)
 	setupSearchRoutes(searchRouter, httpClient)
 	setupOAuthRoutes(oauthRouter, store)
 	setupMetadataRoutes(metadataRouter, store)
 }
 
-func setupPlaylistRoutes(router *echo.Group, db *sqlx.DB, store sessions.Store, minioClient *minio.Client) {
+func setupPlaylistRoutes(router *echo.Group, db *sqlx.DB, store sessions.Store, gcsClient *storage.Client) {
 	// setup playlist endpoint
-	playlistRepository := repository.NewPlaylistRepository(db, minioClient)
+	playlistRepository := repository.NewPlaylistRepository(db, gcsClient)
 	songRepository := repository.NewSongRepository(db)
 	playlistSongRepository := repository.NewPlaylistSongRepository(db)
 	albumRepository := repository.NewAlbumRepository(db)
@@ -213,7 +201,6 @@ func setupPlaylistRoutes(router *echo.Group, db *sqlx.DB, store sessions.Store, 
 	router.GET("", playlistHandler.GetAll)
 	router.GET("/:id", playlistHandler.GetByID)
 	router.DELETE("/:id", playlistHandler.DeleteByID)
-	router.POST("/:id/image", playlistHandler.UploadPictureForPlaylist)
 
 	// playlist-songs table endpoints
 	playlistSongsEndpoint := "/:playlist_id/songs"

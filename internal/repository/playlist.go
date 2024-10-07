@@ -3,32 +3,33 @@ package repository
 import (
 	"context"
 	"fmt"
+	"io"
 	"mime/multipart"
 	"os"
 	"time"
 
+	"cloud.google.com/go/storage"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
-	"github.com/minio/minio-go/v7"
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
 )
 
 type PlaylistRepository struct {
-	db          *sqlx.DB
-	minioClient *minio.Client
+	db        *sqlx.DB
+	gcsClient *storage.Client
 }
 
-func NewPlaylistRepository(db *sqlx.DB, minioClient *minio.Client) *PlaylistRepository {
-	return &PlaylistRepository{db, minioClient}
+func NewPlaylistRepository(db *sqlx.DB, gcsClient *storage.Client) *PlaylistRepository {
+	return &PlaylistRepository{db, gcsClient}
 }
 
-func (p *PlaylistRepository) Insert(ctx context.Context, playlistModel model.PlaylistInDB) (int, error) {
+func (p *PlaylistRepository) Insert(ctx context.Context, playlistModel model.PlaylistInDB) error {
 	updatedAt := time.Now()
 	createdAt := time.Now()
 
-	row := p.db.QueryRowxContext(
+	_, err := p.db.ExecContext(
 		ctx,
-		`INSERT INTO playlist (playlist_name, user_id, user_name, playlist_description, updated_at, created_at, image_url)
+		`INSERT INTO playlist (playlist_name, user_id, user_name, playlist_description, updated_at, created_at, image_name)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		RETURNING playlist_id`,
 		playlistModel.Name,
@@ -37,16 +38,14 @@ func (p *PlaylistRepository) Insert(ctx context.Context, playlistModel model.Pla
 		playlistModel.PlaylistDescription,
 		updatedAt,
 		createdAt,
-		playlistModel.ImageURL,
+		playlistModel.ImageName,
 	)
 
-	var lastInsertID int
-	err := row.Scan(&lastInsertID)
 	if err != nil {
-		return 0, &rowScanError{err}
+		return &execError{err}
 	}
 
-	return lastInsertID, nil
+	return nil
 }
 
 func (p *PlaylistRepository) SelectAll(ctx context.Context, userID string) ([]model.Playlist, error) {
@@ -66,9 +65,7 @@ func (p *PlaylistRepository) SelectAll(ctx context.Context, userID string) ([]mo
 		return nil, &selectError{err}
 	}
 
-	playlists := mapPlaylistDBToAPI(playlistsOutDB)
-
-	return playlists, nil
+	return p.mapPlaylistDBToAPI(playlistsOutDB)
 }
 
 func (p *PlaylistRepository) SelectWithID(ctx context.Context, id int) (model.Playlist, error) {
@@ -79,7 +76,7 @@ func (p *PlaylistRepository) SelectWithID(ctx context.Context, id int) (model.Pl
 		return model.Playlist{}, &structScanError{err}
 	}
 
-	return mapSinglePlaylistDBToApiResponse(playlist), nil
+	return p.mapSinglePlaylistDBToApiResponse(playlist)
 }
 
 func (p *PlaylistRepository) DeleteByID(ctx context.Context, id int) error {
@@ -91,41 +88,27 @@ func (p *PlaylistRepository) DeleteByID(ctx context.Context, id int) error {
 	return nil
 }
 
-func (p *PlaylistRepository) AddPlaylistPicture(ctx context.Context, playlistID string, file multipart.File, header *multipart.FileHeader) (string, error) {
-	bucketName := "playlist-cover"
-	contentType := header.Header.Get("Content-Type")
+func (p *PlaylistRepository) AddPlaylistPicture(ctx context.Context, file multipart.File, header *multipart.FileHeader) (string, error) {
+	bucketName := os.Getenv("GCS_BUCKET_NAME")
 
 	timestamp := time.Now().Format(time.RFC3339)
 	uuid := uuid.New().String()
-	filename := fmt.Sprintf("%s/%s_%s_%s", playlistID, timestamp, uuid, header.Filename)
+	objectName := fmt.Sprintf("playlist_cover/%s_%s_%s", timestamp, uuid, header.Filename)
 
-	info, err := p.minioClient.PutObject(
-		ctx,
-		bucketName,
-		filename,
-		file,
-		header.Size,
-		minio.PutObjectOptions{
-			ContentType: contentType,
-		},
-	)
+	object := p.gcsClient.Bucket(bucketName).Object(objectName)
 
-	if err != nil {
-		return "", &putObjectError{err}
+	object = object.If(storage.Conditions{
+		DoesNotExist: true,
+	})
+
+	wc := object.NewWriter(ctx)
+	if _, err := io.Copy(wc, file); err != nil {
+		return "", &gcsIOCopyError{err}
 	}
 
-	imageURL := fmt.Sprintf("http://%s/%s/%s", os.Getenv("OBJECT_STORAGE_ENDPOINT"), info.Bucket, info.Key)
-
-	_, err = p.db.ExecContext(ctx,
-		`UPDATE playlist
-	SET image_url = $1
-	WHERE playlist_id = $2`,
-		imageURL,
-		playlistID,
-	)
-	if err != nil {
-		return "", &execError{err}
+	if err := wc.Close(); err != nil {
+		return "", &gcsCloseObjectWriter{err}
 	}
 
-	return imageURL, nil
+	return objectName, nil
 }
