@@ -63,8 +63,11 @@ func (ps *PlaylistSongRepository) BulkInsert(ctx context.Context, playlistID int
 	return nil
 }
 
-func (ps *PlaylistSongRepository) GetAll(ctx context.Context, playlistID int) ([]model.SongOutAPI, error) {
-	query := `SELECT pls.song_id, s.song_name, s.image_url, s.duration, s.isrc, al.album_name, ar.artist_name, pls.created_at, pls.updated_at
+func (ps *PlaylistSongRepository) GetAll(ctx context.Context, playlistID int, sortBy string, sortOrder string) ([]model.SongOutAPI, error) {
+	var query string
+
+	if sortBy == "" && sortOrder == "" {
+		query = `SELECT pls.song_id, s.song_name, s.image_url, s.duration, s.isrc, al.album_name, ar.artist_name, pls.created_at, pls.updated_at
 				FROM playlist_song AS pls
 				JOIN playlist AS pl
 				ON pl.playlist_id = pls.playlist_id
@@ -78,6 +81,22 @@ func (ps *PlaylistSongRepository) GetAll(ctx context.Context, playlistID int) ([
 				ON ars.artist_id = ar.artist_id
 				WHERE pl.playlist_id = $1
 				ORDER BY song_id, ar.artist_id`
+	} else {
+		query = fmt.Sprintf(`SELECT pls.song_id, s.song_name, s.image_url, s.duration, s.isrc, al.album_name, ar.artist_name, pls.created_at, pls.updated_at
+				FROM playlist_song AS pls
+				JOIN playlist AS pl
+				ON pl.playlist_id = pls.playlist_id
+				JOIN song AS s
+				ON pls.song_id = s.song_id
+				JOIN album AS al
+				ON al.album_id = s.album_id
+				JOIN artist_song AS ars
+				ON s.song_id = ars.song_id
+				JOIN artist AS ar
+				ON ars.artist_id = ar.artist_id
+				WHERE pl.playlist_id = $1
+				ORDER BY %s %s`, sortBy, sortOrder)
+	}
 
 	var rows []model.SongOutDB
 	err := ps.db.SelectContext(ctx, &rows, query, playlistID)

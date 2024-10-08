@@ -25,7 +25,7 @@ type PlaylistService interface {
 
 	// playlist-song operations
 	AddSongsToPlaylist(ctx context.Context, playlistID int, songs []model.SongInAPI) error
-	GetAllSongsFromPlaylist(ctx context.Context, playlistID int) ([]model.SongOutAPI, error)
+	GetAllSongsFromPlaylist(ctx context.Context, playlistID int, sortBy string, sortOrder string) ([]model.SongOutAPI, error)
 	DeleteSongsFromPlaylist(ctx context.Context, playlistID int, songsID []int) error
 
 	// convert operation
@@ -50,6 +50,10 @@ func (p *PlaylistHandler) Add(c echo.Context) error {
 		PlaylistDescription: c.FormValue("playlist_description"),
 		UserID:              c.FormValue("user_id"),
 		Username:            c.FormValue("user_name"),
+	}
+
+	if err := c.Validate(playlist); err != nil {
+		return err
 	}
 
 	header, err := c.FormFile("playlist_cover_image")
@@ -149,12 +153,27 @@ func (p *PlaylistHandler) AddSongsToPlaylist(c echo.Context) error {
 }
 
 func (p *PlaylistHandler) GetAllSongsFromPlaylist(c echo.Context) error {
+	type QueryParams struct {
+		SortBy    string `query:"sort_by" validate:"omitempty,oneof=s.song_name al.album_name pls.created_at"`
+		SortOrder string `query:"sort_order" validate:"omitempty,oneof=ASC DESC,required_with=SortBy"`
+	}
+	var qParams QueryParams
+
+	err := c.Bind(&qParams)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	if err := c.Validate(qParams); err != nil {
+		return err
+	}
+
 	playlistID, err := strconv.Atoi(c.Param("playlist_id"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	songs, err := p.service.GetAllSongsFromPlaylist(c.Request().Context(), playlistID)
+	songs, err := p.service.GetAllSongsFromPlaylist(c.Request().Context(), playlistID, qParams.SortBy, qParams.SortOrder)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
@@ -200,7 +219,7 @@ func (p *PlaylistHandler) ConvertHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	songs, err := p.service.GetAllSongsFromPlaylist(c.Request().Context(), playlistID)
+	songs, err := p.service.GetAllSongsFromPlaylist(c.Request().Context(), playlistID, "", "")
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
