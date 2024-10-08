@@ -7,6 +7,7 @@ import (
 
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
+	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 )
 
@@ -85,4 +86,22 @@ func (o *OAuthHandler) LogoutHandler(c echo.Context) error {
 	}
 
 	return c.Redirect(http.StatusTemporaryRedirect, "/")
+}
+
+func (o *OAuthHandler) GetAccessTokenHandler(c echo.Context) error {
+	provider := c.Param("provider")
+	q := c.Request().URL.Query()
+	q.Add("provider", provider)
+	c.Request().URL.RawQuery = q.Encode()
+
+	sessionValues, err := getOauthSessionValues(c.Request(), o.sessionStore)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting session values: %v", err))
+	}
+
+	user := sessionValues[fmt.Sprintf("%s_user_info", provider)].(goth.User)
+
+	return c.JSON(http.StatusOK, map[string]string{
+		"access_token": user.AccessToken,
+	})
 }

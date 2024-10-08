@@ -1,2 +1,2 @@
 ALTER TABLE playlist
-DROP COLUMN IF EXISTS image_url;
+DROP COLUMN IF EXISTS image_name;

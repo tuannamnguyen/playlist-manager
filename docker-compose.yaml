@@ -19,19 +19,6 @@ services:
     profiles:
       - prod
 
-  minio:
-    image: minio/minio
-    volumes:
-      - minio:/data
-    ports:
-      - 9000:9000
-      - 9090:9090
-    env_file: ./cmd/api/.env
-    command: server ~/data --address 0.0.0.0:9000 --console-address 0.0.0.0:9090
-    profiles:
-      - test
-      - prod
-
   db:
     image: postgres:16
     env_file: ./cmd/api/.env

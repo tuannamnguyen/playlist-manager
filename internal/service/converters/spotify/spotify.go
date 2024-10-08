@@ -25,6 +25,7 @@ func New(ctx context.Context, token *oauth2.Token) *SpotifyConverter {
 			spotifyauth.ScopePlaylistModifyPrivate,
 			spotifyauth.ScopePlaylistModifyPublic,
 			spotifyauth.ScopePlaylistReadPrivate,
+			spotifyauth.ScopeStreaming,
 		),
 	)
 
