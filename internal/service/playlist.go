@@ -22,7 +22,7 @@ type SongRepository interface {
 
 type PlaylistSongRepository interface {
 	BulkInsert(ctx context.Context, playlistID int, songsID []int) error
-	GetAll(ctx context.Context, playlistID int) ([]model.SongOutAPI, error)
+	GetAll(ctx context.Context, playlistID int, sortBy string, sortOrder string) ([]model.SongOutAPI, error)
 	BulkDelete(ctx context.Context, playlistID int, songsID []int) error
 }
 
@@ -151,8 +151,8 @@ func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID int
 	return nil
 }
 
-func (p *PlaylistService) GetAllSongsFromPlaylist(ctx context.Context, playlistID int) ([]model.SongOutAPI, error) {
-	return p.playlistSongRepo.GetAll(ctx, playlistID)
+func (p *PlaylistService) GetAllSongsFromPlaylist(ctx context.Context, playlistID int, sortBy string, sortOrder string) ([]model.SongOutAPI, error) {
+	return p.playlistSongRepo.GetAll(ctx, playlistID, sortBy, sortOrder)
 }
 
 func (p *PlaylistService) DeleteSongsFromPlaylist(ctx context.Context, playlistID int, songsID []int) error {
