@@ -155,7 +155,7 @@ func (p *PlaylistHandler) AddSongsToPlaylist(c echo.Context) error {
 func (p *PlaylistHandler) GetAllSongsFromPlaylist(c echo.Context) error {
 	type QueryParams struct {
 		SortBy    string `query:"sort_by" validate:"omitempty,oneof=s.song_name al.album_name pls.created_at"`
-		SortOrder string `query:"sort_order" validate:"omitempty,oneof=ASC DESC,required_with=SortBy"`
+		SortOrder string `query:"sort_order" validate:"required_with=SortBy,omitempty,oneof=ASC DESC"`
 	}
 	var qParams QueryParams
 
