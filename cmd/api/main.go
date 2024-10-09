@@ -21,6 +21,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
+	"github.com/markbates/goth/providers/apple"
 	"github.com/markbates/goth/providers/spotify"
 	"github.com/tuannamnguyen/playlist-manager/internal/repository"
 	"github.com/tuannamnguyen/playlist-manager/internal/rest"
@@ -114,6 +115,14 @@ func run() error {
 			os.Getenv("GENIUS_CLIENT_SECRET"),
 			os.Getenv("GENIUS_REDIRECT_URL"),
 			genius.ScopeMe,
+		),
+		apple.New(
+			os.Getenv("APPLE_CLIENT_ID"),
+			os.Getenv("APPLE_CLIENT_SECRET"),
+			os.Getenv("APPLE_REDIRECT_URL"),
+			httpClient,
+			apple.ScopeEmail,
+			apple.ScopeName,
 		),
 	)
 
