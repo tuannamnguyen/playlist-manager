@@ -53,7 +53,7 @@ func (p *PlaylistHandler) Add(c echo.Context) error {
 	}
 
 	if err := c.Validate(playlist); err != nil {
-		return err
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
 	header, err := c.FormFile("playlist_cover_image")
@@ -165,7 +165,7 @@ func (p *PlaylistHandler) GetAllSongsFromPlaylist(c echo.Context) error {
 	}
 
 	if err := c.Validate(qParams); err != nil {
-		return err
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
 	playlistID, err := strconv.Atoi(c.Param("playlist_id"))
