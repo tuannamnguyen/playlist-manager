@@ -4,6 +4,7 @@ import (
 	"context"
 
 	applemusic "github.com/minchao/go-apple-music"
+	"github.com/tuannamnguyen/playlist-manager/internal/model"
 )
 
 type AppleMusicConverter struct {
@@ -16,4 +17,9 @@ func New(ctx context.Context) *AppleMusicConverter {
 	client := applemusic.NewClient(tp.Client())
 
 	return &AppleMusicConverter{client: client}
+}
+
+func (a *AppleMusicConverter) Export(ctx context.Context, playlistName string, songs []model.SongOutAPI) error {
+	// TODO: implement this later
+	return nil
 }
