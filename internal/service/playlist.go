@@ -160,7 +160,9 @@ func (p *PlaylistService) DeleteSongsFromPlaylist(ctx context.Context, playlistI
 }
 
 func (p *PlaylistService) Convert(ctx context.Context, provider string, token *oauth2.Token, playlistName string, songs []model.SongOutAPI) error {
-	converter, err := getConverter(ctx, provider, token)
+	// TODO: handle apple music case
+
+	converter, err := getConverter(ctx, provider, token, "")
 	if err != nil {
 		return err
 	}
