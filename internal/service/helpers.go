@@ -11,9 +11,10 @@ import (
 )
 
 func getConverter(ctx context.Context, provider string, token *oauth2.Token, appleMusicUserToken string) (Converter, error) {
-	if provider == "spotify" {
+	switch provider {
+	case "spotify":
 		return spotifyconverter.New(ctx, token), nil
-	} else if provider == "applemusic" {
+	case "applemusic":
 		return applemusicconverter.New(ctx, appleMusicUserToken), nil
 	}
 

@@ -23,6 +23,20 @@ func New(ctx context.Context, musicUserToken string) *AppleMusicConverter {
 }
 
 func (a *AppleMusicConverter) Export(ctx context.Context, playlistName string, songs []model.SongOutAPI) error {
-	// TODO: implement this later
-	return nil
+	_, _, err := a.client.Me.CreateLibraryPlaylist(
+		ctx,
+		applemusic.CreateLibraryPlaylist{
+			Attributes: applemusic.CreateLibraryPlaylistAttributes{
+				Name:        playlistName,
+				Description: "",
+			},
+			Relationships: &applemusic.CreateLibraryPlaylistRelationships{
+				Tracks: applemusic.CreateLibraryPlaylistTrackData{
+					Data: []applemusic.CreateLibraryPlaylistTrack{},
+				},
+			},
+		},
+		&applemusic.Options{},
+	)
+	return err
 }
