@@ -205,7 +205,12 @@ func (p *PlaylistHandler) DeleteSongsFromPlaylist(c echo.Context) error {
 
 func (p *PlaylistHandler) ConvertHandler(c echo.Context) error {
 	type reqBody struct {
-		PlaylistName string `json:"playlist_name"`
+		PlaylistName     string `json:"playlist_name"`
+		ProviderMetadata struct {
+			AppleMusic struct {
+				MusicUserToken string `json:"musicUserToken"`
+			} `json:"applemusic"`
+		} `json:"provider_metadata,omitempty"`
 	}
 
 	playlistID, err := strconv.Atoi(c.Param("playlist_id"))
