@@ -29,7 +29,7 @@ type PlaylistService interface {
 	DeleteSongsFromPlaylist(ctx context.Context, playlistID int, songsID []int) error
 
 	// convert operation
-	Convert(ctx context.Context, provider string, token *oauth2.Token, playlistName string, songs []model.SongOutAPI) error
+	Convert(ctx context.Context, provider string, providerMetadata model.ConverterServiceProviderMetadata, playlistName string, songs []model.SongOutAPI) error
 }
 
 type PlaylistHandler struct {
@@ -204,22 +204,13 @@ func (p *PlaylistHandler) DeleteSongsFromPlaylist(c echo.Context) error {
 }
 
 func (p *PlaylistHandler) ConvertHandler(c echo.Context) error {
-	type reqBody struct {
-		PlaylistName     string `json:"playlist_name"`
-		ProviderMetadata struct {
-			AppleMusic struct {
-				MusicUserToken string `json:"musicUserToken"`
-			} `json:"applemusic"`
-		} `json:"provider_metadata,omitempty"`
-	}
-
 	playlistID, err := strconv.Atoi(c.Param("playlist_id"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	var newReqBody reqBody
-	err = c.Bind(&newReqBody)
+	var reqBody model.ConverterRequestBody
+	err = c.Bind(&reqBody)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
@@ -242,7 +233,16 @@ func (p *PlaylistHandler) ConvertHandler(c echo.Context) error {
 		Expiry:       user.ExpiresAt,
 	}
 
-	err = p.service.Convert(c.Request().Context(), provider, token, newReqBody.PlaylistName, songs)
+	providerMetadata := model.ConverterServiceProviderMetadata{
+		AppleMusic: model.AppleMusicMetadata{
+			MusicUserToken: reqBody.ProviderMetadata.AppleMusic.MusicUserToken,
+		},
+		Spotify: model.SpotifyMetadata{
+			Token: token,
+		},
+	}
+
+	err = p.service.Convert(c.Request().Context(), provider, providerMetadata, reqBody.PlaylistName, songs)
 	if err != nil {
 		return err
 	}
