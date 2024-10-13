@@ -2,9 +2,10 @@ package model
 
 import "golang.org/x/oauth2"
 
-type ConverterRequestBody struct {
-	PlaylistName     string                    `json:"playlist_name"`
+type ConverterRequestData struct {
+	PlaylistName     string                    `json:"playlist_name" validate:"required"`
 	ProviderMetadata ConverterProviderMetadata `json:"provider_metadata,omitempty"`
+	ProviderParam
 }
 
 type ConverterProviderMetadata struct {
@@ -24,4 +25,8 @@ type AppleMusicMetadata struct {
 
 type SpotifyMetadata struct {
 	Token *oauth2.Token
+}
+
+type ProviderParam struct {
+	Provider string `param:"provider" validate:"required,oneof=spotify applemusic"`
 }

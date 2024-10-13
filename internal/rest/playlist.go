@@ -209,10 +209,15 @@ func (p *PlaylistHandler) ConvertHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	var reqBody model.ConverterRequestBody
+	var reqBody model.ConverterRequestData
 	err = c.Bind(&reqBody)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	err = c.Validate(reqBody)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
 	songs, err := p.service.GetAllSongsFromPlaylist(c.Request().Context(), playlistID, "", "")

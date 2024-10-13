@@ -15,10 +15,6 @@ type OAuthHandler struct {
 	sessionStore sessions.Store
 }
 
-type ProviderParam struct {
-	Provider string `param:"provider" validate:"required,oneof=spotify applemusic"`
-}
-
 func NewOAuthHandler(store sessions.Store) *OAuthHandler {
 	return &OAuthHandler{
 		sessionStore: store,

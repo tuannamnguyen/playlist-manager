@@ -5,6 +5,7 @@ import (
 
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
+	"github.com/tuannamnguyen/playlist-manager/internal/model"
 )
 
 func saveOauthSessionValues(req *http.Request, res http.ResponseWriter, store sessions.Store, sessionValues map[any]any) error {
@@ -32,7 +33,7 @@ func getOauthSessionValues(req *http.Request, store sessions.Store) (map[any]any
 }
 
 func getProvider(c echo.Context) (string, error) {
-	var providerParam ProviderParam
+	var providerParam model.ProviderParam
 	err := c.Bind(&providerParam)
 	if err != nil {
 		return "", err
