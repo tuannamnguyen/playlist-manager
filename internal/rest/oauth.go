@@ -22,20 +22,24 @@ func NewOAuthHandler(store sessions.Store) *OAuthHandler {
 }
 
 func (o *OAuthHandler) LoginHandler(c echo.Context) error {
-	provider := c.Param("provider")
-	q := c.Request().URL.Query()
-	q.Add("provider", provider)
-	c.Request().URL.RawQuery = q.Encode()
+	provider, err := getProvider(c)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	addQueryParams(c, provider)
 
 	gothic.BeginAuthHandler(c.Response(), c.Request())
 	return nil
 }
 
 func (o *OAuthHandler) CallbackHandler(c echo.Context) error {
-	provider := c.Param("provider")
-	q := c.Request().URL.Query()
-	q.Add("provider", provider)
-	c.Request().URL.RawQuery = q.Encode()
+	provider, err := getProvider(c)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	addQueryParams(c, provider)
 
 	user, err := gothic.CompleteUserAuth(c.Response(), c.Request())
 	if err != nil {
@@ -56,10 +60,12 @@ func (o *OAuthHandler) CallbackHandler(c echo.Context) error {
 }
 
 func (o *OAuthHandler) CheckAuthHandler(c echo.Context) error {
-	provider := c.Param("provider")
-	q := c.Request().URL.Query()
-	q.Add("provider", provider)
-	c.Request().URL.RawQuery = q.Encode()
+	provider, err := getProvider(c)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	addQueryParams(c, provider)
 
 	sessionValues, err := getOauthSessionValues(c.Request(), o.sessionStore)
 	if err != nil {
@@ -75,12 +81,14 @@ func (o *OAuthHandler) CheckAuthHandler(c echo.Context) error {
 }
 
 func (o *OAuthHandler) LogoutHandler(c echo.Context) error {
-	provider := c.Param("provider")
-	q := c.Request().URL.Query()
-	q.Add("provider", provider)
-	c.Request().URL.RawQuery = q.Encode()
+	provider, err := getProvider(c)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
 
-	err := gothic.Logout(c.Response(), c.Request())
+	addQueryParams(c, provider)
+
+	err = gothic.Logout(c.Response(), c.Request())
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error logging out from %v: %v", provider, err))
 	}
@@ -89,10 +97,12 @@ func (o *OAuthHandler) LogoutHandler(c echo.Context) error {
 }
 
 func (o *OAuthHandler) GetAccessTokenHandler(c echo.Context) error {
-	provider := c.Param("provider")
-	q := c.Request().URL.Query()
-	q.Add("provider", provider)
-	c.Request().URL.RawQuery = q.Encode()
+	provider, err := getProvider(c)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	addQueryParams(c, provider)
 
 	sessionValues, err := getOauthSessionValues(c.Request(), o.sessionStore)
 	if err != nil {

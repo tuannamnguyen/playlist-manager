@@ -5,7 +5,6 @@ import (
 	"mime/multipart"
 
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
-	"golang.org/x/oauth2"
 )
 
 type PlaylistRepository interface {
@@ -159,8 +158,8 @@ func (p *PlaylistService) DeleteSongsFromPlaylist(ctx context.Context, playlistI
 	return p.playlistSongRepo.BulkDelete(ctx, playlistID, songsID)
 }
 
-func (p *PlaylistService) Convert(ctx context.Context, provider string, token *oauth2.Token, playlistName string, songs []model.SongOutAPI) error {
-	converter, err := getConverter(ctx, provider, token)
+func (p *PlaylistService) Convert(ctx context.Context, provider string, providerMetadata model.ConverterServiceProviderMetadata, playlistName string, songs []model.SongOutAPI) error {
+	converter, err := getConverter(ctx, provider, providerMetadata, "")
 	if err != nil {
 		return err
 	}

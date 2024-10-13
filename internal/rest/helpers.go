@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/sessions"
+	"github.com/labstack/echo/v4"
+	"github.com/tuannamnguyen/playlist-manager/internal/model"
 )
 
 func saveOauthSessionValues(req *http.Request, res http.ResponseWriter, store sessions.Store, sessionValues map[any]any) error {
@@ -28,4 +30,20 @@ func getOauthSessionValues(req *http.Request, store sessions.Store) (map[any]any
 	}
 
 	return session.Values, nil
+}
+
+func getProvider(c echo.Context) (string, error) {
+	var providerParam model.ProviderParam
+	err := c.Bind(&providerParam)
+	if err != nil {
+		return "", err
+	}
+	provider := providerParam.Provider
+	return provider, nil
+}
+
+func addQueryParams(c echo.Context, provider string) {
+	q := c.Request().URL.Query()
+	q.Add("provider", provider)
+	c.Request().URL.RawQuery = q.Encode()
 }
