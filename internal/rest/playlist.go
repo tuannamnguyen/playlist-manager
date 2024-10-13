@@ -230,6 +230,7 @@ func (p *PlaylistHandler) ConvertHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
+	// TODO: handle apple music case
 	provider := c.Param("provider")
 	user := (sessionValues[fmt.Sprintf("%s_user_info", provider)]).(goth.User)
 	token := &oauth2.Token{
