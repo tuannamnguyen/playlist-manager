@@ -14,6 +14,7 @@ require (
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/markbates/goth v1.80.0
+	github.com/minchao/go-apple-music v0.0.0-20230815040201-3b2aec2d7ffe
 	github.com/rhnvrm/lyric-api-go v0.1.4
 	github.com/stretchr/testify v1.9.0
 	github.com/zmb3/spotify/v2 v2.4.2
@@ -49,6 +50,7 @@ require (
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
+	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/google/s2a-go v0.1.8 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.4 // indirect
 	github.com/googleapis/gax-go/v2 v2.13.0 // indirect

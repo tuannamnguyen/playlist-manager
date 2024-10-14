@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"database/sql"
 	"testing"
 	"time"
 
@@ -83,6 +84,75 @@ func TestParsePlaylistSongData(t *testing.T) {
 					Name:        "runaway",
 					AlbumName:   "mbdtf",
 					ArtistNames: []string{"pusha t", "kanye west"},
+					Timestamp:   fakeTimestamp,
+				},
+			},
+		},
+		{
+			name: "success",
+			args: args{
+				rows: []model.SongOutDB{
+					{
+						ID:         2,
+						Name:       "Devil In A New Dress",
+						AlbumName:  "My Beautiful Dark Twisted Fantasy",
+						ArtistName: "Kanye West",
+						ImageURL:   "",
+						Duration:   0,
+						ISRC:       sql.NullString{},
+						Timestamp:  fakeTimestamp,
+					},
+					{
+						ID:         2,
+						Name:       "Devil In A New Dress",
+						AlbumName:  "My Beautiful Dark Twisted Fantasy",
+						ArtistName: "Rick Ross",
+						ImageURL:   "",
+						Duration:   0,
+						ISRC:       sql.NullString{},
+						Timestamp:  fakeTimestamp,
+					},
+					{
+						ID:         1,
+						Name:       "Location Unknown ◐",
+						AlbumName:  "Love Me / Love Me Not",
+						ArtistName: "Honne",
+						ImageURL:   "",
+						Duration:   0,
+						ISRC:       sql.NullString{},
+						Timestamp:  fakeTimestamp,
+					},
+					{
+						ID:         1,
+						Name:       "Location Unknown ◐",
+						AlbumName:  "Love Me / Love Me Not",
+						ArtistName: "Georgia",
+						ImageURL:   "",
+						Duration:   0,
+						ISRC:       sql.NullString{},
+						Timestamp:  fakeTimestamp,
+					},
+				},
+			},
+			want: []model.SongOutAPI{
+				{
+					ID:          2,
+					Name:        "Devil In A New Dress",
+					AlbumName:   "My Beautiful Dark Twisted Fantasy",
+					ArtistNames: []string{"Kanye West", "Rick Ross"},
+					ImageURL:    "",
+					Duration:    0,
+					ISRC:        "",
+					Timestamp:   fakeTimestamp,
+				},
+				{
+					ID:          1,
+					Name:        "Location Unknown ◐",
+					AlbumName:   "Love Me / Love Me Not",
+					ArtistNames: []string{"Honne", "Georgia"},
+					ImageURL:    "",
+					Duration:    0,
+					ISRC:        "",
 					Timestamp:   fakeTimestamp,
 				},
 			},

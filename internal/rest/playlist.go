@@ -2,7 +2,6 @@ package rest
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"log"
 	"mime/multipart"
@@ -11,9 +10,7 @@ import (
 
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
-	"github.com/markbates/goth"
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
-	"golang.org/x/oauth2"
 )
 
 type PlaylistService interface {
@@ -25,11 +22,11 @@ type PlaylistService interface {
 
 	// playlist-song operations
 	AddSongsToPlaylist(ctx context.Context, playlistID int, songs []model.SongInAPI) error
-	GetAllSongsFromPlaylist(ctx context.Context, playlistID int) ([]model.SongOutAPI, error)
+	GetAllSongsFromPlaylist(ctx context.Context, playlistID int, sortBy string, sortOrder string) ([]model.SongOutAPI, error)
 	DeleteSongsFromPlaylist(ctx context.Context, playlistID int, songsID []int) error
 
 	// convert operation
-	Convert(ctx context.Context, provider string, token *oauth2.Token, playlistName string, songs []model.SongOutAPI) error
+	Convert(ctx context.Context, provider string, providerMetadata model.ConverterServiceProviderMetadata, playlistName string, songs []model.SongOutAPI) error
 }
 
 type PlaylistHandler struct {
@@ -50,6 +47,10 @@ func (p *PlaylistHandler) Add(c echo.Context) error {
 		PlaylistDescription: c.FormValue("playlist_description"),
 		UserID:              c.FormValue("user_id"),
 		Username:            c.FormValue("user_name"),
+	}
+
+	if err := c.Validate(playlist); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
 	header, err := c.FormFile("playlist_cover_image")
@@ -149,12 +150,27 @@ func (p *PlaylistHandler) AddSongsToPlaylist(c echo.Context) error {
 }
 
 func (p *PlaylistHandler) GetAllSongsFromPlaylist(c echo.Context) error {
+	type QueryParams struct {
+		SortBy    string `query:"sort_by" validate:"omitempty,oneof=s.song_name al.album_name pls.created_at"`
+		SortOrder string `query:"sort_order" validate:"required_with=SortBy,omitempty,oneof=ASC DESC"`
+	}
+	var qParams QueryParams
+
+	err := c.Bind(&qParams)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	if err := c.Validate(qParams); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
 	playlistID, err := strconv.Atoi(c.Param("playlist_id"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	songs, err := p.service.GetAllSongsFromPlaylist(c.Request().Context(), playlistID)
+	songs, err := p.service.GetAllSongsFromPlaylist(c.Request().Context(), playlistID, qParams.SortBy, qParams.SortOrder)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
@@ -185,22 +201,23 @@ func (p *PlaylistHandler) DeleteSongsFromPlaylist(c echo.Context) error {
 }
 
 func (p *PlaylistHandler) ConvertHandler(c echo.Context) error {
-	type reqBody struct {
-		PlaylistName string `json:"playlist_name"`
-	}
-
 	playlistID, err := strconv.Atoi(c.Param("playlist_id"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	var newReqBody reqBody
-	err = c.Bind(&newReqBody)
+	var reqBody model.ConverterRequestData
+	err = c.Bind(&reqBody)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	songs, err := p.service.GetAllSongsFromPlaylist(c.Request().Context(), playlistID)
+	err = c.Validate(reqBody)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	songs, err := p.service.GetAllSongsFromPlaylist(c.Request().Context(), playlistID, "", "")
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
@@ -211,14 +228,9 @@ func (p *PlaylistHandler) ConvertHandler(c echo.Context) error {
 	}
 
 	provider := c.Param("provider")
-	user := (sessionValues[fmt.Sprintf("%s_user_info", provider)]).(goth.User)
-	token := &oauth2.Token{
-		AccessToken:  user.AccessToken,
-		RefreshToken: user.RefreshToken,
-		Expiry:       user.ExpiresAt,
-	}
+	providerMetadata := getProviderMetadata(provider, sessionValues, reqBody)
 
-	err = p.service.Convert(c.Request().Context(), provider, token, newReqBody.PlaylistName, songs)
+	err = p.service.Convert(c.Request().Context(), provider, providerMetadata, reqBody.PlaylistName, songs)
 	if err != nil {
 		return err
 	}

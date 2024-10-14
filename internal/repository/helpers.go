@@ -4,8 +4,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
-	"slices"
-	"sort"
 	"time"
 
 	"cloud.google.com/go/storage"
@@ -13,14 +11,12 @@ import (
 )
 
 func parsePlaylistSongData(rows []model.SongOutDB) []model.SongOutAPI {
-	songMap := make(map[int]*model.SongOutAPI)
+	songMap := make(map[int]int)
+	var result []model.SongOutAPI
 
 	for _, row := range rows {
-		if song, exists := songMap[row.ID]; exists {
-			// Song already exists, just add the artist if it's not already there
-			if !slices.Contains(song.ArtistNames, row.ArtistName) {
-				song.ArtistNames = append(song.ArtistNames, row.ArtistName)
-			}
+		if idx, exists := songMap[row.ID]; exists {
+			result[idx].ArtistNames = append(result[idx].ArtistNames, row.ArtistName)
 		} else {
 			var ISRC string
 			if row.ISRC.Valid {
@@ -29,30 +25,19 @@ func parsePlaylistSongData(rows []model.SongOutDB) []model.SongOutAPI {
 				ISRC = ""
 			}
 
-			// Create a new song entry
-			songMap[row.ID] = &model.SongOutAPI{
+			songMap[row.ID] = len(result)
+			result = append(result, model.SongOutAPI{
 				ID:          row.ID,
 				Name:        row.Name,
-				ArtistNames: []string{row.ArtistName},
 				AlbumName:   row.AlbumName,
+				ArtistNames: []string{row.ArtistName},
 				ImageURL:    row.ImageURL,
 				Duration:    row.Duration,
-				Timestamp:   row.Timestamp,
 				ISRC:        ISRC,
-			}
+				Timestamp:   row.Timestamp,
+			})
 		}
 	}
-
-	// Convert map to slice
-	result := make([]model.SongOutAPI, 0, len(songMap))
-	for _, song := range songMap {
-		result = append(result, *song)
-	}
-
-	// Sort the result slice by ID before returning
-	sort.Slice(result, func(i, j int) bool {
-		return result[i].ID < result[j].ID
-	})
 
 	return result
 }
