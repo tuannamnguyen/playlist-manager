@@ -24,7 +24,6 @@ import (
 	"github.com/markbates/goth/providers/spotify"
 	"github.com/tuannamnguyen/playlist-manager/internal/repository"
 	"github.com/tuannamnguyen/playlist-manager/internal/rest"
-	"github.com/tuannamnguyen/playlist-manager/internal/rest/gothprovider/genius"
 	"github.com/tuannamnguyen/playlist-manager/internal/service"
 	"gopkg.in/boj/redistore.v1"
 )
@@ -108,12 +107,6 @@ func run() error {
 			spotify.ScopePlaylistModifyPublic,
 			spotify.ScopePlaylistReadPrivate,
 			spotify.ScopeStreaming,
-		),
-		genius.New(
-			os.Getenv("GENIUS_CLIENT_ID"),
-			os.Getenv("GENIUS_CLIENT_SECRET"),
-			os.Getenv("GENIUS_REDIRECT_URL"),
-			genius.ScopeMe,
 		),
 	)
 
