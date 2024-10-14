@@ -2,7 +2,6 @@ package rest
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"log"
 	"mime/multipart"
@@ -11,9 +10,7 @@ import (
 
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
-	"github.com/markbates/goth"
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
-	"golang.org/x/oauth2"
 )
 
 type PlaylistService interface {
@@ -230,23 +227,8 @@ func (p *PlaylistHandler) ConvertHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	// TODO: handle apple music case
 	provider := c.Param("provider")
-	user := (sessionValues[fmt.Sprintf("%s_user_info", provider)]).(goth.User)
-	token := &oauth2.Token{
-		AccessToken:  user.AccessToken,
-		RefreshToken: user.RefreshToken,
-		Expiry:       user.ExpiresAt,
-	}
-
-	providerMetadata := model.ConverterServiceProviderMetadata{
-		AppleMusic: model.AppleMusicMetadata{
-			MusicUserToken: reqBody.ProviderMetadata.AppleMusic.MusicUserToken,
-		},
-		Spotify: model.SpotifyMetadata{
-			Token: token,
-		},
-	}
+	providerMetadata := getProviderMetadata(provider, sessionValues, reqBody)
 
 	err = p.service.Convert(c.Request().Context(), provider, providerMetadata, reqBody.PlaylistName, songs)
 	if err != nil {

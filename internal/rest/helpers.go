@@ -1,11 +1,14 @@
 package rest
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
+	"github.com/markbates/goth"
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
+	"golang.org/x/oauth2"
 )
 
 func saveOauthSessionValues(req *http.Request, res http.ResponseWriter, store sessions.Store, sessionValues map[any]any) error {
@@ -46,4 +49,34 @@ func addQueryParams(c echo.Context, provider string) {
 	q := c.Request().URL.Query()
 	q.Add("provider", provider)
 	c.Request().URL.RawQuery = q.Encode()
+}
+
+func getProviderMetadata(
+	provider string,
+	sessionValues map[any]any,
+	reqBody model.ConverterRequestData,
+) (providerMetadata model.ConverterServiceProviderMetadata) {
+	switch provider {
+	case "spotify":
+		user := (sessionValues[fmt.Sprintf("%s_user_info", provider)]).(goth.User)
+		token := &oauth2.Token{
+			AccessToken:  user.AccessToken,
+			RefreshToken: user.RefreshToken,
+			Expiry:       user.ExpiresAt,
+		}
+		providerMetadata = model.ConverterServiceProviderMetadata{
+			Spotify: model.SpotifyMetadata{
+				Token: token,
+			},
+		}
+
+	case "applemusic":
+		providerMetadata = model.ConverterServiceProviderMetadata{
+			AppleMusic: model.AppleMusicMetadata{
+				MusicUserToken: reqBody.ProviderMetadata.AppleMusic.MusicUserToken,
+			},
+		}
+	}
+
+	return providerMetadata
 }
