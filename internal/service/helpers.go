@@ -9,7 +9,7 @@ import (
 	spotifyconverter "github.com/tuannamnguyen/playlist-manager/internal/service/converters/spotify"
 )
 
-func getConverter(ctx context.Context, provider string, providerMetadata model.ConverterServiceProviderMetadata, appleMusicUserToken string) (Converter, error) {
+func getConverter(ctx context.Context, provider string, providerMetadata model.ConverterServiceProviderMetadata) (Converter, error) {
 	switch provider {
 	case "spotify":
 		return spotifyconverter.New(ctx, providerMetadata.Spotify.Token), nil

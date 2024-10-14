@@ -159,7 +159,7 @@ func (p *PlaylistService) DeleteSongsFromPlaylist(ctx context.Context, playlistI
 }
 
 func (p *PlaylistService) Convert(ctx context.Context, provider string, providerMetadata model.ConverterServiceProviderMetadata, playlistName string, songs []model.SongOutAPI) error {
-	converter, err := getConverter(ctx, provider, providerMetadata, "")
+	converter, err := getConverter(ctx, provider, providerMetadata)
 	if err != nil {
 		return err
 	}
