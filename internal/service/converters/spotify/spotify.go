@@ -50,7 +50,7 @@ func (s *SpotifyConverter) Export(ctx context.Context, playlistName string, song
 
 		result, err := s.client.Search(
 			ctx,
-			url.QueryEscape(searchQuery),
+			searchQuery,
 			spotify.SearchTypeTrack,
 			spotify.Limit(1),
 		)
@@ -73,28 +73,24 @@ func (s *SpotifyConverter) Export(ctx context.Context, playlistName string, song
 }
 
 func (s *SpotifyConverter) formatSearchQuery(song model.SongOutAPI) string {
-	// Helper function to wrap terms with spaces in quotes
-	wrapInQuotes := func(s string) string {
-		if strings.Contains(s, " ") {
-			return fmt.Sprintf(`"%s"`, s)
-		}
-		return s
-	}
-
-	// Format artist query
 	artistQuery := make([]string, len(song.ArtistNames))
 	for i, artist := range song.ArtistNames {
-		artistQuery[i] = fmt.Sprintf("artist:%s", wrapInQuotes(artist))
+		artistQuery[i] = fmt.Sprintf("artist:%s", artist)
 	}
 	artists := strings.Join(artistQuery, " ")
 
-	// Format track, album, and year (if available)
-	trackQuery := fmt.Sprintf("track:%s", wrapInQuotes(song.Name))
-	albumQuery := fmt.Sprintf("album:%s", wrapInQuotes(song.AlbumName))
-	isrcQuery := fmt.Sprintf("isrc:%s", wrapInQuotes(song.ISRC))
+	trackQuery := fmt.Sprintf("track:%s", song.Name)
+	albumQuery := fmt.Sprintf("album:%s", song.AlbumName)
+	isrcQuery := fmt.Sprintf("isrc:%s", song.ISRC)
 
-	// Combine all parts of the query
-	queryParts := []string{trackQuery, artists, albumQuery, isrcQuery}
+	var queryParts []string
+	if song.ISRC != "" {
+		queryParts = []string{isrcQuery}
+
+	} else {
+		queryParts = []string{trackQuery, artists, albumQuery, isrcQuery}
+
+	}
 
 	return strings.Join(queryParts, " ")
 }
