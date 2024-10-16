@@ -68,18 +68,28 @@ func (a *AppleMusicConverter) parseSongToPlaylistTracks(ctx context.Context, son
 }
 
 func (a *AppleMusicConverter) searchAndMatch(ctx context.Context, song model.SongOutAPI) (applemusic.CreateLibraryPlaylistTrack, error) {
-	amTrack, _, err := a.client.Catalog.GetSongsByIsrcs(
-		ctx,
-		"vn",
-		[]string{song.ISRC},
-		&applemusic.Options{},
-	)
-	if err != nil {
-		return applemusic.CreateLibraryPlaylistTrack{}, err
+	var id string
+	var songType string
+
+	if song.ISRC != "" {
+		amTrack, _, err := a.client.Catalog.GetSongsByIsrcs(
+			ctx,
+			"vn",
+			[]string{song.ISRC},
+			&applemusic.Options{},
+		)
+		if err != nil {
+			return applemusic.CreateLibraryPlaylistTrack{}, err
+		}
+
+		id = amTrack.Data[0].Id
+		songType = amTrack.Data[0].Type
+	} else {
+		// TODO: handle this case (search by artist names, albums,...)
 	}
 
 	return applemusic.CreateLibraryPlaylistTrack{
-		Id:   amTrack.Data[0].Id,
-		Type: amTrack.Data[0].Type,
+		Id:   id,
+		Type: songType,
 	}, nil
 }
