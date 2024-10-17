@@ -3,7 +3,9 @@ package applemusicconverter
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
+	"strings"
 
 	applemusic "github.com/minchao/go-apple-music"
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
@@ -68,18 +70,44 @@ func (a *AppleMusicConverter) parseSongToPlaylistTracks(ctx context.Context, son
 }
 
 func (a *AppleMusicConverter) searchAndMatch(ctx context.Context, song model.SongOutAPI) (applemusic.CreateLibraryPlaylistTrack, error) {
-	amTrack, _, err := a.client.Catalog.GetSongsByIsrcs(
-		ctx,
-		"vn",
-		[]string{song.ISRC},
-		&applemusic.Options{},
-	)
-	if err != nil {
-		return applemusic.CreateLibraryPlaylistTrack{}, err
+	var id, songType string
+
+	if song.ISRC != "" {
+		amTrack, _, err := a.client.Catalog.GetSongsByIsrcs(ctx, "vn", []string{song.ISRC}, &applemusic.Options{})
+		if err != nil {
+			return applemusic.CreateLibraryPlaylistTrack{}, fmt.Errorf("get songs by ISRC: %w", err)
+		}
+		if len(amTrack.Data) == 0 {
+			return applemusic.CreateLibraryPlaylistTrack{}, fmt.Errorf("no track found for ISRC: %s", song.ISRC)
+		}
+
+		id = amTrack.Data[0].Id
+		songType = amTrack.Data[0].Type
+	} else {
+		artistSearch := strings.Join(song.ArtistNames, " ")
+		searchTerm := fmt.Sprintf("%s %s %s", song.Name, artistSearch, song.AlbumName)
+
+		log.Printf("apple music search term: %s", searchTerm)
+
+		searchResult, _, err := a.client.Catalog.Search(ctx, "vn", &applemusic.SearchOptions{
+			Term:  searchTerm,
+			Types: "songs",
+		})
+		if err != nil {
+			return applemusic.CreateLibraryPlaylistTrack{}, fmt.Errorf("search songs: %w", err)
+		}
+
+		songs := searchResult.Results.Songs
+		if songs == nil {
+			return applemusic.CreateLibraryPlaylistTrack{}, fmt.Errorf("no track found for search term: %s", searchTerm)
+		}
+
+		id = searchResult.Results.Songs.Data[0].Id
+		songType = searchResult.Results.Songs.Data[0].Type
 	}
 
 	return applemusic.CreateLibraryPlaylistTrack{
-		Id:   amTrack.Data[0].Id,
-		Type: amTrack.Data[0].Type,
+		Id:   id,
+		Type: songType,
 	}, nil
 }
