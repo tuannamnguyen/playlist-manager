@@ -3,8 +3,7 @@ package spotifyconverter
 import (
 	"context"
 	"fmt"
-	"log/slog"
-	"net/url"
+	"log"
 	"os"
 	"strings"
 
@@ -45,8 +44,7 @@ func (s *SpotifyConverter) Export(ctx context.Context, playlistName string, song
 	var tracksID []spotify.ID
 	for _, song := range songs {
 		searchQuery := s.formatSearchQuery(song)
-		slog.Info(searchQuery)
-		slog.Info("url formatted search: ", "query", url.QueryEscape(searchQuery))
+		log.Printf("spotify search query: %s", searchQuery)
 
 		result, err := s.client.Search(
 			ctx,

@@ -3,6 +3,7 @@ package applemusicconverter
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 
@@ -85,7 +86,8 @@ func (a *AppleMusicConverter) searchAndMatch(ctx context.Context, song model.Son
 	} else {
 		artistSearch := strings.Join(song.ArtistNames, " ")
 		searchTerm := fmt.Sprintf("%s %s %s", song.Name, artistSearch, song.AlbumName)
-		searchTerm = strings.ReplaceAll(searchTerm, " ", "+")
+
+		log.Printf("apple music search term: %s", searchTerm)
 
 		searchResult, _, err := a.client.Catalog.Search(ctx, "vn", &applemusic.SearchOptions{
 			Term:  searchTerm,
@@ -94,7 +96,9 @@ func (a *AppleMusicConverter) searchAndMatch(ctx context.Context, song model.Son
 		if err != nil {
 			return applemusic.CreateLibraryPlaylistTrack{}, fmt.Errorf("search songs: %w", err)
 		}
-		if len(searchResult.Results.Songs.Data) == 0 {
+
+		songs := searchResult.Results.Songs
+		if songs != nil && len(songs.Data) == 0 {
 			return applemusic.CreateLibraryPlaylistTrack{}, fmt.Errorf("no track found for search term: %s", searchTerm)
 		}
 
