@@ -1,9 +1,9 @@
 package service
 
 import (
-	"os"
+	"fmt"
+	"net/url"
 
-	"github.com/broxgit/genius"
 	lyrics "github.com/rhnvrm/lyric-api-go"
 )
 
@@ -22,14 +22,8 @@ func (m *MetadataService) FetchLyrics(artists string, song string) (string, erro
 }
 
 func (m *MetadataService) ArtistInformation(artistName string) (string, error) {
-	geniusClient := genius.NewClient(nil, os.Getenv("GENIUS_CLIENT_ACCESS_TOKEN"))
+	escapedArtistName := url.PathEscape(artistName)
+	url := fmt.Sprintf("https://genius.com/artists/%s", escapedArtistName)
 
-	searchRes, err := geniusClient.Search(artistName)
-	if err != nil {
-		return "", err
-	}
-
-	artist := searchRes.Response.Hits[0].Result.PrimaryArtist
-
-	return artist.URL, nil
+	return url, nil
 }

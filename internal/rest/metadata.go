@@ -43,7 +43,6 @@ func (m *MetadataHandler) GetLyrics(c echo.Context) error {
 }
 
 func (m *MetadataHandler) GetArtistInformation(c echo.Context) error {
-	// TODO: improve this endpoint
 	artistName := c.QueryParam("artist_name")
 
 	artistURL, err := m.ms.ArtistInformation(artistName)

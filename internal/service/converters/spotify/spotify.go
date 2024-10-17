@@ -39,7 +39,6 @@ func (s *SpotifyConverter) Export(ctx context.Context, playlistName string, song
 		return fmt.Errorf("create playlist: %w", err)
 	}
 
-	// ? see if we can use goroutines here
 	var tracksID []spotify.ID
 	for _, song := range songs {
 		searchQuery := s.formatSearchQuery(song)

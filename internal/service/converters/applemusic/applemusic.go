@@ -98,7 +98,7 @@ func (a *AppleMusicConverter) searchAndMatch(ctx context.Context, song model.Son
 		}
 
 		songs := searchResult.Results.Songs
-		if songs != nil && len(songs.Data) == 0 {
+		if songs == nil {
 			return applemusic.CreateLibraryPlaylistTrack{}, fmt.Errorf("no track found for search term: %s", searchTerm)
 		}
 
