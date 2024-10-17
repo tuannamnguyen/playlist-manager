@@ -34,7 +34,6 @@ func New(ctx context.Context, token *oauth2.Token) *SpotifyConverter {
 }
 
 func (s *SpotifyConverter) Export(ctx context.Context, playlistName string, songs []model.SongOutAPI) error {
-	// ? what if the playlist already exists
 	playlistID, err := s.createPlaylist(ctx, playlistName)
 	if err != nil {
 		return fmt.Errorf("create playlist: %w", err)
