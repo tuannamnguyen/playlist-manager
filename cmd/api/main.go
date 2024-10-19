@@ -65,12 +65,11 @@ func run() error {
 	}
 
 	// setup DB
-	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s",
+	psqlInfo := fmt.Sprintf("host=%s user=%s password=%s dbname=%s",
 		os.Getenv("POSTGRES_HOST"),
-		os.Getenv("POSTGRES_PORT"),
 		os.Getenv("POSTGRES_USER"),
 		os.Getenv("POSTGRES_PASSWORD"),
-		"playlist_manager",
+		os.Getenv("POSTGRES_DBNAME"),
 	)
 	db, err := sqlx.Connect("pgx", psqlInfo)
 	if err != nil {
