@@ -4,21 +4,18 @@ resource "google_service_account" "backend_prod_service_account" {
   create_ignore_already_exists = true
 }
 
-
-resource "google_project_iam_member" "token_creator_iam_prod" {
-  project = local.project_id
-  member  = "serviceAccount:${google_service_account.backend_prod_service_account.email}"
-  role    = "roles/iam.serviceAccountTokenCreator"
+locals {
+  service_account_role_list = [
+    "roles/iam.serviceAccountTokenCreator",
+    "roles/storage.objectUser",
+    "roles/cloudsql.client"
+  ]
 }
 
-resource "google_project_iam_member" "storage_object_user_iam" {
-  project = local.project_id
-  member  = "serviceAccount:${google_service_account.backend_prod_service_account.email}"
-  role    = "roles/storage.objectUser"
-}
+resource "google_project_iam_member" "service_account_roles" {
+  for_each = toset(local.service_account_role_list)
 
-resource "google_project_iam_member" "cloud_sql_client" {
   project = local.project_id
   member  = "serviceAccount:${google_service_account.backend_prod_service_account.email}"
-  role    = "roles/cloudsql.client"
+  role    = each.key
 }
