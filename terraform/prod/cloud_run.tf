@@ -28,7 +28,7 @@ resource "google_cloud_run_v2_service" "playlist_manager_cloud_run_config" {
       }
       # Sets a secret environment variable for database user secret
       env {
-        name = "DB_USER"
+        name = "POSTGRES_USER"
         value_source {
           secret_key_ref {
             secret  = google_secret_manager_secret.dbuser.secret_id # secret name
@@ -38,7 +38,7 @@ resource "google_cloud_run_v2_service" "playlist_manager_cloud_run_config" {
       }
       # Sets a secret environment variable for database password secret
       env {
-        name = "DB_PASS"
+        name = "POSTGRES_PASSWORD"
         value_source {
           secret_key_ref {
             secret  = google_secret_manager_secret.dbpass.secret_id # secret name
