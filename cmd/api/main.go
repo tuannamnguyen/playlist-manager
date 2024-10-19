@@ -71,6 +71,8 @@ func run() error {
 		os.Getenv("POSTGRES_PASSWORD"),
 		os.Getenv("POSTGRES_DBNAME"),
 	)
+
+	log.Println("db URI:", psqlInfo)
 	db, err := sqlx.Connect("pgx", psqlInfo)
 	if err != nil {
 		return fmt.Errorf("unable to connect to database: %v", err)

@@ -1,6 +1,6 @@
 resource "google_service_account" "backend_prod_service_account" {
-  account_id                   = "playist-manager-backend-test"
-  display_name                 = "playist-manager-backend-test"
+  account_id                   = "playist-manager-backend-prod"
+  display_name                 = "playist-manager-backend-prod"
   create_ignore_already_exists = true
 }
 

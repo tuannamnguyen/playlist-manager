@@ -26,7 +26,7 @@ resource "google_sql_database" "playlist_manager_database" {
   instance = google_sql_database_instance.prod_db.name
 }
 
-resource "random_password" "pwd" {
+resource "random_password" "db_user_pwd" {
   length  = 16
   special = false
 }
@@ -34,5 +34,5 @@ resource "random_password" "pwd" {
 resource "google_sql_user" "google_sql_user" {
   name     = "user"
   instance = google_sql_database_instance.prod_db.name
-  password = random_password.pwd.result
+  password = random_password.db_user_pwd.result
 }
