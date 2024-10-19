@@ -1,17 +1,18 @@
-# Enable Secret Manager API
-resource "google_project_service" "secretmanager_api" {
-  service            = "secretmanager.googleapis.com"
-  disable_on_destroy = false
+variable "gcp_service_list" {
+  description = "The list of apis necessary for the project"
+  type        = list(string)
+  default = [
+    "cloudresourcemanager.googleapis.com",
+    "serviceusage.googleapis.com",
+    "secretmanager.googleapis.com",
+    "secretmanager.googleapis.com",
+    "sqladmin.googleapis.com",
+    "run.googleapis.com"
+  ]
 }
 
-# Enable SQL Admin API
-resource "google_project_service" "sqladmin_api" {
-  service            = "sqladmin.googleapis.com"
-  disable_on_destroy = false
-}
-
-# Enable Cloud Run API
-resource "google_project_service" "cloudrun_api" {
-  service            = "run.googleapis.com"
+resource "google_project_service" "gcp_services" {
+  for_each           = toset(var.gcp_service_list)
+  service            = each.key
   disable_on_destroy = false
 }

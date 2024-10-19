@@ -4,7 +4,7 @@ resource "google_secret_manager_secret" "dbpass" {
   replication {
     auto {}
   }
-  depends_on = [google_project_service.secretmanager_api]
+  depends_on = [google_project_service.gcp_services]
 }
 
 # Attaches secret data for dbpass secret

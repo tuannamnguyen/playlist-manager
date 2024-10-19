@@ -2,8 +2,6 @@ variable "db_root_password" {
   type = string
 }
 
-
-
 data "google_project" "project" {
 }
 
@@ -18,7 +16,7 @@ resource "google_sql_database_instance" "prod_db" {
     disk_autoresize = false
   }
   deletion_protection = false
-  depends_on          = [google_project_service.sqladmin_api]
+  depends_on          = [google_project_service.gcp_services]
 }
 
 resource "google_sql_database" "playlist_manager_database" {
