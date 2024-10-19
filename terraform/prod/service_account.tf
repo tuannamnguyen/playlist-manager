@@ -1,3 +1,7 @@
+locals {
+  project_id = "playlist-manager-437214"
+}
+
 resource "google_service_account" "backend_prod_service_account" {
   account_id                   = "playist-manager-backend-test"
   display_name                 = "playist-manager-backend-test"
@@ -6,13 +10,19 @@ resource "google_service_account" "backend_prod_service_account" {
 
 
 resource "google_project_iam_member" "token_creator_iam_prod" {
-  project = "playlist-manager-437214"
+  project = local.project_id
   member  = "serviceAccount:${google_service_account.backend_prod_service_account.email}"
   role    = "roles/iam.serviceAccountTokenCreator"
 }
 
 resource "google_project_iam_member" "storage_object_user_iam" {
-  project = "playlist-manager-437214"
+  project = local.project_id
   member  = "serviceAccount:${google_service_account.backend_prod_service_account.email}"
   role    = "roles/storage.objectUser"
+}
+
+resource "google_project_iam_member" "cloud_sql_client" {
+  project = local.project_id
+  member  = "serviceAccount:${google_service_account.backend_prod_service_account.email}"
+  role    = "roles/cloudsql.client"
 }
