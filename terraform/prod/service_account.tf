@@ -1,7 +1,3 @@
-locals {
-  project_id = "playlist-manager-437214"
-}
-
 resource "google_service_account" "backend_prod_service_account" {
   account_id                   = "playist-manager-backend-test"
   display_name                 = "playist-manager-backend-test"

@@ -2,12 +2,14 @@ variable "db_root_password" {
   type = string
 }
 
+
+
 data "google_project" "project" {
 }
 
 resource "google_sql_database_instance" "prod_db" {
   name             = "playlist-manager-prod"
-  region           = "asia-southeast1"
+  region           = local.region
   database_version = "POSTGRES_16"
   root_password    = var.db_root_password
 

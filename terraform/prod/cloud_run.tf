@@ -9,7 +9,7 @@ variable "dotenv_key" {
 
 resource "google_cloud_run_v2_service" "playlist_manager_cloud_run_config" {
   name                = "playlist-manager-cloudrun"
-  location            = "asia-southeast1"
+  location            = local.region
   client              = "terraform"
   deletion_protection = false
 
@@ -23,8 +23,8 @@ resource "google_cloud_run_v2_service" "playlist_manager_cloud_run_config" {
       }
       # Sets a environment variable for instance connection name
       env {
-        name  = "INSTANCE_CONNECTION_NAME"
-        value = google_sql_database_instance.prod_db.connection_name
+        name  = "POSTGRES_HOST"
+        value = "/cloudsql/${local.project_id}:${local.region}:${google_sql_database_instance.prod_db.connection_name}"
       }
       # Sets a secret environment variable for database user secret
       env {
