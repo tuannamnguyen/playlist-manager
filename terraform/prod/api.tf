@@ -4,7 +4,8 @@ locals {
     "serviceusage.googleapis.com",
     "secretmanager.googleapis.com",
     "sqladmin.googleapis.com",
-    "run.googleapis.com"
+    "run.googleapis.com",
+    "iam.googleapis.com"
   ]
 }
 
