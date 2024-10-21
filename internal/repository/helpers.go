@@ -91,7 +91,7 @@ func (p *PlaylistRepository) generateSignedURLFromObjectName(objectName string) 
 
 	opts := &storage.SignedURLOptions{
 		GoogleAccessID: os.Getenv("GCP_SERVICE_ACCOUNT"),
-		PrivateKey:     privateKey,
+		PrivateKey:     privateKey, // generate a new private key when rebuild destroy and apply terraform config
 		Scheme:         storage.SigningSchemeV4,
 		Method:         "GET",
 		Expires:        time.Now().Add(15 * time.Minute),

@@ -72,7 +72,7 @@ func (p *PlaylistHandler) Add(c echo.Context) error {
 	fileType := http.DetectContentType(buff)
 	log.Println(fileType)
 
-	if fileType != "image/jpeg" {
+	if fileType != "image/jpeg" && fileType != "image/png" {
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid file type for playlist cover")
 	}
 
