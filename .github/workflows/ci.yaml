@@ -46,8 +46,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     needs: push_to_registry
-    env:
-      AWS_REGION: ap-southeast-1
 
     # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
