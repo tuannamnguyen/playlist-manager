@@ -35,7 +35,7 @@ resource "google_cloud_run_v2_service" "playlist_manager_cloud_run_config" {
       # Sets a environment variable for instance connection name
       env {
         name  = "POSTGRES_HOST"
-        value = "/cloudsql/${local.project_id}:${local.region}:${google_sql_database_instance.prod_db.connection_name}"
+        value = "/cloudsql/${google_sql_database_instance.prod_db.connection_name}"
       }
       # Sets a secret environment variable for database user secret
       env {
