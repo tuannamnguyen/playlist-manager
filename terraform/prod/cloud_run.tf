@@ -58,6 +58,16 @@ resource "google_cloud_run_v2_service" "playlist_manager_cloud_run_config" {
         value = var.postgres_dbname
       }
 
+      env {
+        name  = "REDIS_HOST"
+        value = google_redis_instance.playlist_manager_redis.host
+      }
+
+      env {
+        name  = "REDIS_PORT"
+        value = google_redis_instance.playlist_manager_redis.port
+      }
+
       volume_mounts {
         name       = "cloudsql"
         mount_path = "/cloudsql"
