@@ -239,3 +239,8 @@ func (p *PlaylistHandler) ConvertHandler(c echo.Context) error {
 		"message": "Converted successfully",
 	})
 }
+
+func (p *PlaylistHandler) GetAllSongsFromPlaylistToCsv(c echo.Context) error {
+	// TODO: implement this
+	return nil
+}
