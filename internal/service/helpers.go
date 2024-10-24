@@ -2,7 +2,9 @@ package service
 
 import (
 	"context"
+	"encoding/csv"
 	"errors"
+	"fmt"
 
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
 	applemusicconverter "github.com/tuannamnguyen/playlist-manager/internal/service/converters/applemusic"
@@ -18,4 +20,13 @@ func getConverter(ctx context.Context, provider string, providerMetadata model.C
 	}
 
 	return nil, errors.New("no converter available")
+}
+
+func writeCsvRecord(writer *csv.Writer, record []string) error {
+	err := writer.Write(record)
+	if err != nil {
+		return fmt.Errorf("csv write: %s", err)
+	}
+
+	return nil
 }

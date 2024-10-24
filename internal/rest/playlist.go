@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"bytes"
 	"context"
 	"io"
 	"log"
@@ -27,6 +28,9 @@ type PlaylistService interface {
 
 	// convert operation
 	Convert(ctx context.Context, provider string, providerMetadata model.ConverterServiceProviderMetadata, playlistName string, songs []model.SongOutAPI) error
+
+	// csv
+	ConvertSongsToCsv(ctx context.Context, songs []model.SongOutAPI) (bytes.Buffer, error)
 }
 
 type PlaylistHandler struct {
@@ -241,6 +245,36 @@ func (p *PlaylistHandler) ConvertHandler(c echo.Context) error {
 }
 
 func (p *PlaylistHandler) GetAllSongsFromPlaylistToCsv(c echo.Context) error {
-	// TODO: implement this
-	return nil
+	type QueryParams struct {
+		SortBy    string `query:"sort_by" validate:"omitempty,oneof=s.song_name al.album_name pls.created_at"`
+		SortOrder string `query:"sort_order" validate:"required_with=SortBy,omitempty,oneof=ASC DESC"`
+	}
+	var qParams QueryParams
+
+	err := c.Bind(&qParams)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	if err := c.Validate(qParams); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	playlistID, err := strconv.Atoi(c.Param("playlist_id"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	songs, err := p.service.GetAllSongsFromPlaylist(c.Request().Context(), playlistID, qParams.SortBy, qParams.SortOrder)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	csvBuffer, err := p.service.ConvertSongsToCsv(c.Request().Context(), songs)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	c.Response().Header().Set(echo.HeaderContentDisposition, "attachment;filename=playlistsongs.csv")
+	return c.Stream(http.StatusOK, "text/csv", &csvBuffer)
 }

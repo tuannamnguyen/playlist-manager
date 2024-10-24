@@ -1,8 +1,13 @@
 package service
 
 import (
+	"bytes"
 	"context"
+	"encoding/csv"
+	"fmt"
 	"mime/multipart"
+	"strconv"
+	"strings"
 
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
 )
@@ -165,4 +170,40 @@ func (p *PlaylistService) Convert(ctx context.Context, provider string, provider
 	}
 
 	return converter.Export(ctx, playlistName, songs)
+}
+
+func (p *PlaylistService) ConvertSongsToCsv(ctx context.Context, songs []model.SongOutAPI) (bytes.Buffer, error) {
+	var buffer bytes.Buffer
+
+	writer := csv.NewWriter(&buffer)
+
+	header := []string{"Name", "Album", "Artists", "Song Cover URL", "Duration", "ISRC"}
+
+	err := writeCsvRecord(writer, header)
+	if err != nil {
+		return bytes.Buffer{}, err
+	}
+
+	for _, song := range songs {
+		record := []string{
+			song.Name,
+			song.AlbumName,
+			strings.Join(song.ArtistNames, "|"),
+			song.ImageURL,
+			strconv.Itoa(song.Duration),
+			song.ISRC,
+		}
+
+		err := writeCsvRecord(writer, record)
+		if err != nil {
+			return bytes.Buffer{}, err
+		}
+	}
+
+	writer.Flush()
+	if err := writer.Error(); err != nil {
+		return bytes.Buffer{}, fmt.Errorf("error flushing csv writer: %w", err)
+	}
+
+	return buffer, nil
 }
