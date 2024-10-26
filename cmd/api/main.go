@@ -208,6 +208,7 @@ func setupPlaylistRoutes(router *echo.Group, db *sqlx.DB, store sessions.Store, 
 
 	// csv endpoints
 	router.GET("/:playlist_id/songs/csv", playlistHandler.GetAllSongsFromPlaylistToCsv)
+	router.POST("/:playlist_id/songs/csv", playlistHandler.AddSongsToPlaylistFromCsv)
 }
 
 func setupSearchRoutes(router *echo.Group, httpClient *http.Client) {
