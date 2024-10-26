@@ -35,7 +35,7 @@ resource "google_cloud_run_v2_service" "playlist_manager_cloud_run_config" {
       # Sets a environment variable for instance connection name
       env {
         name  = "POSTGRES_HOST"
-        value = "/cloudsql/${local.project_id}:${local.region}:${google_sql_database_instance.prod_db.connection_name}"
+        value = "/cloudsql/${google_sql_database_instance.prod_db.connection_name}"
       }
       # Sets a secret environment variable for database user secret
       env {
@@ -56,6 +56,16 @@ resource "google_cloud_run_v2_service" "playlist_manager_cloud_run_config" {
       env {
         name  = "POSTGRES_DBNAME"
         value = var.postgres_dbname
+      }
+
+      env {
+        name  = "REDIS_HOST"
+        value = google_redis_instance.playlist_manager_redis.host
+      }
+
+      env {
+        name  = "REDIS_PORT"
+        value = google_redis_instance.playlist_manager_redis.port
       }
 
       volume_mounts {

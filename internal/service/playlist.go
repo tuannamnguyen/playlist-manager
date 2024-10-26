@@ -1,8 +1,11 @@
 package service
 
 import (
+	"bytes"
 	"context"
 	"mime/multipart"
+	"strconv"
+	"strings"
 
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
 )
@@ -165,4 +168,67 @@ func (p *PlaylistService) Convert(ctx context.Context, provider string, provider
 	}
 
 	return converter.Export(ctx, playlistName, songs)
+}
+
+func (p *PlaylistService) ConvertSongsToCsv(songs []model.SongOutAPI) (bytes.Buffer, error) {
+	var buffer bytes.Buffer
+
+	header := []string{"Name", "Artists", "Album", "Song Cover URL", "Duration", "ISRC"}
+
+	err := writeCsvRecord(&buffer, header)
+	if err != nil {
+		return bytes.Buffer{}, err
+	}
+
+	for _, song := range songs {
+		record := []string{
+			song.Name,
+			strings.Join(song.ArtistNames, "|"),
+			song.AlbumName,
+			song.ImageURL,
+			strconv.Itoa(song.Duration),
+			song.ISRC,
+		}
+
+		err := writeCsvRecord(&buffer, record)
+		if err != nil {
+			return bytes.Buffer{}, err
+		}
+	}
+
+	return buffer, nil
+}
+
+func (p *PlaylistService) ConvertCsvToSongs(file multipart.File) ([]model.SongInAPI, error) {
+	records, err := parseCsv(file)
+	if err != nil {
+		return nil, err
+	}
+
+	songs := make([]model.SongInAPI, len(records)-1)
+
+	for i, record := range records {
+		// file header so skip
+		if i == 0 {
+			continue
+		}
+
+		duration, err := strconv.Atoi(record[4])
+		if err != nil {
+			return nil, err
+		}
+
+		song := model.SongInAPI{
+			Name:        record[0],
+			AlbumName:   record[1],
+			ArtistNames: strings.Split(record[2], "|"),
+			ImageURL:    record[3],
+			Duration:    duration,
+			ISRC:        record[5],
+		}
+
+		songs[i-1] = song
+	}
+
+	return songs, nil
 }

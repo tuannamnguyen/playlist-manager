@@ -72,12 +72,13 @@ func run() error {
 		os.Getenv("POSTGRES_DBNAME"),
 	)
 
-	log.Println("db URI:", psqlInfo)
 	db, err := sqlx.Connect("pgx", psqlInfo)
 	if err != nil {
 		return fmt.Errorf("unable to connect to database: %v", err)
 	}
 	defer db.Close()
+
+	log.Println("connected to postgres successfully")
 
 	// setup Google Cloud Storage
 	gcsClient, err := storage.NewClient(context.Background())
@@ -204,6 +205,10 @@ func setupPlaylistRoutes(router *echo.Group, db *sqlx.DB, store sessions.Store, 
 
 	// conversion endpoints
 	router.POST("/:playlist_id/convert/:provider", playlistHandler.ConvertHandler)
+
+	// csv endpoints
+	router.GET("/:playlist_id/songs/csv", playlistHandler.GetAllSongsFromPlaylistToCsv)
+	router.POST("/:playlist_id/songs/csv", playlistHandler.AddSongsToPlaylistFromCsv)
 }
 
 func setupSearchRoutes(router *echo.Group, httpClient *http.Client) {
