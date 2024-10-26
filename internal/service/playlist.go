@@ -3,8 +3,6 @@ package service
 import (
 	"bytes"
 	"context"
-	"encoding/csv"
-	"fmt"
 	"mime/multipart"
 	"strconv"
 	"strings"
@@ -172,14 +170,12 @@ func (p *PlaylistService) Convert(ctx context.Context, provider string, provider
 	return converter.Export(ctx, playlistName, songs)
 }
 
-func (p *PlaylistService) ConvertSongsToCsv(ctx context.Context, songs []model.SongOutAPI) (bytes.Buffer, error) {
+func (p *PlaylistService) ConvertSongsToCsv(songs []model.SongOutAPI) (bytes.Buffer, error) {
 	var buffer bytes.Buffer
 
-	writer := csv.NewWriter(&buffer)
+	header := []string{"Name", "Artists", "Album", "Song Cover URL", "Duration", "ISRC"}
 
-	header := []string{"Name", "Album", "Artists", "Song Cover URL", "Duration", "ISRC"}
-
-	err := writeCsvRecord(writer, header)
+	err := writeCsvRecord(&buffer, header)
 	if err != nil {
 		return bytes.Buffer{}, err
 	}
@@ -187,23 +183,52 @@ func (p *PlaylistService) ConvertSongsToCsv(ctx context.Context, songs []model.S
 	for _, song := range songs {
 		record := []string{
 			song.Name,
-			song.AlbumName,
 			strings.Join(song.ArtistNames, "|"),
+			song.AlbumName,
 			song.ImageURL,
 			strconv.Itoa(song.Duration),
 			song.ISRC,
 		}
 
-		err := writeCsvRecord(writer, record)
+		err := writeCsvRecord(&buffer, record)
 		if err != nil {
 			return bytes.Buffer{}, err
 		}
 	}
 
-	writer.Flush()
-	if err := writer.Error(); err != nil {
-		return bytes.Buffer{}, fmt.Errorf("error flushing csv writer: %w", err)
+	return buffer, nil
+}
+
+func (p *PlaylistService) ConvertCsvToSongs(file multipart.File) ([]model.SongInAPI, error) {
+	records, err := parseCsv(file)
+	if err != nil {
+		return nil, err
 	}
 
-	return buffer, nil
+	songs := make([]model.SongInAPI, len(records)-1)
+
+	for i, record := range records {
+		// file header so skip
+		if i == 0 {
+			continue
+		}
+
+		duration, err := strconv.Atoi(record[4])
+		if err != nil {
+			return nil, err
+		}
+
+		song := model.SongInAPI{
+			Name:        record[0],
+			AlbumName:   record[1],
+			ArtistNames: strings.Split(record[2], "|"),
+			ImageURL:    record[3],
+			Duration:    duration,
+			ISRC:        record[5],
+		}
+
+		songs[i-1] = song
+	}
+
+	return songs, nil
 }

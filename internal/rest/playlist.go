@@ -30,7 +30,8 @@ type PlaylistService interface {
 	Convert(ctx context.Context, provider string, providerMetadata model.ConverterServiceProviderMetadata, playlistName string, songs []model.SongOutAPI) error
 
 	// csv
-	ConvertSongsToCsv(ctx context.Context, songs []model.SongOutAPI) (bytes.Buffer, error)
+	ConvertSongsToCsv(songs []model.SongOutAPI) (bytes.Buffer, error)
+	ConvertCsvToSongs(file multipart.File) ([]model.SongInAPI, error)
 }
 
 type PlaylistHandler struct {
@@ -270,11 +271,59 @@ func (p *PlaylistHandler) GetAllSongsFromPlaylistToCsv(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	csvBuffer, err := p.service.ConvertSongsToCsv(c.Request().Context(), songs)
+	csvBuffer, err := p.service.ConvertSongsToCsv(songs)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	c.Response().Header().Set(echo.HeaderContentDisposition, "attachment;filename=playlistsongs.csv")
 	return c.Stream(http.StatusOK, "text/csv", &csvBuffer)
+}
+
+func (p *PlaylistHandler) AddSongsToPlaylistFromCsv(c echo.Context) error {
+	playlistID, err := strconv.Atoi(c.Param("playlist_id"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	header, err := c.FormFile("playlist_songs_csv")
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	file, err := header.Open()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	defer file.Close()
+
+	buff := make([]byte, 512)
+	if _, err := file.Read(buff); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	fileType := http.DetectContentType(buff)
+	log.Println(fileType)
+
+	if fileType != "text/csv" && fileType != "application/octet-stream" {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid file type for csv")
+	}
+
+	if _, err := file.Seek(0, io.SeekStart); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	songs, err := p.service.ConvertCsvToSongs(file)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	err = p.service.AddSongsToPlaylist(c.Request().Context(), playlistID, songs)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{
+		"message": "successfully added songs from csv",
+	})
 }
