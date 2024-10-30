@@ -1,3 +1,3 @@
-# Centralized music manager
+# TuneBridge
 
 ## Description: To be updated
