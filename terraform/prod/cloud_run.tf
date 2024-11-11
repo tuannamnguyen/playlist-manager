@@ -27,8 +27,10 @@ resource "google_cloud_run_v2_service" "playlist_manager_cloud_run_config" {
     service_account = google_service_account.backend_prod_service_account.email
 
     vpc_access {
-      connector = google_vpc_access_connector.vpc_connector.id
-      egress    = "ALL_TRAFFIC"
+      egress = "ALL_TRAFFIC"
+      network_interfaces {
+        network = google_compute_network.backend_vpc_network.id
+      }
     }
 
     scaling {
