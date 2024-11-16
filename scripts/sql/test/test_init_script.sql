@@ -35,6 +35,9 @@ CREATE TABLE IF NOT EXISTS album (
     UNIQUE (album_name)
 );
 
+INSERT INTO album (album_name) VALUES
+('In A Perfect World');
+
 CREATE TRIGGER set_timestamp_album
 BEFORE UPDATE ON album
 FOR EACH ROW
