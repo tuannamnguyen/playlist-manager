@@ -22,14 +22,15 @@ func setupTestDB(t *testing.T, initScriptPath string) (*sqlx.DB, func()) {
 	ctx := context.Background()
 
 	postgresContainer, err := postgres.Run(ctx,
-		"postgres:latest",
+		"postgres:16",
 		postgres.WithInitScripts(filepath.Join("..", "..", "scripts", "sql", "test", initScriptPath)),
 		postgres.WithUsername(dbUser),
 		postgres.WithPassword(dbPassword),
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("database system is ready to accept connections").
 				WithOccurrence(2).
-				WithStartupTimeout(5*time.Second)),
+				WithStartupTimeout(5*time.Second),
+		),
 	)
 	require.NoError(t, err, fmt.Sprintf("failed to start container: %v", err))
 
