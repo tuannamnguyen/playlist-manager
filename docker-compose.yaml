@@ -1,9 +1,11 @@
 services:
   fe:
     image: tuannamnguyen290602/playlist-manager-frontend
-    depends_on:
-      app:
-        condition: service_healthy
+    ports:
+      - 4040:8080
+    # depends_on:
+    #   app:
+    #     condition: service_healthy
     profiles:
       - prod
 
