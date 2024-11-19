@@ -25,6 +25,16 @@ resource "google_cloud_run_v2_service" "playlist_manager_cloud_run_config" {
 
   template {
     service_account = google_service_account.backend_prod_service_account.email
+
+    vpc_access {
+      connector = google_vpc_access_connector.vpc_connector.id
+      egress    = "PRIVATE_RANGES_ONLY"
+    }
+
+    scaling {
+      max_instance_count = 3
+      min_instance_count = 1
+    }
     containers {
       image = "tuannamnguyen290602/playlist-manager:${var.image_tag}"
 
