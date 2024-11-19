@@ -1,4 +1,12 @@
 services:
+  fe:
+    image: tuannamnguyen290602/playlist-manager-frontend
+    depends_on:
+      app:
+        condition: service_healthy
+    profiles:
+      - prod
+
   app:
     build: .
     volumes:
@@ -8,12 +16,17 @@ services:
          read_only: true
     depends_on:
       db:
-       condition: service_healthy
-       restart: true
+        condition: service_healthy
+        restart: true
       redis:
        condition: service_healthy
        restart: true
     restart: on-failure:3
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthcheck"]
+      interval: 5s
+      timeout: 10s
+      retries: 3
     ports:
       - 8080:8080
     profiles:
