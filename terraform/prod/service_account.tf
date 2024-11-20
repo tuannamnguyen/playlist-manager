@@ -8,7 +8,8 @@ locals {
   service_account_role_list = [
     "roles/iam.serviceAccountTokenCreator",
     "roles/storage.objectUser",
-    "roles/cloudsql.client"
+    "roles/cloudsql.client",
+    "roles/secretmanager.secretAccessor"
   ]
 }
 
