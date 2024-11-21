@@ -3,14 +3,16 @@ services:
     image: tuannamnguyen290602/playlist-manager-frontend
     ports:
       - 4040:8080
-    # depends_on:
-    #   app:
-    #     condition: service_healthy
+    depends_on:
+      app:
+        condition: service_healthy
     profiles:
       - prod
 
   app:
-    build: .
+    build:
+      dockerfile: Dockerfile.test
+      context: .
     volumes:
        - type: bind
          source: ./cmd/api/.env
