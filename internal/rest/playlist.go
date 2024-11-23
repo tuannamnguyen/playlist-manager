@@ -7,6 +7,7 @@ import (
 	"log"
 	"mime/multipart"
 	"net/http"
+	"slices"
 	"strconv"
 
 	"github.com/gorilla/sessions"
@@ -305,7 +306,13 @@ func (p *PlaylistHandler) AddSongsToPlaylistFromCsv(c echo.Context) error {
 	fileType := http.DetectContentType(buff)
 	log.Println(fileType)
 
-	if fileType != "text/csv" && fileType != "application/octet-stream" {
+	validFileTypes := []string{
+		"text/csv",
+		"text/plain; charset=utf-8",
+		"application/octet-stream",
+	}
+
+	if !slices.Contains(validFileTypes, fileType) {
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid file type for csv")
 	}
 
