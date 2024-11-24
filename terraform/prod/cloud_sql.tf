@@ -14,6 +14,13 @@ resource "google_sql_database_instance" "prod_db" {
   settings {
     tier            = "db-g1-small"
     disk_autoresize = false
+    ip_configuration {
+      ipv4_enabled = true
+      authorized_networks {
+        name  = "home network"
+        value = "14.191.163.98"
+      }
+    }
   }
   deletion_protection = false
   depends_on          = [google_project_service.gcp_services]
