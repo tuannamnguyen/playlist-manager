@@ -37,7 +37,7 @@ resource "random_password" "db_user_pwd" {
 }
 
 resource "google_sql_user" "google_sql_user" {
-  name     = "user"
+  name     = "playlist_manager_be"
   instance = google_sql_database_instance.prod_db.name
   password = random_password.db_user_pwd.result
 }

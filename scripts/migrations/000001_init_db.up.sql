@@ -1,3 +1,8 @@
+GRANT ALL PRIVILEGES
+ON DATABASE playlist_manager
+TO playlist_manager_be;
+
+
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
