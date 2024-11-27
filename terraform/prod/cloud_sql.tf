@@ -12,14 +12,22 @@ resource "google_sql_database_instance" "prod_db" {
   root_password    = var.db_root_password
 
   settings {
-    tier            = "db-g1-small"
-    disk_autoresize = false
+    tier                  = "db-g1-small"
+    disk_autoresize       = true
+    disk_autoresize_limit = 20
+
     ip_configuration {
       ipv4_enabled = true
       authorized_networks {
         name  = "home network"
         value = "14.191.163.98"
       }
+    }
+
+    backup_configuration {
+      enabled                        = true
+      location                       = local.region
+      point_in_time_recovery_enabled = true
     }
   }
   deletion_protection = false
