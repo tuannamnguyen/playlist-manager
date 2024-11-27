@@ -7,16 +7,6 @@ variable "dotenv_key" {
   type = string
 }
 
-variable "postgres_user" {
-  type    = string
-  default = "user"
-}
-
-variable "postgres_dbname" {
-  type    = string
-  default = "playlist_manager"
-}
-
 resource "google_cloud_run_v2_service" "playlist_manager_cloud_run_config" {
   name                = "playlist-manager-cloudrun"
   location            = local.region
@@ -50,7 +40,7 @@ resource "google_cloud_run_v2_service" "playlist_manager_cloud_run_config" {
       # Sets a secret environment variable for database user secret
       env {
         name  = "POSTGRES_USER"
-        value = var.postgres_user
+        value = google_sql_user.google_sql_user.name
       }
       # Sets a secret environment variable for database password secret
       env {
@@ -65,7 +55,7 @@ resource "google_cloud_run_v2_service" "playlist_manager_cloud_run_config" {
       # Sets a secret environment variable for database name secret
       env {
         name  = "POSTGRES_DBNAME"
-        value = var.postgres_dbname
+        value = google_sql_database.playlist_manager_database.name
       }
 
       env {
