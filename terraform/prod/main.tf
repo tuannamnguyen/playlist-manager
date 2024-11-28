@@ -9,6 +9,11 @@ terraform {
       source  = "hashicorp/random"
       version = "3.6.3"
     }
+
+    postgresql = {
+      source  = "cyrilgdn/postgresql"
+      version = "1.24.0"
+    }
   }
 
   backend "gcs" {
@@ -20,6 +25,15 @@ terraform {
 provider "google" {
   project = local.project_id
   region  = local.region
+}
+
+provider "postgresql" {
+  host     = google_sql_database_instance.prod_db.public_ip_address
+  port     = 5432
+  database = "postgres"
+  username = "postgres"
+  password = var.db_root_password
+  sslmode  = "disable"
 }
 
 locals {
