@@ -31,9 +31,9 @@ provider "postgresql" {
   host     = google_sql_database_instance.prod_db.public_ip_address
   port     = 5432
   database = "postgres"
-  username = "postgres_user"
+  username = "postgres"
   password = var.db_root_password
-  sslmode  = "require"
+  sslmode  = "disable"
 }
 
 locals {

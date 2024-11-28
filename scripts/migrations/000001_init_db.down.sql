@@ -1,8 +1,3 @@
--- Revoke privileges
-REVOKE ALL PRIVILEGES
-ON DATABASE playlist_manager
-FROM playlist_manager_be;
-
 -- Drop triggers in reverse order of creation
 DROP TRIGGER IF EXISTS set_timestamp_artist_song ON artist_song;
 DROP TRIGGER IF EXISTS set_timestamp_playlist_song ON playlist_song;
