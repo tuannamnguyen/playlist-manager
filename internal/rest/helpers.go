@@ -2,6 +2,7 @@ package rest
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/sessions"
@@ -23,6 +24,9 @@ func saveOauthSessionValues(req *http.Request, res http.ResponseWriter, store se
 	if err != nil {
 		return err
 	}
+
+	log.Println("oauth session saved")
+
 	return nil
 }
 

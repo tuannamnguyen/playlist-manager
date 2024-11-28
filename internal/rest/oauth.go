@@ -2,6 +2,7 @@ package rest
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
@@ -30,6 +31,9 @@ func (o *OAuthHandler) LoginHandler(c echo.Context) error {
 	addQueryParams(c, provider)
 
 	gothic.BeginAuthHandler(c.Response(), c.Request())
+
+	log.Printf("logged in to %s successfully", provider)
+
 	return nil
 }
 
@@ -72,8 +76,11 @@ func (o *OAuthHandler) CheckAuthHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting session values: %v", err))
 	}
 
-	_, ok := sessionValues[fmt.Sprintf("%s_user_info", provider)]
+	userInfo, ok := sessionValues[fmt.Sprintf("%s_user_info", provider)]
 	if ok {
+		user := userInfo.(goth.User)
+		log.Printf("user logged in. email: %s, name: %s, provider: %s", user.Email, user.Name, user.Provider)
+
 		return c.String(http.StatusOK, fmt.Sprintf("user has authenticated with %s", provider))
 	}
 
