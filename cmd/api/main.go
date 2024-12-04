@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -97,8 +98,14 @@ func run() error {
 	defer store.Close()
 	store.SetMaxAge(3600)
 
-	gob.Register(goth.User{})
+	isProd, err := strconv.ParseBool(os.Getenv("IS_PROD"))
+	if err != nil {
+		return fmt.Errorf("parsing bool: %s", err)
+	}
 
+	store.Options.Secure = isProd
+
+	gob.Register(goth.User{})
 	gothic.Store = store
 	goth.UseProviders(
 		spotify.New(
