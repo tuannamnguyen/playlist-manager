@@ -84,17 +84,6 @@ func (o *OAuthHandler) CheckAuthHandler(c echo.Context) error {
 		return c.String(http.StatusOK, fmt.Sprintf("user has authenticated with %s", provider))
 	}
 
-	cookie, err := c.Cookie("oauth-session")
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error getting cookies: %s", err))
-	}
-
-	cookie.SameSite = http.SameSiteNoneMode
-	cookie.Secure = true
-	cookie.HttpOnly = true
-
-	c.SetCookie(cookie)
-
 	return c.String(http.StatusUnauthorized, fmt.Sprintf("not authenticated with %s", provider))
 }
 
