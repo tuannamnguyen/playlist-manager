@@ -136,8 +136,12 @@ func startServer(e *echo.Echo, db *sqlx.DB, httpClient *http.Client, store sessi
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins:     []string{os.Getenv("FRONTEND_URL")},
+		AllowMethods:     []string{echo.GET, echo.POST, echo.PUT, echo.DELETE},
+		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
 		AllowCredentials: true,
 	}))
+
+	log.Printf("frontend url: %s", os.Getenv("FRONTEND_URL"))
 
 	e.Validator = &CustomValidator{validator: validator.New()}
 
