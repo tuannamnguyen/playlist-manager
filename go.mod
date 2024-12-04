@@ -8,7 +8,7 @@ require (
 	github.com/dotenv-org/godotenvvault v0.6.0
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/google/uuid v1.6.0
-	github.com/gorilla/sessions v1.1.1
+	github.com/gorilla/sessions v1.1.3
 	github.com/jackc/pgx/v5 v5.6.0
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/labstack/echo/v4 v4.12.0

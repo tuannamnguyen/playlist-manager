@@ -104,6 +104,7 @@ func run() error {
 	}
 
 	store.Options.Secure = isProd
+	store.Options.SameSite = http.SameSiteNoneMode
 
 	gob.Register(goth.User{})
 	gothic.Store = store
