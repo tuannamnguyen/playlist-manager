@@ -3,6 +3,6 @@ resource "google_storage_bucket" "backend_prod_bucket" {
   location      = "ASIA-SOUTHEAST1"
   storage_class = "STANDARD"
 
-  force_destroy               = true
+  force_destroy               = false
   uniform_bucket_level_access = true
 }
