@@ -19,3 +19,14 @@ resource "google_vpc_access_connector" "vpc_connector" {
   max_instances = 3
   min_instances = 2
 }
+
+resource "google_compute_firewall" "allow_ssh" {
+  network       = google_compute_network.backend_vpc_network.name
+  name          = "allow-ssh"
+  source_ranges = ["14.191.163.98"]
+
+  allow {
+    protocol = "tcp"
+    ports    = ["22"]
+  }
+}
