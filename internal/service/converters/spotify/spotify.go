@@ -84,7 +84,7 @@ func (s *SpotifyConverter) formatSearchQuery(song model.SongOutAPI) string {
 		queryParts = []string{isrcQuery}
 
 	} else {
-		queryParts = []string{trackQuery, artists, albumQuery, isrcQuery}
+		queryParts = []string{trackQuery, artists, albumQuery}
 	}
 
 	return strings.Join(queryParts, " ")
