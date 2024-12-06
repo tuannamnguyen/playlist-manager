@@ -9,9 +9,10 @@ resource "google_redis_instance" "playlist_manager_redis" {
 
 # VM to port forward Redis for local connection
 resource "google_compute_instance" "redis_connection_instance" {
-  name         = "redis-connect"
-  machine_type = "f1-micro"
-  zone         = "us-central1-a"
+  name                      = "redis-connect"
+  machine_type              = "e2-small"
+  zone                      = "asia-southeast1-a"
+  allow_stopping_for_update = true
 
   boot_disk {
     initialize_params {
@@ -19,8 +20,15 @@ resource "google_compute_instance" "redis_connection_instance" {
     }
   }
 
-  network_interface {
-    network = "default"
+  scheduling {
+    preemptible                 = true
+    automatic_restart           = false
+    provisioning_model          = "SPOT"
+    instance_termination_action = "STOP"
+  }
 
+  network_interface {
+    network    = google_compute_network.backend_vpc_network.id
+    subnetwork = google_compute_subnetwork.subnet.id
   }
 }
