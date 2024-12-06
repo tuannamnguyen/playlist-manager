@@ -220,8 +220,8 @@ func (p *PlaylistService) ConvertCsvToSongs(file multipart.File) ([]model.SongIn
 
 		song := model.SongInAPI{
 			Name:        record[0],
-			AlbumName:   record[1],
-			ArtistNames: strings.Split(record[2], "|"),
+			ArtistNames: strings.Split(record[1], "|"),
+			AlbumName:   record[2],
 			ImageURL:    record[3],
 			Duration:    duration,
 			ISRC:        record[5],
