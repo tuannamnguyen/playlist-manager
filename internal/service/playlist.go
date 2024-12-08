@@ -78,7 +78,12 @@ func NewPlaylist(
 	}
 }
 
-func (p *PlaylistService) Add(ctx context.Context, playlistModel model.PlaylistIn, imageFile multipart.File, imageHeader *multipart.FileHeader) error {
+func (p *PlaylistService) Add(
+	ctx context.Context,
+	playlistModel model.PlaylistIn,
+	imageFile multipart.File,
+	imageHeader *multipart.FileHeader,
+) error {
 	imageName, err := p.playlistRepo.AddPlaylistPicture(ctx, imageFile, imageHeader)
 	if err != nil {
 		return err
@@ -153,7 +158,12 @@ func (p *PlaylistService) AddSongsToPlaylist(ctx context.Context, playlistID int
 	return nil
 }
 
-func (p *PlaylistService) GetAllSongsFromPlaylist(ctx context.Context, playlistID int, sortBy string, sortOrder string) ([]model.SongOutAPI, error) {
+func (p *PlaylistService) GetAllSongsFromPlaylist(
+	ctx context.Context,
+	playlistID int,
+	sortBy string,
+	sortOrder string,
+) ([]model.SongOutAPI, error) {
 	return p.playlistSongRepo.GetAll(ctx, playlistID, sortBy, sortOrder)
 }
 
@@ -161,7 +171,13 @@ func (p *PlaylistService) DeleteSongsFromPlaylist(ctx context.Context, playlistI
 	return p.playlistSongRepo.BulkDelete(ctx, playlistID, songsID)
 }
 
-func (p *PlaylistService) Convert(ctx context.Context, provider string, providerMetadata model.ConverterServiceProviderMetadata, playlistName string, songs []model.SongOutAPI) error {
+func (p *PlaylistService) Convert(
+	ctx context.Context,
+	provider string,
+	providerMetadata model.ConverterServiceProviderMetadata,
+	playlistName string,
+	songs []model.SongOutAPI,
+) error {
 	converter, err := getConverter(ctx, provider, providerMetadata)
 	if err != nil {
 		return err
