@@ -156,7 +156,7 @@ func startServer(e *echo.Echo, db *sqlx.DB, httpClient *http.Client, store sessi
 	e.Validator = &CustomValidator{validator: validator.New()}
 
 	e.GET("/healthcheck", func(c echo.Context) error {
-		return c.String(http.StatusOK, "healthcheck ok")
+		return c.String(http.StatusOK, "healthcheck")
 	})
 
 	setupAPIRouter(e, db, httpClient, store, gcsClient)
