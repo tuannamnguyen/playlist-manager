@@ -1,4 +1,4 @@
-FROM golang:1.22 AS build-stage
+FROM golang:1.25 AS build-stage
 
 WORKDIR /app
 
@@ -11,7 +11,7 @@ COPY ./ ./
 RUN CGO_ENABLED=0 GOOS=linux go build -C ./cmd/api -o /playlist-manager
 
 # Deploy the application binary into a lean image
-FROM ubuntu:22.04 AS build-release-stage
+FROM ubuntu:24.04 AS build-release-stage
 
 # Install CA certificates
 RUN apt-get update \
