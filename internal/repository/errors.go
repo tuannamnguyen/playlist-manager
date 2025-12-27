@@ -82,26 +82,26 @@ func (r *responseDecodeError) Error() string {
 	return fmt.Sprintf("response decode: %s", r.err.Error())
 }
 
-type gcsIOCopyError struct {
-	err error
-}
+// type gcsIOCopyError struct {
+// 	err error
+// }
 
-func (g *gcsIOCopyError) Error() string {
-	return fmt.Sprintf("gcs IO copy: %s", g.err.Error())
-}
+// func (g *gcsIOCopyError) Error() string {
+// 	return fmt.Sprintf("gcs IO copy: %s", g.err.Error())
+// }
 
-type gcsCloseObjectWriter struct {
-	err error
-}
+// type gcsCloseObjectWriter struct {
+// 	err error
+// }
 
-func (g *gcsCloseObjectWriter) Error() string {
-	return fmt.Sprintf("gcs writer close: %s", g.err.Error())
-}
+// func (g *gcsCloseObjectWriter) Error() string {
+// 	return fmt.Sprintf("gcs writer close: %s", g.err.Error())
+// }
 
-type gcsGetSignedURLError struct {
-	err error
-}
+// type gcsGetSignedURLError struct {
+// 	err error
+// }
 
-func (g *gcsGetSignedURLError) Error() string {
-	return fmt.Sprintf("gcs get signed URL: %s", g.err.Error())
-}
+// func (g *gcsGetSignedURLError) Error() string {
+// 	return fmt.Sprintf("gcs get signed URL: %s", g.err.Error())
+// }

@@ -2,25 +2,29 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"io"
+	"log"
 	"mime/multipart"
 	"os"
 	"time"
 
-	"cloud.google.com/go/storage"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/smithy-go"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
 )
 
 type PlaylistRepository struct {
-	db        *sqlx.DB
-	gcsClient *storage.Client
+	db              *sqlx.DB
+	s3Client        *s3.Client
+	s3PresignClient *s3.PresignClient
 }
 
-func NewPlaylistRepository(db *sqlx.DB, gcsClient *storage.Client) *PlaylistRepository {
-	return &PlaylistRepository{db, gcsClient}
+func NewPlaylistRepository(db *sqlx.DB, s3Client *s3.Client, s3PresignedClient *s3.PresignClient) *PlaylistRepository {
+	return &PlaylistRepository{db, s3Client, s3PresignedClient}
 }
 
 func (p *PlaylistRepository) Insert(ctx context.Context, playlistModel model.PlaylistInDB) error {
@@ -51,7 +55,7 @@ func (p *PlaylistRepository) Insert(ctx context.Context, playlistModel model.Pla
 func (p *PlaylistRepository) SelectAll(ctx context.Context, userID string) ([]model.Playlist, error) {
 	var playlistsOutDB []model.PlaylistOutDB
 	var query string
-	var args []interface{}
+	var args []any
 
 	if userID != "" {
 		query = "SELECT * FROM playlist WHERE user_id = $1"
@@ -65,7 +69,7 @@ func (p *PlaylistRepository) SelectAll(ctx context.Context, userID string) ([]mo
 		return nil, &selectError{err}
 	}
 
-	return p.mapPlaylistDBToAPI(playlistsOutDB)
+	return p.mapPlaylistDBToAPI(ctx, playlistsOutDB)
 }
 
 func (p *PlaylistRepository) SelectWithID(ctx context.Context, id int) (model.Playlist, error) {
@@ -76,7 +80,7 @@ func (p *PlaylistRepository) SelectWithID(ctx context.Context, id int) (model.Pl
 		return model.Playlist{}, &structScanError{err}
 	}
 
-	return p.mapSinglePlaylistDBToApiResponse(playlist)
+	return p.mapSinglePlaylistDBToApiResponse(ctx, playlist)
 }
 
 func (p *PlaylistRepository) DeleteByID(ctx context.Context, id int) error {
@@ -89,25 +93,37 @@ func (p *PlaylistRepository) DeleteByID(ctx context.Context, id int) error {
 }
 
 func (p *PlaylistRepository) AddPlaylistPicture(ctx context.Context, file multipart.File, header *multipart.FileHeader) (string, error) {
-	bucketName := os.Getenv("GCS_BUCKET_NAME")
+	// TODO: update this to use S3
+
+	bucketName := os.Getenv("S3_BUCKET_NAME")
 
 	timestamp := time.Now().Format(time.RFC3339)
 	uuid := uuid.New().String()
 	objectName := fmt.Sprintf("playlist_cover/%s_%s_%s", timestamp, uuid, header.Filename)
 
-	object := p.gcsClient.Bucket(bucketName).Object(objectName)
-
-	object = object.If(storage.Conditions{
-		DoesNotExist: true,
+	_, err := p.s3Client.PutObject(ctx, &s3.PutObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(objectName),
+		Body:   file,
 	})
 
-	wc := object.NewWriter(ctx)
-	if _, err := io.Copy(wc, file); err != nil {
-		return "", &gcsIOCopyError{err}
+	if err != nil {
+		var apiErr smithy.APIError
+		if errors.As(err, &apiErr) && apiErr.ErrorCode() == "EntityTooLarge" {
+			log.Printf("Error while uploading object to %s. The object is too large.\n"+
+				"To upload objects larger than 5GB, use the S3 console (160GB max)\n"+
+				"or the multipart upload API (5TB max).", bucketName)
+		} else {
+			log.Printf("Couldn't upload file %v to %v:%v. Here's why: %v\n",
+				header.Filename, bucketName, objectName, err)
+		}
+		return "", err
 	}
 
-	if err := wc.Close(); err != nil {
-		return "", &gcsCloseObjectWriter{err}
+	err = s3.NewObjectExistsWaiter(p.s3Client).Wait(
+		ctx, &s3.HeadObjectInput{Bucket: aws.String(bucketName), Key: aws.String(objectName)}, time.Minute)
+	if err != nil {
+		log.Printf("Failed attempt to wait for object %s to exist.\n", objectName)
 	}
 
 	return objectName, nil
