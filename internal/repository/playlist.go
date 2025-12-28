@@ -93,8 +93,6 @@ func (p *PlaylistRepository) DeleteByID(ctx context.Context, id int) error {
 }
 
 func (p *PlaylistRepository) AddPlaylistPicture(ctx context.Context, file multipart.File, header *multipart.FileHeader) (string, error) {
-	// TODO: update this to use S3
-
 	bucketName := os.Getenv("S3_BUCKET_NAME")
 
 	timestamp := time.Now().Format(time.RFC3339)

@@ -81,8 +81,6 @@ func (p *PlaylistRepository) mapSinglePlaylistDBToApiResponse(ctx context.Contex
 }
 
 func (p *PlaylistRepository) generateSignedURLFromObjectName(ctx context.Context, objectName string) (string, error) {
-	// TODO: Update to use S3
-
 	bucketName := os.Getenv("S3_BUCKET_NAME")
 
 	request, err := p.s3PresignClient.PresignGetObject(ctx, &s3.GetObjectInput{
