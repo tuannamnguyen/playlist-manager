@@ -40,7 +40,7 @@ services:
     image: postgres:16
     env_file: ./cmd/api/.env
     volumes:
-      - ./scripts/sql/script.sql:/docker-entrypoint-initdb.d/script.sql
+      # - ./scripts/sql/script.sql:/docker-entrypoint-initdb.d/script.sql
       - pgdata:/var/lib/postgresql/data
     ports:
       - 5432:5432
