@@ -83,7 +83,10 @@ func run() error {
 	log.Println("connected to postgres successfully")
 
 	// setup AWS S3
-	awsConfig, err := config.LoadDefaultConfig(context.TODO())
+	awsConfig, err := config.LoadDefaultConfig(
+		context.TODO(),
+		config.WithSharedConfigProfile(os.Getenv("AWS_PROFILE")),
+	)
 	if err != nil {
 		return fmt.Errorf("failed to config AWS: %s", err)
 	}
