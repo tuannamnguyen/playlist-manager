@@ -14,20 +14,20 @@ services:
       dockerfile: Dockerfile.dev
       context: .
     volumes:
-       - type: bind
-         source: ./cmd/api/.env
-         target: /.env
-         read_only: true
+      - type: bind
+        source: ./cmd/api/.env
+        target: /.env
+        read_only: true
     depends_on:
       db:
         condition: service_healthy
         restart: true
       redis:
-       condition: service_healthy
-       restart: true
+        condition: service_healthy
+        restart: true
     restart: on-failure:3
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/healthcheck"]
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/healthcheck" ]
       interval: 5s
       timeout: 10s
       retries: 3
@@ -40,15 +40,15 @@ services:
     image: postgres:16
     env_file: ./cmd/api/.env
     volumes:
-      - ./scripts/sql/script.sql:/docker-entrypoint-initdb.d/script.sql
+      # - ./scripts/sql/script.sql:/docker-entrypoint-initdb.d/script.sql
       - pgdata:/var/lib/postgresql/data
     ports:
       - 5432:5432
     healthcheck:
-       test: ["CMD-SHELL", "psql -U postgres -d postgres -c 'SELECT 1' || exit 1"]
-       interval: 1s
-       timeout: 3s
-       retries: 5
+      test: [ "CMD-SHELL", "psql -U postgres -d postgres -c 'SELECT 1' || exit 1" ]
+      interval: 1s
+      timeout: 3s
+      retries: 5
     profiles:
       - prod
       - test
@@ -59,9 +59,9 @@ services:
     command: redis-server --save 60 1 --loglevel warning
     restart: on-failure:3
     ports:
-     - 6379:6379
+      - 6379:6379
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
       interval: 1s
       timeout: 3s
       retries: 5
@@ -69,6 +69,16 @@ services:
       - prod
       - test
       - test_minimal
+
+  vault:
+    image: hashicorp/vault:latest
+    ports:
+      - "8200:8200"
+    environment:
+      - VAULT_DEV_ROOT_TOKEN_ID=dev-only-token
+      - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
+    profiles:
+      - test_vault
 
   redis_ui:
     image: redis/redisinsight
@@ -88,7 +98,6 @@ services:
       - 5433:5433
     profiles:
       - test
-
 
 volumes:
   pgdata:

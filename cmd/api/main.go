@@ -12,7 +12,8 @@ import (
 	"syscall"
 	"time"
 
-	"cloud.google.com/go/storage"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/dotenv-org/godotenvvault"
 	"github.com/go-playground/validator"
 	"github.com/gorilla/sessions"
@@ -81,12 +82,17 @@ func run() error {
 
 	log.Println("connected to postgres successfully")
 
-	// setup Google Cloud Storage
-	gcsClient, err := storage.NewClient(context.Background())
+	// setup AWS S3
+	awsConfig, err := config.LoadDefaultConfig(
+		context.TODO(),
+		config.WithSharedConfigProfile(os.Getenv("AWS_PROFILE")),
+	)
 	if err != nil {
-		return fmt.Errorf("failed to create new gcs client: %s", err)
+		return fmt.Errorf("failed to config AWS: %s", err)
 	}
-	defer gcsClient.Close()
+
+	s3Client := s3.NewFromConfig(awsConfig)
+	s3PresignClient := s3.NewPresignClient(s3Client)
 
 	// setup session and OAuth2
 	redisInfo := fmt.Sprintf("%s:%s", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT"))
@@ -127,7 +133,7 @@ func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM)
 	defer stop()
 
-	go startServer(e, db, httpClient, store, gcsClient)
+	go startServer(e, db, httpClient, store, s3Client, s3PresignClient)
 
 	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 10 seconds.
 	<-ctx.Done()
@@ -140,7 +146,7 @@ func run() error {
 	return nil
 }
 
-func startServer(e *echo.Echo, db *sqlx.DB, httpClient *http.Client, store sessions.Store, gcsClient *storage.Client) {
+func startServer(e *echo.Echo, db *sqlx.DB, httpClient *http.Client, store sessions.Store, s3Client *s3.Client, s3PresignedClient *s3.PresignClient) {
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
@@ -159,7 +165,7 @@ func startServer(e *echo.Echo, db *sqlx.DB, httpClient *http.Client, store sessi
 		return c.String(http.StatusOK, "healthcheck ok")
 	})
 
-	setupAPIRouter(e, db, httpClient, store, gcsClient)
+	setupAPIRouter(e, db, httpClient, store, s3Client, s3PresignedClient)
 
 	if err := e.Start(":8080"); err != nil && err != http.ErrServerClosed {
 		// if error here, check if there are any other apps running on the same port
@@ -167,7 +173,7 @@ func startServer(e *echo.Echo, db *sqlx.DB, httpClient *http.Client, store sessi
 	}
 }
 
-func setupAPIRouter(e *echo.Echo, db *sqlx.DB, httpClient *http.Client, store sessions.Store, gcsClient *storage.Client) {
+func setupAPIRouter(e *echo.Echo, db *sqlx.DB, httpClient *http.Client, store sessions.Store, s3Client *s3.Client, s3PresignedClient *s3.PresignClient) {
 	apiRouter := e.Group("/api")
 
 	apiRouter.GET("/test", func(c echo.Context) error {
@@ -178,15 +184,15 @@ func setupAPIRouter(e *echo.Echo, db *sqlx.DB, httpClient *http.Client, store se
 	oauthRouter := apiRouter.Group("/oauth")
 	metadataRouter := apiRouter.Group("/metadata")
 
-	setupPlaylistRoutes(playlistRouter, db, store, gcsClient)
+	setupPlaylistRoutes(playlistRouter, db, store, s3Client, s3PresignedClient)
 	setupSearchRoutes(searchRouter, httpClient)
 	setupOAuthRoutes(oauthRouter, store)
 	setupMetadataRoutes(metadataRouter, store)
 }
 
-func setupPlaylistRoutes(router *echo.Group, db *sqlx.DB, store sessions.Store, gcsClient *storage.Client) {
+func setupPlaylistRoutes(router *echo.Group, db *sqlx.DB, store sessions.Store, s3Client *s3.Client, s3PresignedClient *s3.PresignClient) {
 	// setup playlist endpoint
-	playlistRepository := repository.NewPlaylistRepository(db, gcsClient)
+	playlistRepository := repository.NewPlaylistRepository(db, s3Client, s3PresignedClient)
 	songRepository := repository.NewSongRepository(db)
 	playlistSongRepository := repository.NewPlaylistSongRepository(db)
 	albumRepository := repository.NewAlbumRepository(db)

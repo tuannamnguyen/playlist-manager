@@ -1,10 +1,12 @@
 package repository
 
 import (
+	"context"
 	"os"
 	"time"
 
-	"cloud.google.com/go/storage"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/tuannamnguyen/playlist-manager/internal/model"
 )
 
@@ -40,10 +42,10 @@ func parsePlaylistSongData(rows []model.SongOutDB) []model.SongOutAPI {
 	return result
 }
 
-func (p *PlaylistRepository) mapPlaylistDBToAPI(playlistsOutDB []model.PlaylistOutDB) ([]model.Playlist, error) {
+func (p *PlaylistRepository) mapPlaylistDBToAPI(ctx context.Context, playlistsOutDB []model.PlaylistOutDB) ([]model.Playlist, error) {
 	var playlists []model.Playlist
 	for _, playlistOutDB := range playlistsOutDB {
-		playlistAPIResponse, err := p.mapSinglePlaylistDBToApiResponse(playlistOutDB)
+		playlistAPIResponse, err := p.mapSinglePlaylistDBToApiResponse(ctx, playlistOutDB)
 		if err != nil {
 			return nil, err
 		}
@@ -53,7 +55,7 @@ func (p *PlaylistRepository) mapPlaylistDBToAPI(playlistsOutDB []model.PlaylistO
 	return playlists, nil
 }
 
-func (p *PlaylistRepository) mapSinglePlaylistDBToApiResponse(playlistOutDB model.PlaylistOutDB) (model.Playlist, error) {
+func (p *PlaylistRepository) mapSinglePlaylistDBToApiResponse(ctx context.Context, playlistOutDB model.PlaylistOutDB) (model.Playlist, error) {
 	var playlistDescription string
 	if playlistOutDB.PlaylistDescription.Valid {
 		playlistDescription = playlistOutDB.PlaylistDescription.String
@@ -61,7 +63,7 @@ func (p *PlaylistRepository) mapSinglePlaylistDBToApiResponse(playlistOutDB mode
 		playlistDescription = ""
 	}
 
-	imageURL, err := p.generateSignedURLFromObjectName(playlistOutDB.ImageName)
+	imageURL, err := p.generateSignedURLFromObjectName(ctx, playlistOutDB.ImageName)
 	if err != nil {
 		return model.Playlist{}, err
 	}
@@ -78,22 +80,21 @@ func (p *PlaylistRepository) mapSinglePlaylistDBToApiResponse(playlistOutDB mode
 	return playlistAPIResponse, nil
 }
 
-func (p *PlaylistRepository) generateSignedURLFromObjectName(objectName string) (string, error) {
-	bucketName := os.Getenv("GCS_BUCKET_NAME")
+func (p *PlaylistRepository) generateSignedURLFromObjectName(ctx context.Context, objectName string) (string, error) {
+	bucketName := os.Getenv("S3_BUCKET_NAME")
 
-	opts := &storage.SignedURLOptions{
-		GoogleAccessID: os.Getenv("GCP_SERVICE_ACCOUNT"),
-		Scheme:         storage.SigningSchemeV4,
-		Method:         "GET",
-		Expires:        time.Now().Add(15 * time.Minute),
-	}
+	request, err := p.s3PresignClient.PresignGetObject(ctx, &s3.GetObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(objectName),
+	}, func(po *s3.PresignOptions) {
+		po.Expires = time.Duration(15 * int64(time.Minute))
+	})
 
-	url, err := p.gcsClient.Bucket(bucketName).SignedURL(objectName, opts)
 	if err != nil {
-		return "", &gcsGetSignedURLError{err}
+		return "", err
 	}
 
-	return url, nil
+	return request.URL, nil
 }
 
 func transformSearchAPIResponse(searchRes SearchResponse) []model.SongInAPI {

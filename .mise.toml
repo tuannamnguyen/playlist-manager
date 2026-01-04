@@ -1,6 +1,7 @@
 [tools]
-go = "1.22"
+go = "latest"
 gcloud = "latest"
 terraform = "latest"
 pre-commit = "latest"
 node = "latest"
+aws-cli = "latest"
