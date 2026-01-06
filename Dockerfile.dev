@@ -15,15 +15,15 @@ FROM ubuntu:24.04 AS build-release-stage
 
 # Install CA certificates
 RUN apt-get update \
-    && apt-get install -y ca-certificates curl \
-    && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
+    && apt-get install -y ca-certificates \
+    && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* \
+    && curl -sfS https://dotenvx.sh | sh
 
 WORKDIR /
 
 COPY --from=build-stage /playlist-manager /playlist-manager
-COPY ./cmd/api/.env.vault /.env.vault
-COPY ./service-account.json /service-account.json
+COPY ./cmd/api/.env.test /.env.test
 
 EXPOSE 8080
 
-CMD ["/playlist-manager"]
+CMD ["dotenvx", "run", "-f", "/.env.test", "--", "/playlist-manager"]
