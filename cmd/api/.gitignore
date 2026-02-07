@@ -4,3 +4,4 @@
 !.env.project
 !.env.vault
 !.env.test
+!.env.prod

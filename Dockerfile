@@ -17,13 +17,13 @@ FROM ubuntu:24.04 AS build-release-stage
 RUN apt-get update \
     && apt-get install -y ca-certificates \
     && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* \
-    && curl -sfS https://dotenvx.sh | sh
+    && curl -sfS https://dotenvx.sh/install.sh | sudo sh
 
 WORKDIR /
 
 COPY --from=build-stage /playlist-manager /playlist-manager
-COPY ./cmd/api/.env.test /.env.test
+COPY ./cmd/api/.env.prod /.env.prod
 
 EXPOSE 8080
 
-CMD ["dotenvx", "run", "-f", "/.env.test", "--", "/playlist-manager"]
+CMD ["dotenvx", "run", "-f", "/.env.prod", "--", "/playlist-manager"]

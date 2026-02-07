@@ -6,17 +6,15 @@ services:
     depends_on:
       app:
         condition: service_healthy
-    profiles:
-      - prod
 
   app:
     build:
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
       context: .
     volumes:
       - type: bind
-        source: ./cmd/api/.env
-        target: /.env
+        source: ./cmd/api/.env.prod
+        target: /.env.prod
         read_only: true
     depends_on:
       db:
