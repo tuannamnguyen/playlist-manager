@@ -14,7 +14,6 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/dotenv-org/godotenvvault"
 	"github.com/go-playground/validator"
 	"github.com/gorilla/sessions"
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -49,12 +48,6 @@ func main() {
 }
 
 func run() error {
-	// setup .env
-	err := godotenvvault.Load()
-	if err != nil {
-		return fmt.Errorf("error reading .env: %v", err)
-	}
-
 	// setup HTTP client
 	transport := http.DefaultTransport.(*http.Transport).Clone()
 	transport.MaxIdleConns = 100

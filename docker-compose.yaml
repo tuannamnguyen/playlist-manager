@@ -6,18 +6,22 @@ services:
     depends_on:
       app:
         condition: service_healthy
-    profiles:
-      - prod
 
   app:
     build:
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
       context: .
     volumes:
       - type: bind
-        source: ./cmd/api/.env
-        target: /.env
+        source: ./cmd/api/.env.prod
+        target: /.env.prod
         read_only: true
+      - type: bind
+        source: ~/.aws
+        target: /root/.aws
+        read_only: true
+    environment:
+      - DOTENV_PRIVATE_KEY_PROD=${DOTENVX_PRIVATE_KEY}
     depends_on:
       db:
         condition: service_healthy
