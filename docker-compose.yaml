@@ -16,6 +16,8 @@ services:
         source: ./cmd/api/.env.prod
         target: /.env.prod
         read_only: true
+    environment:
+      - DOTENV_PRIVATE_KEY_PROD=${DOTENVX_PRIVATE_KEY}
     depends_on:
       db:
         condition: service_healthy
