@@ -37,3 +37,7 @@ resource "aws_key_pair" "ec2_key_pair" {
   public_key = var.ssh_public_key
   key_name   = "id_ed25519"
 }
+
+output "my_host_01_public_ip" {
+  value = module.ec2_instance.public_ip
+}
