@@ -35,7 +35,7 @@ module "ec2_instance" {
 
 resource "aws_key_pair" "ec2_key_pair" {
   public_key = var.ssh_public_key
-  key_name   = "id_ed25519"
+  key_name   = "playlist_manager"
 }
 
 output "my_host_01_public_ip" {
