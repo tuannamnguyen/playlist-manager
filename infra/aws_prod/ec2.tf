@@ -19,6 +19,12 @@ module "ec2_instance" {
   monitoring                  = true
   subnet_id                   = module.vpc.public_subnets[0]
   associate_public_ip_address = true
+
+  root_block_device = {
+    delete_on_termination = true
+    size                  = 20
+  }
+
   security_group_ingress_rules = {
     "ssh_from_home" : {
       "cidr_ipv4" : var.home_ip_address,
