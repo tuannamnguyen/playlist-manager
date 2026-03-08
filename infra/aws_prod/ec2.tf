@@ -13,7 +13,7 @@ module "ec2_instance" {
 
   name = "my_host_01"
 
-  instance_type               = "t3.micro"
+  instance_type               = "t3.small"
   ami                         = "ami-0ed0867532b47cc2c" # Ubuntu 24.04 AMI ID
   key_name                    = aws_key_pair.ec2_key_pair.key_name
   monitoring                  = true
