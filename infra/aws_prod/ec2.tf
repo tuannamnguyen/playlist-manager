@@ -19,6 +19,7 @@ module "ec2_instance" {
   monitoring                  = true
   subnet_id                   = module.vpc.public_subnets[0]
   associate_public_ip_address = true
+  iam_instance_profile        = aws_iam_instance_profile.ec2_profile.name
 
   root_block_device = {
     delete_on_termination = true
