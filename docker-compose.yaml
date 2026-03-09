@@ -38,6 +38,7 @@ services:
     ports:
       - 8080:8080
     profiles:
+      - prod_app_only
       - prod
 
   db:

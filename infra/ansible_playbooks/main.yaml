@@ -1,0 +1,8 @@
+---
+- name: Install Docker
+  hosts: myhosts
+  become: true
+
+  tasks:
+    - name: Docker installation tasks
+      ansible.builtin.import_tasks: install-docker.yaml
