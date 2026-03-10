@@ -93,7 +93,7 @@ func run() error {
 		)
 
 		if err != nil {
-			return fmt.Errorf("failed to config AWS: %s", err)
+			return fmt.Errorf("failed to config prod AWS: %s", err)
 		}
 
 		log.Println("using AWS default config")
@@ -104,7 +104,7 @@ func run() error {
 		)
 
 		if err != nil {
-			return fmt.Errorf("failed to config AWS: %s", err)
+			return fmt.Errorf("failed to config test AWS: %s", err)
 		}
 
 		log.Printf("using AWS %s profile", os.Getenv("AWS_PROFILE"))
