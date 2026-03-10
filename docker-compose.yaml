@@ -6,16 +6,14 @@ services:
     depends_on:
       app:
         condition: service_healthy
+    profiles:
+      - prod_with_fe
 
   app:
     build:
       dockerfile: Dockerfile
       context: .
     volumes:
-      - type: bind
-        source: ./cmd/api/.env.prod
-        target: /.env.prod
-        read_only: true
       - type: bind
         source: ~/.aws
         target: /root/.aws
@@ -40,6 +38,35 @@ services:
     profiles:
       - prod_app_only
       - prod
+
+  app_test:
+    build:
+      dockerfile: Dockerfile.test
+      context: .
+    volumes:
+      - type: bind
+        source: ~/.aws
+        target: /root/.aws
+        read_only: true
+    environment:
+      - DOTENV_PRIVATE_KEY_TEST=${DOTENVX_PRIVATE_KEY}
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+      redis:
+        condition: service_healthy
+        restart: true
+    restart: on-failure:3
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/healthcheck" ]
+      interval: 5s
+      timeout: 10s
+      retries: 3
+    ports:
+      - 8080:8080
+    profiles:
+      - test_minimal
 
   db:
     image: postgres:16
@@ -74,16 +101,6 @@ services:
       - prod
       - test
       - test_minimal
-
-  vault:
-    image: hashicorp/vault:latest
-    ports:
-      - "8200:8200"
-    environment:
-      - VAULT_DEV_ROOT_TOKEN_ID=dev-only-token
-      - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
-    profiles:
-      - test_vault
 
   redis_ui:
     image: redis/redisinsight

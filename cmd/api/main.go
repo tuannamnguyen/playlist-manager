@@ -12,6 +12,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/go-playground/validator"
@@ -75,13 +77,37 @@ func run() error {
 
 	log.Println("connected to postgres successfully")
 
-	// setup AWS S3
-	awsConfig, err := config.LoadDefaultConfig(
-		context.TODO(),
-		config.WithSharedConfigProfile(os.Getenv("AWS_PROFILE")),
-	)
+	isProd, err := strconv.ParseBool(os.Getenv("IS_PROD"))
 	if err != nil {
-		return fmt.Errorf("failed to config AWS: %s", err)
+		return fmt.Errorf("parsing bool: %s", err)
+	}
+
+	// setup AWS S3
+	var awsConfig aws.Config
+
+	log.Printf("IS_PROD value: %t\n", isProd)
+
+	if isProd {
+		awsConfig, err = config.LoadDefaultConfig(
+			context.TODO(),
+		)
+
+		if err != nil {
+			return fmt.Errorf("failed to config AWS: %s", err)
+		}
+
+		log.Println("using AWS default config")
+	} else {
+		awsConfig, err = config.LoadDefaultConfig(
+			context.TODO(),
+			config.WithSharedConfigProfile(os.Getenv("AWS_PROFILE")),
+		)
+
+		if err != nil {
+			return fmt.Errorf("failed to config AWS: %s", err)
+		}
+
+		log.Printf("using AWS %s profile", os.Getenv("AWS_PROFILE"))
 	}
 
 	s3Client := s3.NewFromConfig(awsConfig)
@@ -96,11 +122,6 @@ func run() error {
 	}
 	defer store.Close()
 	store.SetMaxAge(3600)
-
-	isProd, err := strconv.ParseBool(os.Getenv("IS_PROD"))
-	if err != nil {
-		return fmt.Errorf("parsing bool: %s", err)
-	}
 
 	store.Options.Secure = isProd
 	if isProd {
