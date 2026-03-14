@@ -92,7 +92,7 @@ func run() error {
 	)
 
 	if err != nil {
-		return fmt.Errorf("failed to config prod AWS: %s", err)
+		return fmt.Errorf("failed to config AWS: %s", err)
 	}
 	s3Client := s3.NewFromConfig(awsConfig)
 	s3PresignClient := s3.NewPresignClient(s3Client)
