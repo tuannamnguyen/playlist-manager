@@ -26,6 +26,10 @@ module "ec2_instance" {
     size                  = 20
   }
 
+  metadata_options = {
+    "http_put_response_hop_limit" : 2,
+  }
+
   security_group_ingress_rules = {
     "ssh_from_home" : {
       "cidr_ipv4" : var.home_ip_address,
