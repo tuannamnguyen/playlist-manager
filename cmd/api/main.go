@@ -87,29 +87,13 @@ func run() error {
 
 	log.Printf("IS_PROD value: %t\n", isProd)
 
-	if isProd {
-		awsConfig, err = config.LoadDefaultConfig(
-			context.TODO(),
-		)
+	awsConfig, err = config.LoadDefaultConfig(
+		context.TODO(),
+	)
 
-		if err != nil {
-			return fmt.Errorf("failed to config prod AWS: %s", err)
-		}
-
-		log.Println("using AWS default config")
-	} else {
-		awsConfig, err = config.LoadDefaultConfig(
-			context.TODO(),
-			config.WithSharedConfigProfile(os.Getenv("AWS_PROFILE")),
-		)
-
-		if err != nil {
-			return fmt.Errorf("failed to config test AWS: %s", err)
-		}
-
-		log.Printf("using AWS %s profile", os.Getenv("AWS_PROFILE"))
+	if err != nil {
+		return fmt.Errorf("failed to config prod AWS: %s", err)
 	}
-
 	s3Client := s3.NewFromConfig(awsConfig)
 	s3PresignClient := s3.NewPresignClient(s3Client)
 
