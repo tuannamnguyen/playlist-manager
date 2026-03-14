@@ -72,10 +72,11 @@ services:
     image: postgres:16
     env_file: ./cmd/api/.env
     volumes:
-      # - ./scripts/sql/script.sql:/docker-entrypoint-initdb.d/script.sql
       - pgdata:/var/lib/postgresql/data
     ports:
       - 5432:5432
+    environment:
+      - POSTGRES_DB=playlist_manager
     healthcheck:
       test: [ "CMD-SHELL", "psql -U postgres -d postgres -c 'SELECT 1' || exit 1" ]
       interval: 1s
