@@ -1,3 +1,5 @@
+
+
 resource "aws_iam_policy" "ec2_app_instance_policy" {
   name        = "playlist-manager-ec2-policy"
   description = "Policy to provide EC2 permission to have access to S3"
@@ -11,7 +13,7 @@ resource "aws_iam_policy" "ec2_app_instance_policy" {
             "s3:PutObject",
             "s3:GetObject"
           ]
-          Resource = aws_s3_bucket.example.arn
+          Resource = "${aws_s3_bucket.example.arn}/*"
         },
       ]
 
