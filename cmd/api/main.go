@@ -12,8 +12,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/go-playground/validator"
@@ -83,11 +81,9 @@ func run() error {
 	}
 
 	// setup AWS S3
-	var awsConfig aws.Config
-
 	log.Printf("IS_PROD value: %t\n", isProd)
 
-	awsConfig, err = config.LoadDefaultConfig(
+	awsConfig, err := config.LoadDefaultConfig(
 		context.TODO(),
 	)
 
