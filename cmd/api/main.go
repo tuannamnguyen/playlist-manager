@@ -75,15 +75,21 @@ func run() error {
 
 	log.Println("connected to postgres successfully")
 
+	isProd, err := strconv.ParseBool(os.Getenv("IS_PROD"))
+	if err != nil {
+		return fmt.Errorf("parsing bool: %s", err)
+	}
+
 	// setup AWS S3
+	log.Printf("IS_PROD value: %t\n", isProd)
+
 	awsConfig, err := config.LoadDefaultConfig(
 		context.TODO(),
-		config.WithSharedConfigProfile(os.Getenv("AWS_PROFILE")),
 	)
+
 	if err != nil {
 		return fmt.Errorf("failed to config AWS: %s", err)
 	}
-
 	s3Client := s3.NewFromConfig(awsConfig)
 	s3PresignClient := s3.NewPresignClient(s3Client)
 
@@ -96,11 +102,6 @@ func run() error {
 	}
 	defer store.Close()
 	store.SetMaxAge(3600)
-
-	isProd, err := strconv.ParseBool(os.Getenv("IS_PROD"))
-	if err != nil {
-		return fmt.Errorf("parsing bool: %s", err)
-	}
 
 	store.Options.Secure = isProd
 	if isProd {

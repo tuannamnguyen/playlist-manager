@@ -1,0 +1,6 @@
+---
+- name: Clone git repository
+  ansible.builtin.git:
+    repo: "https://github.com/tuannamnguyen/playlist-manager.git"
+    dest: /home/ubuntu/playlist_manager
+    version: aws_test

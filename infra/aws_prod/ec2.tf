@@ -26,11 +26,21 @@ module "ec2_instance" {
     size                  = 20
   }
 
+  metadata_options = {
+    "http_put_response_hop_limit" : 2,
+  }
+
   security_group_ingress_rules = {
     "ssh_from_home" : {
       "cidr_ipv4" : var.home_ip_address,
       "from_port" : 22,
       "to_port" : 22
+    }
+
+    "app_access_from_anywhere" : {
+      "cidr_ipv4" : "0.0.0.0/0",
+      "from_port" : 8080,
+      "to_port" : 8080
     }
   }
   security_group_vpc_id = module.vpc.vpc_id

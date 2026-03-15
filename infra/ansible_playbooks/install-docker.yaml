@@ -42,7 +42,7 @@
 
 - name: Update apt cache after adding Docker repository
   ansible.builtin.apt:
-    update_cache: yes
+    update_cache: true
 
 - name: Install Docker and Docker Compose
   ansible.builtin.package:
@@ -58,10 +58,10 @@
   ansible.builtin.service:
     name: docker
     state: started
-    enabled: yes
+    enabled: true
 
 - name: Add ubuntu user to docker group
   ansible.builtin.user:
     name: ubuntu
     groups: docker
-    append: yes
+    append: true
