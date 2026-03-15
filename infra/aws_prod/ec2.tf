@@ -36,6 +36,12 @@ module "ec2_instance" {
       "from_port" : 22,
       "to_port" : 22
     }
+
+    "app_access_from_anywhere" : {
+      "cidr_ipv4" : "0.0.0.0/0",
+      "from_port" : 8080,
+      "to_port" : 8080
+    }
   }
   security_group_vpc_id = module.vpc.vpc_id
 
