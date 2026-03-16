@@ -1,4 +1,4 @@
-target_ip=$(terraform -chdir=../aws_prod  output -raw my_host_01_public_ip)
+target_ip=$(terraform -chdir=../  output -raw my_host_01_public_ip)
 # echo $target_ip
 
 
