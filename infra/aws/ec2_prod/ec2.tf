@@ -12,7 +12,7 @@ module "ec2_instance" {
   ami                         = "ami-0ed0867532b47cc2c" # Ubuntu 24.04 AMI ID
   monitoring                  = true
   subnet_id                   = module.vpc.private_subnets[0]
-  associate_public_ip_address = true
+  associate_public_ip_address = false
   iam_instance_profile        = aws_iam_instance_profile.ec2_profile.name
 
   root_block_device = {

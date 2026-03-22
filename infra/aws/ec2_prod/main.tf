@@ -6,6 +6,8 @@ variable "porkbun_secret_key" {
   type = string
 }
 
+data "aws_region" "current" {}
+
 terraform {
   required_providers {
     aws = {

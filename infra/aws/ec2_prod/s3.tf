@@ -7,7 +7,8 @@ resource "aws_s3_bucket" "example" {
 }
 
 resource "aws_s3_bucket" "ansible_ssm_bucket" {
-  bucket = "ansible-ssm-bucket-${data.aws_caller_identity.current.account_id}"
+  bucket        = "ansible-ssm-bucket-${data.aws_caller_identity.current.account_id}"
+  force_destroy = true
 }
 
 output "ansible_ssm_bucket_name" {
