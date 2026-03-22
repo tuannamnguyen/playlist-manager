@@ -11,7 +11,7 @@ module "ec2_instance" {
   instance_type               = "t3.small"
   ami                         = "ami-0ed0867532b47cc2c" # Ubuntu 24.04 AMI ID
   monitoring                  = true
-  subnet_id                   = module.vpc.public_subnets[0]
+  subnet_id                   = module.vpc.private_subnets[0]
   associate_public_ip_address = true
   iam_instance_profile        = aws_iam_instance_profile.ec2_profile.name
 
