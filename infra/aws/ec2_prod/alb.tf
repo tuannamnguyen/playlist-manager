@@ -25,6 +25,12 @@ resource "aws_lb_target_group" "playlist_manager_target_group" {
   }
 }
 
+resource "aws_lb_target_group_attachment" "tg_attachement_a" {
+  target_group_arn = aws_lb_target_group.playlist_manager_target_group.arn
+  target_id        = module.ec2_instance.id
+  port             = 8080
+}
+
 # HTTP listener - redirect all traffic to HTTPS
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.playlist_manager_load_balancer.arn
