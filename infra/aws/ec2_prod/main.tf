@@ -14,8 +14,8 @@ terraform {
     }
 
     porkbun = {
-      source  = "jianyuan/porkbun"
-      version = "0.2.1"
+      source  = "kyswtn/porkbun"
+      version = "0.1.3"
     }
   }
 
@@ -34,6 +34,6 @@ provider "aws" {
 }
 
 provider "porkbun" {
-  api_key    = var.porkbun_api_key
-  secret_key = var.porkbun_secret_key
+  api_key        = var.porkbun_api_key
+  secret_api_key = var.porkbun_secret_key
 }
