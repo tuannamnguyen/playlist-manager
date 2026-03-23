@@ -62,3 +62,17 @@ resource "aws_vpc_endpoint" "interface" {
     Name = "${each.key}-endpoint"
   }
 }
+
+# add this so EC2 instance can access S3 Ansible bucket
+# https://docs.ansible.com/projects/ansible/latest/collections/amazon/aws/aws_ssm_connection.html#requirements
+resource "aws_vpc_endpoint" "s3_gateway_endpoint" {
+  vpc_id            = module.vpc.vpc_id
+  service_name      = "com.amazonaws.${data.aws_region.current.region}.s3"
+  vpc_endpoint_type = "Gateway"
+
+  route_table_ids = module.vpc.private_route_table_ids
+
+  tags = {
+    Name = "s3-gw-endpoint"
+  }
+}

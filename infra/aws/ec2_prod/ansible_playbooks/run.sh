@@ -5,4 +5,4 @@ echo $ansible_ssm_bucket_name
 
 
 
-ansible-playbook -i inventory.yaml  main.yaml -e "instance_id=$instance_id ansible_ssm_bucket_name=$ansible_ssm_bucket_name"
+ansible-playbook -v -i inventory.yaml  main.yaml -e "instance_id=$instance_id ansible_ssm_bucket_name=$ansible_ssm_bucket_name"
