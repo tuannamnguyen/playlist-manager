@@ -1,6 +1,7 @@
 instance_id=$(terraform -chdir=../  output -raw instance_id)
 ansible_ssm_bucket_name=$(terraform -chdir=../  output -raw ansible_ssm_bucket_name)
-# echo $target_ip
+echo $instance_id
+echo $ansible_ssm_bucket_name
 
 
 
