@@ -39,10 +39,16 @@ resource "aws_iam_role" "ec2_app_instance_role" {
   )
 }
 
-resource "aws_iam_role_policy_attachment" "iam_role_attachment" {
+resource "aws_iam_role_policy_attachment" "iam_app_role_attachment" {
   role       = aws_iam_role.ec2_app_instance_role.name
   policy_arn = aws_iam_policy.ec2_app_instance_policy.arn
 }
+
+resource "aws_iam_role_policy_attachment" "iam_ssm_role_attachment" {
+  role       = aws_iam_role.ec2_app_instance_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
 
 resource "aws_iam_instance_profile" "ec2_profile" {
   name = "playlist-manager-profile"
