@@ -1,5 +1,5 @@
 ---
-- name: Install Docker
+- name: Deploy apps to EC2
   hosts: myhosts
   become: true
   vars:

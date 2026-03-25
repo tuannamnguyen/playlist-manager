@@ -62,6 +62,6 @@
 
 - name: Add ubuntu user to docker group
   ansible.builtin.user:
-    name: ubuntu
+    name: ssm-user
     groups: docker
     append: true
