@@ -1,5 +1,5 @@
 {
-    "ansible.python.interpreterPath": "/home/nam/.local/share/mise/installs/ansible/13.4.0",
+    "ansible.python.interpreterPath": "/home/nam/playlist-manager/.venv/bin/python",
     "ansible.python.activationScript": "",
     "ansible.ansible.reuseTerminal": true
 }

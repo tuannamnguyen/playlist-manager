@@ -1,27 +1,25 @@
 #!/bin/bash
 
-cd ../../cmd/api/
-dotenv_key=$(npx dotenv-vault keys production)
-cd - > /dev/null
+home_ip_address="$(curl -4 icanhazip.com)/32"
 
-read -p "Enter the image tag (e.g., sha-123456): " image_tag
-read -p "Enter the DB root password: " db_root_password
+read -p "Enter Porkbun API key: " api_key
+read -p "Enter Porkbun API secret key: " secret_key
 
 echo "Do you want to apply or destroy the resources?"
 select action in "Apply" "Destroy"; do
     case $action in
         Apply)
-            terraform -chdir=../../terraform/prod/ apply \
-                -var image_tag=$image_tag \
-                -var dotenv_key=$dotenv_key \
-                -var db_root_password=$db_root_password
+            terraform -chdir=../../infra/aws/ec2_prod/ apply \
+                -var home_ip_address=$home_ip_address \
+                -var porkbun_api_key=$api_key \
+                -var porkbun_secret_key=$secret_key
             break
             ;;
         Destroy)
-            terraform -chdir=../../terraform/prod/ destroy \
-                -var image_tag=$image_tag \
-                -var dotenv_key=$dotenv_key \
-                -var db_root_password=$db_root_password
+            terraform -chdir=../../infra/aws/ec2_prod/ destroy \
+                -var home_ip_address=$home_ip_address \
+                -var porkbun_api_key=$api_key \
+                -var porkbun_secret_key=$secret_key
             break
             ;;
         *)
