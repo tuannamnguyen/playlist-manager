@@ -20,6 +20,15 @@ module "ec2_instance" {
     size                  = 20
   }
 
+  security_group_ingress_rules = {
+    "8080_from_alb" : {
+      "referenced_security_group_id" : aws_security_group.alb_security_group.id,
+      "from_port" : 8080,
+      "to_port" : 8080
+    }
+  }
+  security_group_vpc_id = module.vpc.vpc_id
+
   metadata_options = {
     "http_put_response_hop_limit" : 2,
   }
