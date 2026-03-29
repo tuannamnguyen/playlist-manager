@@ -13,6 +13,7 @@ resource "aws_db_instance" "db" {
   db_subnet_group_name        = aws_db_subnet_group.db_subnets.name
   vpc_security_group_ids      = [aws_security_group.db_access.id]
   manage_master_user_password = true
+  skip_final_snapshot         = true
 
 }
 
