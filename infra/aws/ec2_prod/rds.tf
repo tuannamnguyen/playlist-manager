@@ -4,16 +4,17 @@ resource "aws_db_subnet_group" "db_subnets" {
 }
 
 resource "aws_db_instance" "db" {
-  identifier                  = "playlist-manager"
-  instance_class              = "db.t3.micro"
-  allocated_storage           = 5
-  engine                      = "postgres"
-  engine_version              = "18.3"
-  username                    = "postgres"
-  db_subnet_group_name        = aws_db_subnet_group.db_subnets.name
-  vpc_security_group_ids      = [aws_security_group.db_access.id]
-  manage_master_user_password = true
-  skip_final_snapshot         = true
+  identifier                          = "playlist-manager"
+  instance_class                      = "db.t3.micro"
+  allocated_storage                   = 5
+  engine                              = "postgres"
+  engine_version                      = "18.3"
+  username                            = "postgres"
+  db_subnet_group_name                = aws_db_subnet_group.db_subnets.name
+  vpc_security_group_ids              = [aws_security_group.db_access.id]
+  manage_master_user_password         = true
+  iam_database_authentication_enabled = true
+  skip_final_snapshot                 = true
 
 }
 
