@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/gob"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -12,8 +13,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/go-playground/validator"
 	"github.com/gorilla/sessions"
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -31,6 +34,11 @@ import (
 
 type CustomValidator struct {
 	validator *validator.Validate
+}
+
+type SecretsManagerValues struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
 func (cv *CustomValidator) Validate(i any) error {
@@ -58,23 +66,6 @@ func run() error {
 		Timeout:   time.Minute,
 		Transport: transport,
 	}
-
-	// setup DB
-	psqlInfo := fmt.Sprintf("host=%s user=%s password=%s dbname=%s",
-		os.Getenv("POSTGRES_HOST"),
-		os.Getenv("POSTGRES_USER"),
-		os.Getenv("POSTGRES_PASSWORD"),
-		os.Getenv("POSTGRES_DBNAME"),
-	)
-
-	db, err := sqlx.Connect("pgx", psqlInfo)
-	if err != nil {
-		return fmt.Errorf("unable to connect to database: %v", err)
-	}
-	defer db.Close()
-
-	log.Println("connected to postgres successfully")
-
 	isProd, err := strconv.ParseBool(os.Getenv("IS_PROD"))
 	if err != nil {
 		return fmt.Errorf("parsing bool: %s", err)
@@ -92,6 +83,50 @@ func run() error {
 	}
 	s3Client := s3.NewFromConfig(awsConfig)
 	s3PresignClient := s3.NewPresignClient(s3Client)
+
+	// setup Secrets Manager client
+	secretName := "rds!db-8b380778-8f34-4040-b840-9b35282e8db4"
+	svc := secretsmanager.NewFromConfig(awsConfig)
+	input := &secretsmanager.GetSecretValueInput{
+		SecretId:     aws.String(secretName),
+		VersionStage: aws.String("AWSCURRENT"), // VersionStage defaults to AWSCURRENT if unspecified
+	}
+
+	result, err := svc.GetSecretValue(context.TODO(), input)
+	if err != nil {
+		// For a list of exceptions thrown, see
+		// https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
+		log.Fatal(err.Error())
+	}
+
+	var secretsManagerValues SecretsManagerValues
+	json.Unmarshal([]byte(*result.SecretString), &secretsManagerValues)
+
+	var postgresUser, postgresPassword string
+
+	if isProd {
+		postgresUser = secretsManagerValues.Username
+		postgresPassword = secretsManagerValues.Password
+	} else {
+		postgresUser = os.Getenv("POSTGRES_USER")
+		postgresPassword = os.Getenv("POSTGRES_PASSWORD")
+	}
+
+	// setup DB
+	psqlInfo := fmt.Sprintf("host=%s user=%s password=%s dbname=%s",
+		os.Getenv("POSTGRES_HOST"),
+		postgresUser,
+		postgresPassword,
+		os.Getenv("POSTGRES_DBNAME"),
+	)
+
+	db, err := sqlx.Connect("pgx", psqlInfo)
+	if err != nil {
+		return fmt.Errorf("unable to connect to database: %v", err)
+	}
+	defer db.Close()
+
+	log.Println("connected to postgres successfully")
 
 	// setup session and OAuth2
 	redisInfo := fmt.Sprintf("%s:%s", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT"))
