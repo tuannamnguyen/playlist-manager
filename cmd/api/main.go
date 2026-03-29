@@ -56,95 +56,154 @@ func main() {
 }
 
 func run() error {
-	// setup HTTP client
+	ctx := context.Background()
+
+	httpClient := newHTTPClient()
+
+	isProd, err := strconv.ParseBool(os.Getenv("IS_PROD"))
+	if err != nil {
+		return fmt.Errorf("parsing bool: %w", err)
+	}
+	log.Printf("IS_PROD value: %t\n", isProd)
+
+	awsConfig, err := newAWSConfig(ctx)
+	if err != nil {
+		return err
+	}
+
+	s3Client, s3PresignClient := newS3Clients(awsConfig)
+
+	secrets, err := getSecrets(ctx, awsConfig, "rds!db-8b380778-8f34-4040-b840-9b35282e8db4")
+	if err != nil {
+		return err
+	}
+
+	db, err := newDB(isProd, secrets)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	store, err := newSessionStore(isProd)
+	if err != nil {
+		return err
+	}
+	defer store.Close()
+
+	setupOAuth(store)
+
+	e := echo.New()
+
+	if err := startGracefulServer(e, db, httpClient, store, s3Client, s3PresignClient); err != nil {
+		e.Logger.Fatal(err)
+	}
+
+	return nil
+}
+
+func newHTTPClient() *http.Client {
 	transport := http.DefaultTransport.(*http.Transport).Clone()
 	transport.MaxIdleConns = 100
 	transport.MaxConnsPerHost = 100
 	transport.MaxIdleConnsPerHost = 100
 
-	httpClient := &http.Client{
+	return &http.Client{
 		Timeout:   time.Minute,
 		Transport: transport,
 	}
-	isProd, err := strconv.ParseBool(os.Getenv("IS_PROD"))
+}
+
+func newAWSConfig(ctx context.Context) (aws.Config, error) {
+	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
-		return fmt.Errorf("parsing bool: %s", err)
+		return aws.Config{}, fmt.Errorf("failed to config AWS: %w", err)
 	}
+	return cfg, nil
+}
 
-	// setup AWS S3
-	log.Printf("IS_PROD value: %t\n", isProd)
-
-	awsConfig, err := config.LoadDefaultConfig(
-		context.TODO(),
-	)
-
-	if err != nil {
-		return fmt.Errorf("failed to config AWS: %s", err)
-	}
-	s3Client := s3.NewFromConfig(awsConfig)
+func newS3Clients(cfg aws.Config) (*s3.Client, *s3.PresignClient) {
+	s3Client := s3.NewFromConfig(cfg)
 	s3PresignClient := s3.NewPresignClient(s3Client)
+	return s3Client, s3PresignClient
+}
 
-	// setup Secrets Manager client
-	secretName := "rds!db-8b380778-8f34-4040-b840-9b35282e8db4"
-	svc := secretsmanager.NewFromConfig(awsConfig)
+func getSecrets(ctx context.Context, cfg aws.Config, secretName string) (SecretsManagerValues, error) {
+	svc := secretsmanager.NewFromConfig(cfg)
+
 	input := &secretsmanager.GetSecretValueInput{
 		SecretId:     aws.String(secretName),
-		VersionStage: aws.String("AWSCURRENT"), // VersionStage defaults to AWSCURRENT if unspecified
+		VersionStage: aws.String("AWSCURRENT"),
 	}
 
-	result, err := svc.GetSecretValue(context.TODO(), input)
+	result, err := svc.GetSecretValue(ctx, input)
 	if err != nil {
-		// For a list of exceptions thrown, see
-		// https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
-		log.Fatal(err.Error())
+		return SecretsManagerValues{}, fmt.Errorf("get secret failed: %w", err)
 	}
 
-	var secretsManagerValues SecretsManagerValues
-	json.Unmarshal([]byte(*result.SecretString), &secretsManagerValues)
+	var secrets SecretsManagerValues
+	if err := json.Unmarshal([]byte(*result.SecretString), &secrets); err != nil {
+		return SecretsManagerValues{}, fmt.Errorf("unmarshal secret: %w", err)
+	}
 
-	var postgresUser, postgresPassword string
+	return secrets, nil
+}
+
+func newDB(isProd bool, secrets SecretsManagerValues) (*sqlx.DB, error) {
+	var user, password string
 
 	if isProd {
-		postgresUser = secretsManagerValues.Username
-		postgresPassword = secretsManagerValues.Password
+		user = secrets.Username
+		password = secrets.Password
 	} else {
-		postgresUser = os.Getenv("POSTGRES_USER")
-		postgresPassword = os.Getenv("POSTGRES_PASSWORD")
+		user = os.Getenv("POSTGRES_USER")
+		password = os.Getenv("POSTGRES_PASSWORD")
 	}
 
-	// setup DB
 	psqlInfo := fmt.Sprintf("host=%s user=%s password=%s dbname=%s",
 		os.Getenv("POSTGRES_HOST"),
-		postgresUser,
-		postgresPassword,
+		user,
+		password,
 		os.Getenv("POSTGRES_DBNAME"),
 	)
 
 	db, err := sqlx.Connect("pgx", psqlInfo)
 	if err != nil {
-		return fmt.Errorf("unable to connect to database: %v", err)
+		return nil, fmt.Errorf("unable to connect to database: %w", err)
 	}
-	defer db.Close()
 
 	log.Println("connected to postgres successfully")
+	return db, nil
+}
 
-	// setup session and OAuth2
+func newSessionStore(isProd bool) (*redistore.RediStore, error) {
 	redisInfo := fmt.Sprintf("%s:%s", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT"))
 	key := os.Getenv("SESSION_SECRET")
-	store, err := redistore.NewRediStore(10, "tcp", redisInfo, os.Getenv("REDIS_PASSWORD"), []byte(key))
-	if err != nil {
-		return fmt.Errorf("unable to connect to Redis for session store: %v", err)
-	}
-	defer store.Close()
-	store.SetMaxAge(3600)
 
+	store, err := redistore.NewRediStore(
+		10,
+		"tcp",
+		redisInfo,
+		os.Getenv("REDIS_PASSWORD"),
+		[]byte(key),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("unable to connect to Redis: %w", err)
+	}
+
+	store.SetMaxAge(3600)
 	store.Options.Secure = isProd
+
 	if isProd {
 		store.Options.SameSite = http.SameSiteNoneMode
 	}
 
+	return store, nil
+}
+
+func setupOAuth(store sessions.Store) {
 	gob.Register(goth.User{})
 	gothic.Store = store
+
 	goth.UseProviders(
 		spotify.New(
 			os.Getenv("SPOTIFY_ID"),
@@ -156,23 +215,27 @@ func run() error {
 			spotify.ScopeStreaming,
 		),
 	)
+}
 
-	// setup server
-	e := echo.New()
+func startGracefulServer(
+	e *echo.Echo,
+	db *sqlx.DB,
+	httpClient *http.Client,
+	store *redistore.RediStore,
+	s3Client *s3.Client,
+	s3PresignClient *s3.PresignClient,
+) error {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM)
 	defer stop()
 
 	go startServer(e, db, httpClient, store, s3Client, s3PresignClient)
 
-	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 10 seconds.
 	<-ctx.Done()
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	if err := e.Shutdown(ctx); err != nil {
-		e.Logger.Fatal(err)
-	}
 
-	return nil
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	return e.Shutdown(shutdownCtx)
 }
 
 func startServer(e *echo.Echo, db *sqlx.DB, httpClient *http.Client, store sessions.Store, s3Client *s3.Client, s3PresignedClient *s3.PresignClient) {
