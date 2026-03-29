@@ -15,6 +15,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/feature/rds/auth"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/go-playground/validator"
@@ -37,8 +38,7 @@ type CustomValidator struct {
 }
 
 type SecretsManagerValues struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Host string `json:"host"`
 }
 
 func (cv *CustomValidator) Validate(i any) error {
@@ -73,12 +73,12 @@ func run() error {
 
 	s3Client, s3PresignClient := newS3Clients(awsConfig)
 
-	secrets, err := getSecrets(ctx, awsConfig, "rds!db-8b380778-8f34-4040-b840-9b35282e8db4")
+	secrets, err := getSecrets(ctx, awsConfig, "db-host")
 	if err != nil {
 		return err
 	}
 
-	db, err := newDB(isProd, secrets)
+	db, err := newDB(isProd, secrets, awsConfig)
 	if err != nil {
 		return err
 	}
@@ -148,20 +148,31 @@ func getSecrets(ctx context.Context, cfg aws.Config, secretName string) (Secrets
 	return secrets, nil
 }
 
-func newDB(isProd bool, secrets SecretsManagerValues) (*sqlx.DB, error) {
-	var user, password string
+func newDB(isProd bool, secrets SecretsManagerValues, awsConfig aws.Config) (*sqlx.DB, error) {
+	var host, password string
+	var err error
 
 	if isProd {
-		user = secrets.Username
-		password = secrets.Password
+		host = secrets.Host
+
+		password, err = auth.BuildAuthToken(
+			context.TODO(),
+			fmt.Sprintf("%s:%s", host, "5432"),
+			os.Getenv("AWS_DEFAULT_REGION"),
+			os.Getenv("POSTGRES_USER"),
+			awsConfig.Credentials,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create authentication token: %w", err)
+		}
 	} else {
-		user = os.Getenv("POSTGRES_USER")
 		password = os.Getenv("POSTGRES_PASSWORD")
+		host = os.Getenv("POSTGRES_HOST")
 	}
 
 	psqlInfo := fmt.Sprintf("host=%s user=%s password=%s dbname=%s",
-		os.Getenv("POSTGRES_HOST"),
-		user,
+		host,
+		os.Getenv("POSTGRES_USER"),
 		password,
 		os.Getenv("POSTGRES_DBNAME"),
 	)
