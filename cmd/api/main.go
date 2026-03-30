@@ -38,7 +38,7 @@ type CustomValidator struct {
 }
 
 type SecretsManagerValues struct {
-	Host string `json:"host"`
+	Host string `json:"db_host"`
 }
 
 func (cv *CustomValidator) Validate(i any) error {

@@ -61,18 +61,18 @@ resource "aws_iam_policy" "rds_allow_ec2_connect_policy" {
 }
 
 locals {
-  policies_arn = toset([
-    aws_iam_policy.s3_allow_ec2_policy.arn,
-    "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
-    aws_iam_policy.rds_allow_ec2_connect_policy.arn
-  ])
+  policies_arn = tomap({
+    s3_allow_ec2  = aws_iam_policy.s3_allow_ec2_policy.arn,
+    ssm_managed   = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
+    rds_allow_ec2 = aws_iam_policy.rds_allow_ec2_connect_policy.arn
+  })
 }
 
 resource "aws_iam_role_policy_attachment" "iam_role_attachment" {
   for_each = local.policies_arn
 
   role       = aws_iam_role.ec2_app_instance_role.name
-  policy_arn = each.key
+  policy_arn = each.value
 }
 
 resource "aws_iam_instance_profile" "ec2_profile" {
