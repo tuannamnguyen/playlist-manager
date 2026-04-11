@@ -60,11 +60,34 @@ resource "aws_iam_policy" "rds_allow_ec2_connect_policy" {
   )
 }
 
+resource "aws_iam_policy" "sm_allow_ec2_get_secret_policy" {
+  name        = "sm-allow-ec2-get-secret-policy"
+  description = "Policy to allow EC2 instance to get secret from Secrets Manager"
+
+  policy = jsonencode(
+    {
+      Version = "2012-10-17"
+      Statement = [
+        {
+          Effect = "Allow"
+          Action = [
+            "secretsmanager:GetSecretValue"
+          ]
+          Resource = [
+            aws_secretsmanager_secret.db_host.arn
+          ]
+        }
+      ]
+    }
+  )
+}
+
 locals {
   policies_arn = tomap({
     s3_allow_ec2  = aws_iam_policy.s3_allow_ec2_policy.arn,
     ssm_managed   = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
     rds_allow_ec2 = aws_iam_policy.rds_allow_ec2_connect_policy.arn
+    sm_allow_ec2  = aws_iam_policy.sm_allow_ec2_get_secret_policy.arn
   })
 }
 
