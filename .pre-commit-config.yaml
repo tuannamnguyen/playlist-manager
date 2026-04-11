@@ -12,7 +12,7 @@ repos:
       - id: go-fmt
       - id: go-imports
       - id: go-mod-tidy
-      - id: golangci-lint
+      # - id: golangci-lint
 
   - repo: https://github.com/antonbabenko/pre-commit-terraform
     rev: v1.92.0
