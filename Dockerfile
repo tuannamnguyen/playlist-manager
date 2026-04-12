@@ -20,7 +20,7 @@ WORKDIR /
 RUN apt-get -y update \
     && apt-get install -y ca-certificates \
     && apt-get -y install curl \
-    && curl -sfS https://dotenvx.sh/install.sh | sh \
+    && curl -sfS "https://dotenvx.sh?version=1.60.0" | sh  \
     && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
 
