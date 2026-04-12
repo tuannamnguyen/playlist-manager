@@ -52,7 +52,7 @@ resource "aws_iam_policy" "rds_allow_ec2_connect_policy" {
             "rds-db:connect"
           ]
           Resource = [
-            "arn:aws:rds-db:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:dbuser:${aws_db_instance.db.id}/postgres"
+            "arn:aws:rds-db:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:dbuser:${aws_db_instance.db.id}/nam"
           ]
         }
       ]
