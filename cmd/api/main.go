@@ -162,6 +162,8 @@ func newDB(isProd bool, secrets SecretsManagerValues, awsConfig aws.Config) (*sq
 			os.Getenv("POSTGRES_USER"),
 			awsConfig.Credentials,
 		)
+
+		log.Println("postgres password: ", password)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create authentication token: %w", err)
 		}
