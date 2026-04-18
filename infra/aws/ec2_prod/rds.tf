@@ -5,6 +5,7 @@ resource "aws_db_subnet_group" "db_subnets" {
 
 resource "aws_db_instance" "db" {
   identifier                          = "playlist-manager"
+  db_name                             = "playlist_manager"
   instance_class                      = "db.t3.micro"
   allocated_storage                   = 5
   engine                              = "postgres"
