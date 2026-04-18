@@ -1,7 +1,15 @@
 ---
+- name: Persist DOTENVX private key in bashrc
+  become_user: ssm-user
+  no_log: true
+  ansible.builtin.lineinfile:
+    path: /home/ssm-user/.bashrc
+    regexp: '^export DOTENVX_PRIVATE_KEY='
+    line: 'export DOTENVX_PRIVATE_KEY="{{ dotenvx_private_key }}"'
+    create: true
+
 - name: Clone git repository
   become_user: ssm-user
-
   ansible.builtin.git:
     repo: "https://github.com/tuannamnguyen/playlist-manager.git"
     dest: /home/ssm-user/playlist_manager
