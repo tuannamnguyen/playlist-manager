@@ -1,0 +1,14 @@
+---
+- name: Install PostgreSQL client
+  ansible.builtin.package:
+    name: postgresql-client
+    state: present
+
+- name: Verify psql installation
+  ansible.builtin.command: psql --version
+  register: psql_version
+  changed_when: false
+
+- name: Show installed version
+  ansible.builtin.debug:
+    msg: "{{ psql_version.stdout }}"

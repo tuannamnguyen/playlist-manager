@@ -15,3 +15,6 @@
 
     - name: App setup tasks
       ansible.builtin.import_tasks: app-setup.yaml
+
+    - name: Install psql
+      ansible.builtin.import_tasks: install-psql.yaml
