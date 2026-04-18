@@ -43,9 +43,9 @@ services:
     environment:
       - DOTENV_PRIVATE_KEY_TEST=${DOTENVX_PRIVATE_KEY}
     depends_on:
-      # db:
-      #   condition: service_healthy
-      #   restart: true
+      db:
+        condition: service_healthy
+        restart: true
       redis:
         condition: service_healthy
         restart: true
