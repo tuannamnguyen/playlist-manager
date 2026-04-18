@@ -13,6 +13,9 @@
     - name: Docker installation tasks
       ansible.builtin.import_tasks: install-docker.yaml
 
+    - name: Install AWS CLI
+      ansible.builtin.import_tasks: install-aws-cli.yaml
+
     - name: App setup tasks
       ansible.builtin.import_tasks: app-setup.yaml
 

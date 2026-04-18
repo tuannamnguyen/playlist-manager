@@ -1,5 +1,7 @@
 ---
 - name: Clone git repository
+  become_user: ssm-user
+
   ansible.builtin.git:
     repo: "https://github.com/tuannamnguyen/playlist-manager.git"
     dest: /home/ssm-user/playlist_manager
