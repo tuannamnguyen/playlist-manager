@@ -1,0 +1,20 @@
+---
+- name: Download RDS global bundle
+  ansible.builtin.get_url:
+    url: https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem
+    dest: /home/ssm-user/playlist_manager/global-bundle.pem
+    mode: "0644"
+
+- name: Install PostgreSQL client
+  ansible.builtin.package:
+    name: postgresql-client
+    state: present
+
+- name: Verify psql installation
+  ansible.builtin.command: psql --version
+  register: psql_version
+  changed_when: false
+
+- name: Show installed version
+  ansible.builtin.debug:
+    msg: "{{ psql_version.stdout }}"

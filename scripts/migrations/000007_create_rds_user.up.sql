@@ -1,0 +1,2 @@
+CREATE_USER nam;
+GRANT RDS_IAM to nam;

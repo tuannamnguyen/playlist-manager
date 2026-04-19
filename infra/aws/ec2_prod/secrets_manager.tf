@@ -1,6 +1,7 @@
 resource "aws_secretsmanager_secret" "db_host" {
-  name        = "db-host"
-  description = "Host value for Postgres DB"
+  name                    = "db-host"
+  description             = "Host value for Postgres DB"
+  recovery_window_in_days = 0
 }
 
 resource "aws_secretsmanager_secret_version" "db_host" {

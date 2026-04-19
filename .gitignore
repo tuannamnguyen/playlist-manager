@@ -397,3 +397,5 @@ pip-selfcheck.json
 config/pgpass
 service_account.json
 service-account.json
+scripts/sh/migrate_up.sh
+.codex
