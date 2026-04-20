@@ -1,2 +1,2 @@
-CREATE_USER nam;
+CREATE USER nam;
 GRANT RDS_IAM to nam;

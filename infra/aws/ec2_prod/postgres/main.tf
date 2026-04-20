@@ -20,10 +20,11 @@ variable "host" {
 }
 
 provider "postgresql" {
-  host             = var.host
-  port             = 5432
-  database         = "playlist_manager"
-  username         = "nam"
-  connect_timeout  = 15
-  aws_rds_iam_auth = true
+  host                = var.host
+  port                = 5432
+  database            = "playlist_manager"
+  username            = "nam"
+  connect_timeout     = 15
+  aws_rds_iam_auth    = true
+  aws_rds_iam_profile = "admin-access"
 }
