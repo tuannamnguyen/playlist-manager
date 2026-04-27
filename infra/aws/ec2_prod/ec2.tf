@@ -33,6 +33,10 @@ module "ec2_instance" {
     "http_put_response_hop_limit" : 2,
   }
 
+  depends_on = [
+    aws_iam_role_policy_attachment.iam_role_attachment
+  ]
+
   tags = {
     Terraform   = "true"
     Environment = "dev"
